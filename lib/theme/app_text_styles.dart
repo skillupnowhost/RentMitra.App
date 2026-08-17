@@ -31,4 +31,25 @@ class AppTextStyles {
       height: height,
     );
   }
+
+  /// Cinematic display face (Sora) reserved for splash/onboarding headlines —
+  /// a geometric, futuristic counterpoint to the Inter body copy used
+  /// everywhere else, per the brand's "premium onboarding" treatment.
+  static TextStyle display({
+    required double figmaSize,
+    FontWeight weight = FontWeight.w800,
+    Color color = AppColors.navy,
+    double? letterSpacing,
+    double? height,
+    List<Shadow>? shadows,
+  }) {
+    return GoogleFonts.sora(
+      fontSize: fig(figmaSize),
+      fontWeight: weight,
+      color: color,
+      letterSpacing: letterSpacing,
+      height: height,
+      shadows: shadows,
+    );
+  }
 }

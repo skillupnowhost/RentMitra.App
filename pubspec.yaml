@@ -63,12 +63,17 @@ flutter:
 
   assets:
     - assets/images/logo_mark.png
+    - assets/images/logo_full.png
     - assets/images/appliance_cluster.png
     - assets/images/ac_product.png
     - assets/images/fridge_product.png
     - assets/images/washer_product.png
     - assets/images/blob_top_left.png
     - assets/images/promo_badge.png
+    - assets/images/ac_splash.png
+    - assets/images/washing_machine_splash.png
+    - assets/images/fridge_splash.png
+    - assets/images/main_splash.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

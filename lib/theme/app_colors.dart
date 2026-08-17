@@ -39,9 +39,9 @@ class AppColors {
   static const Color check = Color(0xFF63B37B);
 
   static const List<Color> splashBackground = [
-    Color(0xFFF9F8FF),
+    Color(0xFFFCFBFF),
     Color(0xFFF1EDFE),
-    Color(0xFFE9E2FC),
+    Color(0xFFE1D3F9),
   ];
 
   static const List<Color> heroBanner = [Color(0xFFF3F1FC), Color(0xFFEBE6FA)];

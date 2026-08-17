@@ -50,11 +50,7 @@ class LocationSelector extends StatelessWidget {
                 ),
               )
             else
-              const Icon(
-                Icons.location_on,
-                size: 15,
-                color: AppColors.purple,
-              ),
+              const Icon(Icons.location_on, size: 15, color: AppColors.purple),
             SizedBox(width: AppTextStyles.fig(4)),
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: AppTextStyles.fig(110)),

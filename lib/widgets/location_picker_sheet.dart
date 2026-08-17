@@ -66,16 +66,13 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
       Navigator.of(context).pop();
     } else {
       final message = switch (LocationController.instance.status.value) {
-        LocationStatus.deniedForever =>
-          'Location permission is blocked. Tap "Open App Settings" to allow it.',
+        LocationStatus.deniedForever => 'Location permission is blocked. Tap "Open App Settings" to allow it.',
         LocationStatus.servicesDisabled =>
           'Location services are off. Tap "Turn On Location" to enable them.',
-        _ =>
-          "Couldn't detect your location. Please select your city below.",
+        _ => "Couldn't detect your location. Please select your city below.",
       };
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -228,9 +225,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                               Icon(icon, size: 17, color: AppColors.purple),
                             SizedBox(width: AppTextStyles.fig(8)),
                             Text(
-                              _detecting
-                                  ? 'Detecting your location…'
-                                  : label,
+                              _detecting ? 'Detecting your location…' : label,
                               style: AppTextStyles.of(
                                 figmaSize: 14,
                                 weight: FontWeight.w600,

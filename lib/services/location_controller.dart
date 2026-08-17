@@ -147,22 +147,23 @@ class LocationController {
   /// explicit choice.
   void _startLiveTracking() {
     if (_liveSub != null) return;
-    _liveSub = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.medium,
-        distanceFilter: 300,
-      ),
-    ).listen(
-      (position) {
-        if (status.value == LocationStatus.manual) return;
-        _resolveAndApply(position);
-      },
-      onError: (_) {
-        // Stream errors (permission revoked mid-session, GPS turned off,
-        // etc.) shouldn't crash the app — just stop tracking silently.
-        _stopLiveTracking();
-      },
-    );
+    _liveSub =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            distanceFilter: 300,
+          ),
+        ).listen(
+          (position) {
+            if (status.value == LocationStatus.manual) return;
+            _resolveAndApply(position);
+          },
+          onError: (_) {
+            // Stream errors (permission revoked mid-session, GPS turned off,
+            // etc.) shouldn't crash the app — just stop tracking silently.
+            _stopLiveTracking();
+          },
+        );
   }
 
   void _stopLiveTracking() {
