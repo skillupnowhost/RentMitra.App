@@ -142,6 +142,7 @@ const _slides = [
 class _SplashSliderScreenState extends State<SplashSliderScreen> {
   final _pageController = PageController();
   int _page = 0;
+  int _maxPageReached = 0;
   bool _userInteracted = false;
   Timer? _autoTimer;
 
@@ -164,9 +165,11 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   void _armAutoplay() {
     _autoTimer?.cancel();
     if (_userInteracted) return;
+    if (_page >= _slideCount - 1) return;
     _autoTimer = Timer(_autoplayInterval, () {
       if (!mounted || _userInteracted) return;
-      final next = (_page + 1) % _slideCount;
+      final next = _page + 1;
+      if (next >= _slideCount) return;
       _pageController.animateToPage(
         next,
         duration: const Duration(milliseconds: 750),
@@ -186,8 +189,26 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   }
 
   void _onPageChanged(int i) {
-    setState(() => _page = i);
+    setState(() {
+      _page = i;
+      if (i > _maxPageReached) _maxPageReached = i;
+    });
     _armAutoplay();
+  }
+
+  /// Onboarding is forward-only: if a manual swipe settles behind the
+  /// furthest slide already seen, snap back forward instead of allowing the
+  /// user to linger on — or navigate to — an earlier slide.
+  bool _onScrollEnd(ScrollEndNotification notification) {
+    final settled = _pageController.page?.round() ?? _page;
+    if (settled < _maxPageReached) {
+      _pageController.animateToPage(
+        _maxPageReached,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    return false;
   }
 
   void _next() {
@@ -322,19 +343,22 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
                     Expanded(
                       child: Listener(
                         onPointerDown: (_) => _onUserInteraction(),
-                        child: PageView(
-                          controller: _pageController,
-                          onPageChanged: _onPageChanged,
-                          children: [
-                            for (var i = 0; i < _slides.length; i++)
-                              _withPageTransform(
-                                i,
-                                _ApplianceSlide(
-                                  data: _slides[i],
-                                  active: _page == i,
+                        child: NotificationListener<ScrollEndNotification>(
+                          onNotification: _onScrollEnd,
+                          child: PageView(
+                            controller: _pageController,
+                            onPageChanged: _onPageChanged,
+                            children: [
+                              for (var i = 0; i < _slides.length; i++)
+                                _withPageTransform(
+                                  i,
+                                  _ApplianceSlide(
+                                    data: _slides[i],
+                                    active: _page == i,
+                                  ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -345,13 +369,26 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
                         AppTextStyles.fig(24),
                         AppTextStyles.fig(20),
                       ),
-                      child: Row(
-                        children: [
-                          DotIndicator(count: _slideCount, activeIndex: _page),
-                          const Spacer(),
-                          PremiumCtaButton(expanded: isLast, onTap: _next),
-                        ],
-                      ),
+                      child: isLast
+                          ? Center(
+                              child: PremiumCtaButton(
+                                expanded: true,
+                                onTap: _next,
+                              ),
+                            )
+                          : Row(
+                              children: [
+                                DotIndicator(
+                                  count: _slideCount,
+                                  activeIndex: _page,
+                                ),
+                                const Spacer(),
+                                PremiumCtaButton(
+                                  expanded: false,
+                                  onTap: _next,
+                                ),
+                              ],
+                            ),
                     ),
                   ],
                 ),
@@ -372,7 +409,7 @@ class _ApplianceSlide extends StatelessWidget {
   const _ApplianceSlide({required this.data, required this.active});
 
   static const _artWidthFraction = 0.82;
-  static const _titleLine1Size = 26.0;
+  static const _titleLine1Size = 29.0;
   static const _titleLine2Size = 27.0;
 
   final _SlideData data;
@@ -390,7 +427,7 @@ class _ApplianceSlide extends StatelessWidget {
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Column(
               mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(height: AppTextStyles.fig(10)),
                 CinematicHeading(
@@ -400,8 +437,9 @@ class _ApplianceSlide extends StatelessWidget {
                       data.titleLine1,
                       AppTextStyles.display(
                         figmaSize: _titleLine1Size,
-                        weight: FontWeight.w700,
+                        weight: FontWeight.w800,
                         color: AppColors.navy,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     HeadlineLine(
