@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,9 +7,9 @@ import '../theme/app_text_styles.dart';
 /// The onboarding flow's forward-progress control.
 ///
 /// Two visual states share one press/scale/glow interaction: a compact
-/// circular arrow for "next slide", and an expanded gradient pill —
-/// trailed by softly rising bubble particles — for the closing "Get
-/// Started" action. [expanded] morphs between them with a scale+fade.
+/// circular arrow for "next slide", and an expanded gradient pill for the
+/// closing "Get Started" action. [expanded] morphs between them with a
+/// scale+fade — the button stays otherwise still, with no idle motion.
 class PremiumCtaButton extends StatefulWidget {
   const PremiumCtaButton({
     super.key,
@@ -45,20 +43,14 @@ class _PremiumCtaButtonState extends State<PremiumCtaButton>
   @override
   Widget build(BuildContext context) {
     const compactSize = 52.0;
-    const bubbleZoneHeight = 46.0;
 
     return SizedBox(
       width: widget.expanded ? 190 : compactSize,
-      height: compactSize + bubbleZoneHeight,
+      height: compactSize,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
         children: [
-          if (widget.expanded)
-            Positioned(
-              bottom: compactSize * 0.35,
-              child: _RisingBubbles(width: 130, height: bubbleZoneHeight + 20),
-            ),
           Positioned(
             bottom: 0,
             child: AnimatedBuilder(
@@ -183,95 +175,3 @@ class _ExpandedCta extends StatelessWidget {
   }
 }
 
-class _Bubble {
-  _Bubble({
-    required this.x,
-    required this.phase,
-    required this.size,
-    required this.speed,
-    required this.drift,
-  });
-
-  final double x;
-  final double phase;
-  final double size;
-  final double speed;
-  final double drift;
-}
-
-/// Small looping particle system: a handful of soft circles rising and
-/// fading out behind the CTA, each on its own phase/speed so the plume
-/// never reads as a mechanical loop.
-class _RisingBubbles extends StatefulWidget {
-  const _RisingBubbles({required this.width, required this.height});
-
-  final double width;
-  final double height;
-
-  @override
-  State<_RisingBubbles> createState() => _RisingBubblesState();
-}
-
-class _RisingBubblesState extends State<_RisingBubbles>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 3),
-  )..repeat();
-
-  late final List<_Bubble> _bubbles = List.generate(6, (i) {
-    final rand = math.Random(i * 97 + 11);
-    return _Bubble(
-      x: rand.nextDouble(),
-      phase: rand.nextDouble(),
-      size: 3 + rand.nextDouble() * 5,
-      speed: 0.7 + rand.nextDouble() * 0.5,
-      drift: (rand.nextDouble() - 0.5) * 18,
-    );
-  });
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          return CustomPaint(
-            size: Size(widget.width, widget.height),
-            painter: _BubblesPainter(_bubbles, _controller.value),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _BubblesPainter extends CustomPainter {
-  _BubblesPainter(this.bubbles, this.t);
-
-  final List<_Bubble> bubbles;
-  final double t;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    for (final b in bubbles) {
-      final local = (t * b.speed + b.phase) % 1.0;
-      final dy = size.height * (1 - local);
-      final dx = b.x * size.width + math.sin(local * 2 * math.pi) * b.drift;
-      final opacity = math.sin(local * math.pi).clamp(0.0, 1.0);
-      paint.color = Colors.white.withValues(alpha: 0.6 * opacity);
-      canvas.drawCircle(Offset(dx, dy), b.size * (0.6 + local * 0.4), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _BubblesPainter oldDelegate) =>
-      oldDelegate.t != t;
-}

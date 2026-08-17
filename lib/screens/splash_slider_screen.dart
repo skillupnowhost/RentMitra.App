@@ -9,11 +9,9 @@ import '../utils/cinematic_route.dart';
 import '../widgets/animated_feature_badge.dart';
 import '../widgets/dot_indicator.dart';
 import '../widgets/floating_art.dart';
-import '../widgets/floating_orbs.dart';
-import '../widgets/glass_pill_button.dart';
-import '../widgets/logo_mark.dart';
 import '../widgets/premium_cta_button.dart';
 import '../widgets/reveal_text.dart';
+import '../widgets/skip_button.dart';
 import 'home_screen.dart';
 
 /// Splash carousel — the full-ecosystem hero first, then AC / Washing
@@ -37,7 +35,6 @@ class _SlideData {
     required this.features,
     required this.assetPath,
     required this.caption,
-    this.hero = false,
   });
 
   final String titleLine1;
@@ -46,7 +43,6 @@ class _SlideData {
   final List<AnimatedFeatureData> features;
   final String assetPath;
   final String caption;
-  final bool hero;
 }
 
 const _slides = [
@@ -72,10 +68,9 @@ const _slides = [
     ],
     assetPath: 'assets/images/main_splash.png',
     caption: 'Smart Renting, Better Living',
-    hero: true,
   ),
   _SlideData(
-    titleLine1: 'Rental AC —',
+    titleLine1: 'Rental AC',
     titleLine2: 'Cool Comfort, On Your Terms',
     description: 'Rent premium air conditioners with hassle-free installation and maintenance.',
     features: [
@@ -95,7 +90,7 @@ const _slides = [
     caption: 'Stay Cool, Save More',
   ),
   _SlideData(
-    titleLine1: 'Rental Washing Machine —',
+    titleLine1: 'Rental Washing Machine',
     titleLine2: 'Laundry Made Effortless',
     description: 'Get fully automatic washing machines on rent with free delivery and setup.',
     features: [
@@ -118,7 +113,7 @@ const _slides = [
     caption: 'Fresh Clothes, Zero Hassle',
   ),
   _SlideData(
-    titleLine1: 'Rental Refrigerator —',
+    titleLine1: 'Rental Refrigerator',
     titleLine2: 'Freshness That Lasts',
     description:
         'Rent energy-efficient refrigerators for every home and lifestyle.',
@@ -286,7 +281,6 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
               ),
             ),
           ),
-          const FloatingOrbsBackground(intensity: 0.7),
           SafeArea(
             child: Center(
               child: ConstrainedBox(
@@ -300,32 +294,29 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
                         AppTextStyles.fig(24),
                         0,
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Align(
-                              alignment: isLast ? Alignment.center : Alignment.centerLeft,
-                              child: const FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: BrandWordmark(
-                                  figmaWordmarkSize: 44,
-                                  figmaLogoWidth: 110,
-                                  showTagline: false,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/images/logo_full.png',
+                              width: contentWidth * 0.48,
+                              fit: BoxFit.contain,
+                            ),
+                            if (!isLast)
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: SkipButton(
+                                  onTap: () {
+                                    _onUserInteraction();
+                                    _skipToHome();
+                                  },
                                 ),
                               ),
-                            ),
-                          ),
-                          if (!isLast) ...[
-                            SizedBox(width: AppTextStyles.fig(10)),
-                            GlassSkipButton(
-                              onTap: () {
-                                _onUserInteraction();
-                                _skipToHome();
-                              },
-                            ),
                           ],
-                        ],
+                        ),
                       ),
                     ),
                     Expanded(
@@ -374,20 +365,22 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
 }
 
 /// One splash slide: cinematic word-reveal headline, description, feature
-/// badge row, floating product art (full marketing composition — pedestal,
-/// props and lighting baked in by design), and a bold caption. The
-/// ecosystem "hero" slide gets noticeably larger art per the brief's "main
-/// hero" treatment; the rest match each other for a consistent rhythm.
+/// badge row, product art (full marketing composition — pedestal, props and
+/// lighting baked in by design), and a bold caption. Every slide shares the
+/// same headline size and art scale for a consistent rhythm.
 class _ApplianceSlide extends StatelessWidget {
   const _ApplianceSlide({required this.data, required this.active});
+
+  static const _artWidthFraction = 0.82;
+  static const _titleLine1Size = 26.0;
+  static const _titleLine2Size = 27.0;
 
   final _SlideData data;
   final bool active;
 
   @override
   Widget build(BuildContext context) {
-    final artWidth =
-        MediaQuery.of(context).size.width * (data.hero ? 0.84 : 0.7);
+    final artWidth = MediaQuery.of(context).size.width * _artWidthFraction;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -406,7 +399,7 @@ class _ApplianceSlide extends StatelessWidget {
                     HeadlineLine(
                       data.titleLine1,
                       AppTextStyles.display(
-                        figmaSize: data.hero ? 27 : 24,
+                        figmaSize: _titleLine1Size,
                         weight: FontWeight.w700,
                         color: AppColors.navy,
                       ),
@@ -414,7 +407,7 @@ class _ApplianceSlide extends StatelessWidget {
                     HeadlineLine(
                       data.titleLine2,
                       AppTextStyles.display(
-                        figmaSize: data.hero ? 28 : 25,
+                        figmaSize: _titleLine2Size,
                         weight: FontWeight.w700,
                         color: AppColors.purple,
                         shadows: [

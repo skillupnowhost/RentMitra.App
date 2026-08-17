@@ -3,16 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
 import '../utils/cinematic_route.dart';
 import '../widgets/floating_orbs.dart';
-import '../widgets/logo_mark.dart';
 import 'splash_slider_screen.dart';
 
 /// Cinematic brand splash: an animated gradient + drifting orb field behind
-/// a staged logo reveal — glow ring, mark, then wordmark and tagline
-/// lifting in in sequence — held briefly, then a fade/scale hand-off into
-/// the swipeable per-appliance splash slider.
+/// a fade/scale reveal of the full RentMitra.app logo lockup — held
+/// briefly, then a fade/scale hand-off into the swipeable per-appliance
+/// splash slider.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -24,11 +22,7 @@ class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _reveal = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1500),
-  );
-  late final AnimationController _glow = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2200),
+    duration: const Duration(milliseconds: 900),
   );
   late final AnimationController _bg = AnimationController(
     vsync: this,
@@ -41,9 +35,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _reveal.forward();
-    _reveal.addStatusListener((status) {
-      if (status == AnimationStatus.completed) _glow.repeat(reverse: true);
-    });
     _navTimer = Timer(const Duration(milliseconds: 2400), () {
       if (!mounted) return;
       Navigator.of(context)
@@ -55,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _navTimer?.cancel();
     _reveal.dispose();
-    _glow.dispose();
     _bg.dispose();
     super.dispose();
   }
@@ -63,19 +53,11 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
     final logoStage = CurvedAnimation(
       parent: _reveal,
-      curve: const Interval(0.0, 0.55, curve: Curves.easeOutBack),
+      curve: Curves.easeOutCubic,
     );
-    final wordStage = CurvedAnimation(
-      parent: _reveal,
-      curve: const Interval(0.35, 0.78, curve: Curves.easeOutCubic),
-    );
-    final taglineStage = CurvedAnimation(
-      parent: _reveal,
-      curve: const Interval(0.58, 1.0, curve: Curves.easeOutCubic),
-    );
+    final logoWidth = (size.width * 0.8).clamp(0.0, 340.0).toDouble();
 
     return Scaffold(
       backgroundColor: AppColors.splashBackground.first,
@@ -121,154 +103,26 @@ class _SplashScreenState extends State<SplashScreen>
           ),
           const FloatingOrbsBackground(intensity: 0.85),
           Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 168,
-                    height: 168,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        AnimatedBuilder(
-                          animation: _glow,
-                          builder: (context, child) {
-                            final pulse = 0.18 + _glow.value * 0.22;
-                            final scale = 1.0 + _glow.value * 0.08;
-                            return Opacity(
-                              opacity: pulse,
-                              child: Transform.scale(
-                                scale: scale,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: 168,
-                            height: 168,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  AppColors.purple.withValues(alpha: 0.55),
-                                  AppColors.purple.withValues(alpha: 0.0),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        AnimatedBuilder(
-                          animation: logoStage,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: logoStage.value,
-                              child: Transform.scale(
-                                scale: 0.72 + logoStage.value * 0.28,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: const LogoMark(width: 92),
-                        ),
-                      ],
-                    ),
+            child: AnimatedBuilder(
+              animation: logoStage,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: logoStage.value,
+                  child: Transform.scale(
+                    scale: 0.85 + logoStage.value * 0.15,
+                    child: child,
                   ),
-                  SizedBox(height: AppTextStyles.fig(20)),
-                  AnimatedBuilder(
-                    animation: wordStage,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: wordStage.value,
-                        child: Transform.translate(
-                          offset: Offset(0, (1 - wordStage.value) * 16),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Rent',
-                              style: AppTextStyles.display(
-                                figmaSize: 56,
-                                weight: FontWeight.w800,
-                                color: AppColors.navyDeep,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'Mitra',
-                              style: AppTextStyles.display(
-                                figmaSize: 54,
-                                weight: FontWeight.w800,
-                                color: AppColors.purple,
-                                shadows: [
-                                  Shadow(
-                                    color: AppColors.purple.withValues(
-                                      alpha: 0.35,
-                                    ),
-                                    blurRadius: 18,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: AppTextStyles.fig(14)),
-                  AnimatedBuilder(
-                    animation: taglineStage,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: taglineStage.value,
-                        child: Transform.translate(
-                          offset: Offset(0, (1 - taglineStage.value) * 12),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _dash(),
-                          SizedBox(width: AppTextStyles.fig(10)),
-                          Text(
-                            'RENT MADE EASY',
-                            style: AppTextStyles.of(
-                              figmaSize: 21,
-                              weight: FontWeight.w600,
-                              color: AppColors.textGrayMed,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                          SizedBox(width: AppTextStyles.fig(10)),
-                          _dash(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                );
+              },
+              child: Image.asset(
+                'assets/images/logo_full.png',
+                width: logoWidth,
+                fit: BoxFit.contain,
               ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _dash() {
-    return Container(
-      width: 26,
-      height: 1.2,
-      color: AppColors.purple.withValues(alpha: 0.55),
     );
   }
 }

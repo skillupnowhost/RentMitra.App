@@ -8,6 +8,7 @@ import 'package:rentmitra_app/screens/home_screen.dart';
 import 'package:rentmitra_app/screens/onboarding_screen.dart';
 import 'package:rentmitra_app/screens/refrigerator_screen.dart';
 import 'package:rentmitra_app/screens/splash_screen.dart';
+import 'package:rentmitra_app/screens/splash_slider_screen.dart';
 import 'package:rentmitra_app/screens/washing_machine_screen.dart';
 
 /// Pumps every screen at a set of real device widths (the narrowest common
@@ -32,6 +33,7 @@ void main() {
 
   final screens = <String, WidgetBuilder>{
     'Splash': (_) => const SplashScreen(),
+    'Splash Slider': (_) => const SplashSliderScreen(),
     'Onboarding': (_) => const OnboardingScreen(),
     'Home': (_) => const HomeScreen(),
     'AC': (_) => const AcScreen(),
