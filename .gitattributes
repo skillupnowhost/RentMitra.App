@@ -1,0 +1,14 @@
+# Normalize line endings for all text files; let Git handle conversion.
+* text=auto eol=lf
+
+# Windows-specific scripts should keep CRLF.
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets must never be modified by line-ending conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.icns binary
+*.xcworkspacedata binary
