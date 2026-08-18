@@ -21,18 +21,17 @@ class LocationSelector extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppTextStyles.fig(14),
-          vertical: AppTextStyles.fig(8),
-        ),
+        width: 132,
+        height: 42,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.divider),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
@@ -51,9 +50,8 @@ class LocationSelector extends StatelessWidget {
               )
             else
               const Icon(Icons.location_on, size: 15, color: AppColors.purple),
-            SizedBox(width: AppTextStyles.fig(4)),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: AppTextStyles.fig(110)),
+            const SizedBox(width: 6),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -64,7 +62,7 @@ class LocationSelector extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.of(
                       figmaSize: 14,
-                      weight: FontWeight.w400,
+                      weight: FontWeight.w500,
                       color: AppColors.textGrayMed,
                     ),
                   ),
@@ -74,14 +72,13 @@ class LocationSelector extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.of(
                       figmaSize: 10,
-                      weight: FontWeight.w300,
+                      weight: FontWeight.w400,
                       color: AppColors.textGraySoft,
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(width: AppTextStyles.fig(2)),
             const Icon(
               Icons.keyboard_arrow_down,
               size: 16,

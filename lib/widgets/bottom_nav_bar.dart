@@ -22,10 +22,7 @@ class AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(
-        top: AppTextStyles.fig(14),
-        bottom: AppTextStyles.fig(10),
-      ),
+      padding: const EdgeInsets.only(top: 16, bottom: 12),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: AppColors.divider)),
@@ -45,15 +42,15 @@ class AppBottomNavBar extends StatelessWidget {
                 children: [
                   Icon(
                     active ? filled : outline,
-                    size: AppTextStyles.fig(28),
+                    size: 26,
                     color: active ? AppColors.purple : AppColors.textGraySoft,
                   ),
-                  SizedBox(height: AppTextStyles.fig(4)),
+                  const SizedBox(height: 5),
                   Text(
                     label,
                     style: AppTextStyles.of(
-                      figmaSize: 13,
-                      weight: active ? FontWeight.w700 : FontWeight.w400,
+                      figmaSize: 18,
+                      weight: active ? FontWeight.w700 : FontWeight.w500,
                       color: active ? AppColors.purple : AppColors.textGraySoft,
                     ),
                   ),

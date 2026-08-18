@@ -25,10 +25,20 @@ class AppColors {
   static const Color titleGreen = Color(0xFF73A680);
   static const Color titleTerracotta = Color(0xFFD28A79);
 
-  static const Color bgCardPurple = Color(0xFFF8F9FD);
-  static const Color bgCardNeutral = Color(0xFFF8F8F7);
-  static const Color bgCardPeach = Color(0xFFFDF8F6);
+  // Sampled off the Figma category cards — soft near-white tints in each
+  // card's hue family (lavender / green / peach), not the more saturated
+  // pastels an earlier pass used.
+  static const Color bgCardPurple = Color(0xFFF6F4FC);
+  static const Color bgCardNeutral = Color(0xFFF2FAF3);
+  static const Color bgCardPeach = Color(0xFFFDF4EF);
   static const Color bgCardLavender = Color(0xFFF7F7FC);
+
+  /// Blue gradient reserved for the Combo Plans highlight card — deliberately
+  /// outside the purple family so it reads as a distinct "premium" tier
+  /// against the flat pastel category cards.
+  static const Color comboBlueDeep = Color(0xFF14245C);
+  static const Color comboBlueBright = Color(0xFF3E63E0);
+  static const Color comboBadgeBg = Color(0xFFFFC94D);
 
   static const Color background = Color(0xFFF7F6FC);
   static const Color surface = Colors.white;

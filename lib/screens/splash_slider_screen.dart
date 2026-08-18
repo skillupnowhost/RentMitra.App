@@ -35,6 +35,7 @@ class _SlideData {
     required this.features,
     required this.assetPath,
     required this.caption,
+    this.artWidthFraction = 0.82,
   });
 
   final String titleLine1;
@@ -43,6 +44,11 @@ class _SlideData {
   final List<AnimatedFeatureData> features;
   final String assetPath;
   final String caption;
+
+  /// Fraction of screen width the product art renders at — overridden per
+  /// slide so the first three (main/AC/washer) can run a touch bigger than
+  /// the default.
+  final double artWidthFraction;
 }
 
 const _slides = [
@@ -52,42 +58,44 @@ const _slides = [
     description: 'AC, washing machines, refrigerators and more — one app for every premium appliance.',
     features: [
       AnimatedFeatureData(
-        icon: Icons.local_shipping_outlined,
+        icon: Icons.local_shipping_rounded,
         label: 'Free\nDelivery',
       ),
       AnimatedFeatureData(
-        icon: Icons.build_outlined,
+        icon: Icons.build_rounded,
         label: 'Free\nInstallation',
         labelWeight: FontWeight.w400,
       ),
       AnimatedFeatureData(
-        icon: Icons.verified_user_outlined,
+        icon: Icons.verified_user_rounded,
         label: 'Service &\nMaintenance',
         figmaLabelSize: 12,
       ),
     ],
     assetPath: 'assets/images/main_splash.png',
     caption: 'Smart Renting, Better Living',
+    artWidthFraction: 0.90,
   ),
   _SlideData(
     titleLine1: 'Rental AC',
     titleLine2: 'Cool Comfort, On Your Terms',
     description: 'Rent premium air conditioners with hassle-free installation and maintenance.',
     features: [
-      AnimatedFeatureData(icon: Icons.ac_unit, label: 'Fast\nCooling'),
+      AnimatedFeatureData(icon: Icons.ac_unit_rounded, label: 'Fast\nCooling'),
       AnimatedFeatureData(
-        icon: Icons.build_outlined,
+        icon: Icons.build_rounded,
         label: 'Free\nInstallation',
         labelWeight: FontWeight.w400,
       ),
       AnimatedFeatureData(
-        icon: Icons.verified_user_outlined,
+        icon: Icons.verified_user_rounded,
         label: 'Service &\nMaintenance',
         figmaLabelSize: 12,
       ),
     ],
     assetPath: 'assets/images/ac_splash.png',
     caption: 'Stay Cool, Save More',
+    artWidthFraction: 0.90,
   ),
   _SlideData(
     titleLine1: 'Rental Washing Machine',
@@ -95,22 +103,23 @@ const _slides = [
     description: 'Get fully automatic washing machines on rent with free delivery and setup.',
     features: [
       AnimatedFeatureData(
-        icon: Icons.local_shipping_outlined,
+        icon: Icons.local_shipping_rounded,
         label: 'Free\nDelivery',
       ),
       AnimatedFeatureData(
-        icon: Icons.settings_outlined,
+        icon: Icons.settings_rounded,
         label: 'Easy\nInstallation',
         labelWeight: FontWeight.w400,
       ),
       AnimatedFeatureData(
-        icon: Icons.shopping_basket_outlined,
+        icon: Icons.shopping_basket_rounded,
         label: 'Premium\nMachines',
         figmaLabelSize: 12,
       ),
     ],
     assetPath: 'assets/images/washing_machine_splash.png',
     caption: 'Fresh Clothes, Zero Hassle',
+    artWidthFraction: 0.90,
   ),
   _SlideData(
     titleLine1: 'Rental Refrigerator',
@@ -119,17 +128,17 @@ const _slides = [
         'Rent energy-efficient refrigerators for every home and lifestyle.',
     features: [
       AnimatedFeatureData(
-        icon: Icons.eco_outlined,
+        icon: Icons.eco_rounded,
         label: 'Fresh Food\nStorage',
         figmaLabelSize: 12,
       ),
       AnimatedFeatureData(
-        icon: Icons.bolt,
+        icon: Icons.bolt_rounded,
         label: 'Energy\nEfficient',
         labelWeight: FontWeight.w400,
       ),
       AnimatedFeatureData(
-        icon: Icons.handyman_outlined,
+        icon: Icons.handyman_rounded,
         label: 'Free Service\nSupport',
         figmaLabelSize: 12,
       ),
@@ -142,7 +151,6 @@ const _slides = [
 class _SplashSliderScreenState extends State<SplashSliderScreen> {
   final _pageController = PageController();
   int _page = 0;
-  int _maxPageReached = 0;
   bool _userInteracted = false;
   Timer? _autoTimer;
 
@@ -189,26 +197,8 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   }
 
   void _onPageChanged(int i) {
-    setState(() {
-      _page = i;
-      if (i > _maxPageReached) _maxPageReached = i;
-    });
+    setState(() => _page = i);
     _armAutoplay();
-  }
-
-  /// Onboarding is forward-only: if a manual swipe settles behind the
-  /// furthest slide already seen, snap back forward instead of allowing the
-  /// user to linger on — or navigate to — an earlier slide.
-  bool _onScrollEnd(ScrollEndNotification notification) {
-    final settled = _pageController.page?.round() ?? _page;
-    if (settled < _maxPageReached) {
-      _pageController.animateToPage(
-        _maxPageReached,
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutCubic,
-      );
-    }
-    return false;
   }
 
   void _next() {
@@ -343,22 +333,19 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
                     Expanded(
                       child: Listener(
                         onPointerDown: (_) => _onUserInteraction(),
-                        child: NotificationListener<ScrollEndNotification>(
-                          onNotification: _onScrollEnd,
-                          child: PageView(
-                            controller: _pageController,
-                            onPageChanged: _onPageChanged,
-                            children: [
-                              for (var i = 0; i < _slides.length; i++)
-                                _withPageTransform(
-                                  i,
-                                  _ApplianceSlide(
-                                    data: _slides[i],
-                                    active: _page == i,
-                                  ),
+                        child: PageView(
+                          controller: _pageController,
+                          onPageChanged: _onPageChanged,
+                          children: [
+                            for (var i = 0; i < _slides.length; i++)
+                              _withPageTransform(
+                                i,
+                                _ApplianceSlide(
+                                  data: _slides[i],
+                                  active: _page == i,
                                 ),
-                            ],
-                          ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -408,7 +395,6 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
 class _ApplianceSlide extends StatelessWidget {
   const _ApplianceSlide({required this.data, required this.active});
 
-  static const _artWidthFraction = 0.82;
   static const _titleLine1Size = 29.0;
   static const _titleLine2Size = 27.0;
 
@@ -417,7 +403,8 @@ class _ApplianceSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final artWidth = MediaQuery.of(context).size.width * _artWidthFraction;
+    final artWidth =
+        MediaQuery.of(context).size.width * data.artWidthFraction;
 
     return LayoutBuilder(
       builder: (context, constraints) {

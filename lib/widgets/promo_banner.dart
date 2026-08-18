@@ -11,49 +11,16 @@ class PromoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(AppTextStyles.fig(16)),
+      constraints: const BoxConstraints(minHeight: 90),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.promoCardBg,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: AppTextStyles.fig(64),
-            height: AppTextStyles.fig(64),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/promo_badge.png',
-                  fit: BoxFit.contain,
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '10%',
-                      style: AppTextStyles.of(
-                        figmaSize: 17,
-                        weight: FontWeight.w400,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'OFF',
-                      style: AppTextStyles.of(
-                        figmaSize: 13,
-                        weight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: AppTextStyles.fig(14)),
+          const _AnimatedDiscountBadge(),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,16 +29,16 @@ class PromoBanner extends StatelessWidget {
                 Text(
                   'Save 10% on Appliance Combos',
                   style: AppTextStyles.of(
-                    figmaSize: 14,
+                    figmaSize: 16,
                     weight: FontWeight.w600,
                     color: AppColors.textGray,
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(4)),
+                const SizedBox(height: 4),
                 Text(
                   'Starting at ₹1,887/month',
                   style: AppTextStyles.of(
-                    figmaSize: 12,
+                    figmaSize: 14,
                     weight: FontWeight.w400,
                     color: AppColors.textGrayMed,
                   ),
@@ -79,17 +46,18 @@ class PromoBanner extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(width: AppTextStyles.fig(10)),
+          const SizedBox(width: 10),
           GestureDetector(
             onTap: onViewCombos,
             child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppTextStyles.fig(16),
-                vertical: AppTextStyles.fig(10),
-              ),
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.ctaPurple,
-                borderRadius: BorderRadius.circular(3),
+                gradient: const LinearGradient(
+                  colors: [AppColors.purple, AppColors.ctaPurple],
+                ),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -97,20 +65,96 @@ class PromoBanner extends StatelessWidget {
                   Text(
                     'View Combos',
                     style: AppTextStyles.of(
-                      figmaSize: 11,
-                      weight: FontWeight.w400,
+                      figmaSize: 13,
+                      weight: FontWeight.w500,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: AppTextStyles.fig(4)),
+                  const SizedBox(width: 4),
                   const Icon(
                     Icons.arrow_forward,
-                    size: 13,
+                    size: 14,
                     color: Colors.white,
                   ),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The "10% OFF" badge: the scalloped promo-badge shape (not a plain
+/// circle), re-tinted blue-to-purple via a [ShaderMask] gradient instead of
+/// its original yellow, spinning slowly through a full 360° on loop. The
+/// "10%" / "OFF" text sits outside that rotating subtree in its own layer,
+/// so it stays fixed and upright throughout.
+class _AnimatedDiscountBadge extends StatefulWidget {
+  const _AnimatedDiscountBadge();
+
+  @override
+  State<_AnimatedDiscountBadge> createState() => _AnimatedDiscountBadgeState();
+}
+
+class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _rotate = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 18),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _rotate.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 64,
+      height: 64,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          RotationTransition(
+            turns: _rotate,
+            child: ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [AppColors.comboBlueBright, AppColors.purple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
+              child: Image.asset(
+                'assets/images/promo_badge.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '10%',
+                style: AppTextStyles.of(
+                  figmaSize: 24,
+                  weight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'OFF',
+                style: AppTextStyles.of(
+                  figmaSize: 17,
+                  weight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ],
       ),

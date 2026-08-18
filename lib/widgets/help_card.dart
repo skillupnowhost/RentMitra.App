@@ -11,16 +11,17 @@ class HelpCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(AppTextStyles.fig(18)),
+      constraints: const BoxConstraints(minHeight: 84),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.helpCardBg,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
           Container(
-            width: AppTextStyles.fig(42),
-            height: AppTextStyles.fig(42),
+            width: 48,
+            height: 48,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
               color: AppColors.bgCardPurple,
@@ -29,10 +30,10 @@ class HelpCard extends StatelessWidget {
             child: const Icon(
               Icons.headset_mic_outlined,
               color: AppColors.purple,
-              size: 20,
+              size: 22,
             ),
           ),
-          SizedBox(width: AppTextStyles.fig(14)),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,16 +42,16 @@ class HelpCard extends StatelessWidget {
                 Text(
                   'Need Help?',
                   style: AppTextStyles.of(
-                    figmaSize: 15,
+                    figmaSize: 17,
                     weight: FontWeight.w700,
                     color: AppColors.textGray,
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(4)),
+                const SizedBox(height: 4),
                 Text(
                   'Our team is here to assist you.',
                   style: AppTextStyles.of(
-                    figmaSize: 9,
+                    figmaSize: 12,
                     weight: FontWeight.w400,
                     color: AppColors.textGrayMed,
                   ),
@@ -61,13 +62,21 @@ class HelpCard extends StatelessWidget {
           GestureDetector(
             onTap: onWhatsApp,
             child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppTextStyles.fig(16),
-                vertical: AppTextStyles.fig(11),
-              ),
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.ctaPurple,
-                borderRadius: BorderRadius.circular(3),
+                gradient: const LinearGradient(
+                  colors: [AppColors.purple, AppColors.ctaPurple],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.ctaPurple.withValues(alpha: 0.28),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -75,15 +84,15 @@ class HelpCard extends StatelessWidget {
                   Text(
                     'WhatsApp Us',
                     style: AppTextStyles.of(
-                      figmaSize: 14,
-                      weight: FontWeight.w400,
+                      figmaSize: 16,
+                      weight: FontWeight.w500,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: AppTextStyles.fig(4)),
+                  const SizedBox(width: 4),
                   const Icon(
                     Icons.arrow_forward,
-                    size: 13,
+                    size: 14,
                     color: Colors.white,
                   ),
                 ],

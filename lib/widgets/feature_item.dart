@@ -18,6 +18,7 @@ class FeatureItem extends StatelessWidget {
     this.badgeSize = 40,
     this.iconSize = 20,
     this.labelWeight = FontWeight.w700,
+    this.maxLines = 2,
   });
 
   final IconData icon;
@@ -26,6 +27,7 @@ class FeatureItem extends StatelessWidget {
   final double badgeSize;
   final double iconSize;
   final FontWeight labelWeight;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +49,7 @@ class FeatureItem extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: maxLines,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.of(
               figmaSize: figmaLabelSize,
