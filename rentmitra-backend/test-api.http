@@ -1,0 +1,215 @@
+POST http://localhost:3000/customers
+Content-Type: application/json
+
+{
+  "full_name": "Validation Test Customer",
+  "mobile": "9000000099",
+  "email": "validationtest0099@example.com"
+}
+###
+GET http://localhost:3000/customers/1
+###
+PUT http://localhost:3000/customers/1
+Content-Type: application/json
+
+{
+  "full_name": "Updated test",
+  "mobile": "8906745678",
+  "email": "updatedtest@gail.com"
+}
+###
+DELETE http://localhost:3000/customers/1
+###
+PATCH http://localhost:3000/customers/1/reactivate
+###
+GET http://localhost:3000/customers/search?mobile=9876543210
+### test creating an address
+POST http://localhost:3000/addresses
+Content-Type: application/json
+
+{
+  "customer_id": 1,
+  "house_flat_number": "12A",
+  "apartment_name": "Greenpark Residency",
+  "street_area": "secondMain Street",
+  "landmark": "Near Bus Stand",
+  "city": "Chennai",
+  "pincode": "600001"
+}
+###
+
+GET http://localhost:3000/customers/1/addresses
+###
+
+GET http://localhost:3000/addresses/2
+###
+
+PUT http://localhost:3000/addresses/2
+Content-Type: application/json
+
+{
+  "house_flat_number": "12B",
+  "apartment_name": "Green Residency",
+  "street_area": "Anna Nagar",
+  "landmark": "Near Bus Stand",
+  "city": "Chennai",
+  "pincode": "600081"
+}
+###
+
+DELETE http://localhost:3000/addresses/2
+###test invalid customer id
+
+POST http://localhost:3000/addresses
+Content-Type: application/json
+
+{
+  "customer_id": 99999,
+  "house_flat_number": "10A",
+  "apartment_name": "Test Apartment",
+  "street_area": "Test Street",
+  "landmark": "Test Landmark",
+  "city": "Chennai",
+  "pincode": "600001"
+}
+###test an invalid customer
+
+GET http://localhost:3000/customers/99999/addresses
+###test valid customer
+
+GET http://localhost:3000/customers/1/addresses
+###validation for  addresspincode
+POST http://localhost:3000/addresses
+Content-Type: application/json
+
+{
+  "customer_id": 1,
+  "house_flat_number": "10A",
+  "apartment_name": "Test Apartment",
+  "street_area": "Test Street",
+  "landmark": "Near Temple",
+  "city": "Chennai",
+  "pincode": "12345"
+}
+###product gell all product
+
+GET http://localhost:3000/products
+### create product
+
+POST http://localhost:3000/products
+Content-Type: application/json
+
+{
+  "product_name": "Smart Inverter Split AC",
+  "category": "AC"
+}
+### get product by id
+
+GET http://localhost:3000/products/1
+### update product
+
+PUT http://localhost:3000/products/1
+Content-Type: application/json
+
+{
+  "product_name": "Smart Inverter Split AC - Updated",
+  "category": "AC"
+}
+### deactivate product
+
+DELETE http://localhost:3000/products/1
+### reactivate product
+
+PATCH http://localhost:3000/products/1/reactivate
+### product validation product reqired or not
+
+POST http://localhost:3000/products
+Content-Type: application/json
+
+{
+  "category": "Refrigerator"
+}
+### product search with name
+
+GET http://localhost:3000/products/search?name=Smart
+###product search with category
+
+GET http://localhost:3000/products/search?category=AC
+### search product with both name and category
+
+GET http://localhost:3000/products/search?name=Smart&category=AC
+###  get product variant
+
+GET http://localhost:3000/product-variants
+### create product variants
+
+POST http://localhost:3000/product-variants
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "variant_name": "2 Ton",
+  "monthly_rent": 2500
+}
+###get product variant by id
+
+GET http://localhost:3000/product-variants/2
+### update product vatiant
+PUT http://localhost:3000/product-variants/2
+Content-Type: application/json
+
+{
+  "variant_name": "2 Ton Updated",
+  "monthly_rent": 2700
+}
+### deactivated variant
+
+DELETE http://localhost:3000/product-variants/2
+### reactivate variant
+
+PATCH http://localhost:3000/product-variants/2/reactivate
+###get active product variant
+
+GET http://localhost:3000/products/1/variants
+### test valid product id
+
+POST http://localhost:3000/product-variants
+Content-Type: application/json
+
+{
+  "product_id": 99999,
+  "variant_name": "Test Variant",
+  "monthly_rent": 2000
+}
+###test invalid monthly rent
+
+POST http://localhost:3000/product-variants
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "variant_name": "Test Variant",
+  "monthly_rent": -500
+}
+### get all orders
+
+GET http://localhost:3000/orders
+
+### get order by id
+
+GET http://localhost:3000/orders/1
+### get order by customer
+
+GET http://localhost:3000/customers/1/orders
+### create a test order
+
+POST http://localhost:3000/orders
+Content-Type: application/json
+
+{
+  "customer_id": 1,
+  "address_id": 1,
+  "order_amount": 5000,
+  "payment_status": "Pending",
+  "order_status": "New Order"
+}
