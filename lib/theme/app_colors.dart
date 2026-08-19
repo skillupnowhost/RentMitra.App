@@ -21,6 +21,13 @@ class AppColors {
   static const Color priceGreen = Color(0xFF639C75);
   static const Color priceOrange = Color(0xFFCB7660);
 
+  // More saturated variants used specifically in the home screen's "Shop by
+  // Category" grid — the muted price* colors above read as too pale/dull
+  // there against the Figma reference.
+  static const Color categoryBlue = Color(0xFF4F46E5);
+  static const Color categoryGreen = Color(0xFF16A34A);
+  static const Color categoryOrange = Color(0xFFEA580C);
+
   static const Color titleBlue = Color(0xFF7693C3);
   static const Color titleGreen = Color(0xFF73A680);
   static const Color titleTerracotta = Color(0xFFD28A79);

@@ -35,13 +35,24 @@ class PromoBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Starting at ₹1,887/month',
-                  style: AppTextStyles.of(
-                    figmaSize: 14,
-                    weight: FontWeight.w400,
-                    color: AppColors.textGrayMed,
-                  ),
+                // Price and the AC+fridge+washer glyph trio read as one
+                // line — wrapped in [Wrap] rather than [Row] so they stay
+                // together on narrower screens instead of overflowing.
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      'Starting at ₹1,887/month',
+                      style: AppTextStyles.of(
+                        figmaSize: 14,
+                        weight: FontWeight.w400,
+                        color: AppColors.textGrayMed,
+                      ),
+                    ),
+                    const _MiniApplianceIcons(),
+                  ],
                 ),
               ],
             ),
@@ -82,6 +93,39 @@ class PromoBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The plain AC / fridge / washer glyph trio next to the promo price — no
+/// "+" joiners or label, unlike [ComboIconRow] used on the category card,
+/// so it reads as a quiet visual footnote rather than another headline.
+class _MiniApplianceIcons extends StatelessWidget {
+  const _MiniApplianceIcons();
+
+  static const _icons = [
+    'assets/images/air-conditioner icon.png',
+    'assets/images/fridge icon.png',
+    'assets/images/washing-machine icon.png',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < _icons.length; i++)
+          Padding(
+            padding: EdgeInsets.only(left: i == 0 ? 0 : 4),
+            child: ColorFiltered(
+              colorFilter: const ColorFilter.mode(
+                AppColors.purple,
+                BlendMode.srcIn,
+              ),
+              child: Image.asset(_icons[i], width: 13, height: 13),
+            ),
+          ),
+      ],
     );
   }
 }

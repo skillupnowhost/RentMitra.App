@@ -8,9 +8,11 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/animated_service_icons.dart';
 import '../widgets/appliance_art.dart';
+import '../widgets/appliance_showcase_card.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/category_card.dart';
 import '../widgets/dot_indicator.dart';
+import '../widgets/feature_strip.dart';
 import '../widgets/help_card.dart';
 import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
@@ -93,9 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(height: AppTextStyles.fig(20)),
                         PromoBanner(onViewCombos: _openCombos),
                         SizedBox(height: AppTextStyles.fig(24)),
-                        _sectionTitle('Popular Picks'),
-                        SizedBox(height: AppTextStyles.fig(12)),
-                        _sectionProductGrid(),
+                        _sectionShowcaseCards(),
+                        SizedBox(height: AppTextStyles.fig(20)),
+                        const FeatureStrip(),
                         SizedBox(height: AppTextStyles.fig(24)),
                         HelpCard(onWhatsApp: () {}),
                       ],
@@ -216,32 +218,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Wraps a product image with a soft blurred ellipse beneath it, so the
-  /// appliance reads as resting on a surface instead of floating.
-  Widget _groundedArt(Widget art) {
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      clipBehavior: Clip.none,
-      children: [
-        art,
-        Positioned(
-          bottom: -2,
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 4),
-            child: Container(
-              width: AppTextStyles.fig(60),
-              height: AppTextStyles.fig(10),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _sectionTitle(String text) {
     return Text(
       text,
@@ -263,8 +239,8 @@ class _HomeScreenState extends State<HomeScreen> {
               iconAsset: 'assets/images/air-conditioner icon.png',
               title: 'Smart Inverter Split AC',
               price: '₹999',
-              iconColor: AppColors.pricePurple,
-              priceColor: AppColors.pricePurple,
+              iconColor: AppColors.categoryBlue,
+              priceColor: AppColors.categoryBlue,
               bgColor: AppColors.bgCardPurple,
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const AcScreen())),
@@ -276,8 +252,8 @@ class _HomeScreenState extends State<HomeScreen> {
               iconAsset: 'assets/images/fridge icon.png',
               title: 'Refrigerator',
               price: '₹499',
-              iconColor: AppColors.priceGreen,
-              priceColor: AppColors.priceGreen,
+              iconColor: AppColors.categoryGreen,
+              priceColor: AppColors.categoryGreen,
               bgColor: AppColors.bgCardNeutral,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
@@ -290,8 +266,8 @@ class _HomeScreenState extends State<HomeScreen> {
               iconAsset: 'assets/images/washing-machine icon.png',
               title: 'Washing Machine',
               price: '₹599',
-              iconColor: AppColors.priceOrange,
-              priceColor: AppColors.priceOrange,
+              iconColor: AppColors.categoryOrange,
+              priceColor: AppColors.categoryOrange,
               bgColor: AppColors.bgCardPeach,
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
@@ -320,236 +296,65 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _sectionProductGrid() {
+  /// The three appliance cards — Smart Inverter Split AC, Refrigerator and
+  /// Washing Machine — side by side in one row, each a compact checklist +
+  /// product photo + variant-tabs card.
+  Widget _sectionShowcaseCards() {
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: _ProductPreviewCard(
-              art: _groundedArt(const AcProductImage(width: 58, height: 40)),
+            child: ApplianceShowcaseCard(
               title: 'Smart Inverter\nSplit AC',
               titleColor: AppColors.titleBlue,
-              price: '₹999',
+              checklist: const [
+                'Powerful cooling',
+                'Low power consumption',
+                'Smart Plug Included',
+              ],
+              image: const AcProductImage(width: 46),
+              tabs: const ['1 Ton', '1.5 Ton'],
+              tabIcon: Icons.ac_unit,
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const AcScreen())),
             ),
           ),
-          SizedBox(width: AppTextStyles.fig(10)),
+          SizedBox(width: AppTextStyles.fig(8)),
           Expanded(
-            child: _ProductPreviewCard(
-              art: _groundedArt(const FridgeProductImage(width: 36)),
+            child: ApplianceShowcaseCard(
               title: 'Refrigerator',
               titleColor: AppColors.titleGreen,
-              price: '₹499',
+              checklist: const [
+                'Freshness that lasts longer.',
+                'Energy efficient',
+                'Spacious storage',
+              ],
+              image: const FridgeProductImage(width: 34),
+              tabs: const ['Single Door', 'Double Door'],
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
               ),
             ),
           ),
-          SizedBox(width: AppTextStyles.fig(10)),
+          SizedBox(width: AppTextStyles.fig(8)),
           Expanded(
-            child: _ProductPreviewCard(
-              art: _groundedArt(
-                const WasherProductImage(width: 42, height: 42),
-              ),
-              title: 'Washing\nMachine',
+            child: ApplianceShowcaseCard(
+              title: 'Washing Machine',
               titleColor: AppColors.titleTerracotta,
-              price: '₹599',
-              stockBadge: 'Few Left',
+              checklist: const [
+                'Powerful cleaning',
+                'Multiple wash programs',
+                'Gentle on clothes',
+              ],
+              image: const WasherProductImage(width: 46, height: 38),
+              overlayButton: true,
+              tabs: const ['Top Load', 'Front Load'],
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Compact tap-through card for the 3-across AC/Refrigerator/Washing Machine
-/// row: product photo, title, starting price and an arrow — the checklist
-/// and size-selector that the full-width card used to show now live on the
-/// product's own detail screen (reachable via [onTap]).
-class _ProductPreviewCard extends StatelessWidget {
-  const _ProductPreviewCard({
-    required this.art,
-    required this.title,
-    required this.titleColor,
-    required this.price,
-    this.onTap,
-    this.stockBadge,
-  });
-
-  final Widget art;
-  final String title;
-  final Color titleColor;
-  final String price;
-  final VoidCallback? onTap;
-
-  /// Optional premium urgency tag (e.g. "Few Left") shown as a small pill
-  /// poking above the card's top-left corner — used sparingly, not on every
-  /// card, so it keeps its urgency signal instead of becoming wallpaper.
-  final String? stockBadge;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 46, child: Center(child: art)),
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.of(
-                    figmaSize: 16,
-                    weight: FontWeight.w700,
-                    color: titleColor,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Starting at',
-                  style: AppTextStyles.of(
-                    figmaSize: 9,
-                    weight: FontWeight.w400,
-                    color: AppColors.textGraySoft,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: price,
-                              style: AppTextStyles.of(
-                                figmaSize: 15,
-                                weight: FontWeight.w700,
-                                color: titleColor,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '/mo',
-                              style: AppTextStyles.of(
-                                figmaSize: 10,
-                                weight: FontWeight.w400,
-                                color: titleColor.withValues(alpha: 0.75),
-                              ),
-                            ),
-                          ],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, color: titleColor, size: 18),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (stockBadge != null)
-            Positioned(
-              top: -8,
-              left: 10,
-              child: _StockBadge(text: stockBadge!),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Small premium urgency pill ("Few Left") with a soft pulsing dot rather
-/// than a loud warning color — a quiet nudge, not an alarm.
-class _StockBadge extends StatefulWidget {
-  const _StockBadge({required this.text});
-
-  final String text;
-
-  @override
-  State<_StockBadge> createState() => _StockBadgeState();
-}
-
-class _StockBadgeState extends State<_StockBadge>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final curved = CurvedAnimation(parent: _pulse, curve: Curves.easeInOut);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.comboBadgeBg,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedBuilder(
-            animation: curved,
-            builder: (context, _) => Container(
-              width: 5,
-              height: 5,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.comboBlueDeep.withValues(
-                  alpha: 0.5 + curved.value * 0.5,
+                MaterialPageRoute(
+                  builder: (_) => const WashingMachineScreen(),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            widget.text,
-            style: AppTextStyles.of(
-              figmaSize: 9,
-              weight: FontWeight.w700,
-              color: AppColors.comboBlueDeep,
             ),
           ),
         ],
@@ -677,8 +482,8 @@ class _HeroBannerState extends State<_HeroBanner> {
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 7,
+                              horizontal: 8,
+                              vertical: 9,
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.navyDeep,
@@ -762,15 +567,14 @@ class _HeroBenefitsRow extends StatelessWidget {
           child: _HeroBenefitItem(
             label: 'Free\nDelivery',
             iconBuilder: (delay) =>
-                DeliveryTruckIcon(size: 15, startDelay: delay),
-            alignStart: true,
+                DeliveryTruckIcon(size: 12, startDelay: delay),
           ),
         ),
         Expanded(
           child: _HeroBenefitItem(
             label: 'Free\nInstallation',
             iconBuilder: (delay) =>
-                InstallationIcon(size: 15, startDelay: delay),
+                InstallationIcon(size: 12, startDelay: delay),
             startDelay: const Duration(milliseconds: 150),
           ),
         ),
@@ -778,7 +582,7 @@ class _HeroBenefitsRow extends StatelessWidget {
           child: _HeroBenefitItem(
             label: 'Service &\nMaintenance',
             iconBuilder: (delay) =>
-                MaintenanceIcon(size: 15, startDelay: delay),
+                MaintenanceIcon(size: 12, startDelay: delay),
             startDelay: const Duration(milliseconds: 300),
           ),
         ),
@@ -792,43 +596,34 @@ class _HeroBenefitItem extends StatelessWidget {
     required this.iconBuilder,
     required this.label,
     this.startDelay = Duration.zero,
-    this.alignStart = false,
   });
 
   final Widget Function(Duration delay) iconBuilder;
   final String label;
   final Duration startDelay;
 
-  /// True only for the first ("Free Delivery") item, so its icon's left
-  /// edge lines up with the headline/CTA above it instead of sitting
-  /// centered in its own third of the row.
-  final bool alignStart;
-
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: alignStart
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.center,
       children: [
         Container(
-          width: 30,
-          height: 30,
+          width: 24,
+          height: 24,
           decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
           ),
           child: Center(child: iconBuilder(startDelay)),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         Text(
           label,
-          textAlign: alignStart ? TextAlign.left : TextAlign.center,
+          textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.of(
-            figmaSize: 10,
+            figmaSize: 9,
             weight: FontWeight.w600,
             color: AppColors.textGrayMed,
           ),
@@ -870,7 +665,7 @@ class _HeroImageSliderState extends State<_HeroImageSlider>
   // the appliance, airflow/water effects and pot plant all stay fully in
   // frame — to even that out without touching the box's own size.
   static const _images = [
-    'assets/images/appliance_cluster.png',
+    'assets/images/main_splash.png',
     'assets/images/ac_splash.png',
     'assets/images/fridge_splash.png',
     'assets/images/washing_machine_splash.png',

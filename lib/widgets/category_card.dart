@@ -89,9 +89,9 @@ class CategoryCard extends StatelessWidget {
                 // negative-top [Positioned] below instead of reserving
                 // space in this Column, so it no longer forces empty
                 // headroom onto the other three cards.
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 SizedBox(
-                  height: 48,
+                  height: 34,
                   width: double.infinity,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
@@ -104,14 +104,14 @@ class CategoryCard extends StatelessWidget {
                           ),
                           child: Image.asset(
                             iconAsset!,
-                            width: 48,
-                            height: 48,
+                            width: 34,
+                            height: 34,
                             fit: BoxFit.contain,
                           ),
                         ),
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(9)),
+                SizedBox(height: AppTextStyles.fig(7)),
                 // Fixed to a 2-line height so "Starting at" / price / +GST
                 // land on the same row across every card regardless of
                 // whether this card's title wraps to 1 or 2 lines.
