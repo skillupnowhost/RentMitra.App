@@ -9,6 +9,7 @@ import '../theme/app_text_styles.dart';
 import '../widgets/animated_service_icons.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/appliance_showcase_card.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/category_card.dart';
 import '../widgets/dot_indicator.dart';
@@ -30,15 +31,35 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _navIndex = 0;
   final GlobalKey _categorySectionKey = GlobalKey();
+
+  /// Drives the hamburger menu end to end: the panel's slide-in, the
+  /// backdrop's blur/dim, the hamburger↔close icon morph, and each drawer
+  /// row's staggered entrance (see [AppDrawer]) — one controller so all of
+  /// it reads as a single deliberate motion instead of separate effects.
+  late final AnimationController _menuController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+    reverseDuration: const Duration(milliseconds: 280),
+  );
 
   @override
   void initState() {
     super.initState();
     LocationController.instance.autoDetectOnce();
   }
+
+  @override
+  void dispose() {
+    _menuController.dispose();
+    super.dispose();
+  }
+
+  void _openMenu() => _menuController.forward();
+  void _closeMenu() => _menuController.reverse();
 
   void _openCombos() {
     Navigator.of(context)
@@ -62,64 +83,78 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: contentWidth),
-            child: Column(
-              children: [
-                _buildAppBar(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      AppTextStyles.fig(16),
-                      AppTextStyles.fig(12),
-                      AppTextStyles.fig(16),
-                      AppTextStyles.fig(24),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _HeroBanner(onExplore: _scrollToCategories),
-                        SizedBox(height: AppTextStyles.fig(24)),
-                        KeyedSubtree(
-                          key: _categorySectionKey,
-                          child: _sectionTitle('Shop by Category'),
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: contentWidth),
+                child: Column(
+                  children: [
+                    _buildAppBar(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          AppTextStyles.fig(16),
+                          AppTextStyles.fig(12),
+                          AppTextStyles.fig(16),
+                          AppTextStyles.fig(24),
                         ),
-                        // Fixed (not fig-scaled) so it reliably clears the
-                        // Combo Plans card's "Best Value" badge, which floats
-                        // above that card's top edge.
-                        const SizedBox(height: 20),
-                        _sectionCategoryGrid(),
-                        SizedBox(height: AppTextStyles.fig(20)),
-                        PromoBanner(onViewCombos: _openCombos),
-                        SizedBox(height: AppTextStyles.fig(24)),
-                        _sectionShowcaseCards(),
-                        SizedBox(height: AppTextStyles.fig(20)),
-                        const FeatureStrip(),
-                        SizedBox(height: AppTextStyles.fig(24)),
-                        HelpCard(onWhatsApp: () {}),
-                      ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _HeroBanner(onExplore: _scrollToCategories),
+                            SizedBox(height: AppTextStyles.fig(16)),
+                            KeyedSubtree(
+                              key: _categorySectionKey,
+                              child: _sectionTitle('Shop by Category'),
+                            ),
+                            // Fixed (not fig-scaled) so it reliably clears the
+                            // Combo Plans card's "Best Value" badge, which floats
+                            // above that card's top edge.
+                            const SizedBox(height: 20),
+                            _sectionCategoryGrid(),
+                            SizedBox(height: AppTextStyles.fig(20)),
+                            PromoBanner(onViewCombos: _openCombos),
+                            SizedBox(height: AppTextStyles.fig(24)),
+                            _sectionShowcaseCards(),
+                            SizedBox(height: AppTextStyles.fig(20)),
+                            const FeatureStrip(),
+                            SizedBox(height: AppTextStyles.fig(24)),
+                            HelpCard(onWhatsApp: () {}),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    AppBottomNavBar(
+                      currentIndex: _navIndex,
+                      onTap: (i) {
+                        setState(() => _navIndex = i);
+                        if (i != 0) {
+                          final label = i == 1 ? 'My Rentals' : 'Profile';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('$label — coming soon')),
+                          );
+                        }
+                      },
+                    ),
+                  ],
                 ),
-                AppBottomNavBar(
-                  currentIndex: _navIndex,
-                  onTap: (i) {
-                    setState(() => _navIndex = i);
-                    if (i != 0) {
-                      final label = i == 1 ? 'My Rentals' : 'Profile';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('$label — coming soon')),
-                      );
-                    }
-                  },
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          _MenuBackdrop(animation: _menuController, onTap: _closeMenu),
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
+            child: _AnimatedDrawerPanel(
+              animation: _menuController,
+              child: AppDrawer(animation: _menuController, onClose: _closeMenu),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -131,9 +166,18 @@ class _HomeScreenState extends State<HomeScreen> {
       alignment: Alignment.center,
       child: Row(
         children: [
-          const Icon(Icons.menu, color: AppColors.navy, size: 24),
+          GestureDetector(
+            onTap: _openMenu,
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedIcon(
+              icon: AnimatedIcons.menu_close,
+              progress: _menuController,
+              color: AppColors.navy,
+              size: 20,
+            ),
+          ),
           SizedBox(width: AppTextStyles.fig(14)),
-          const LogoMark(width: 42),
+          const LogoMark(width: 26),
           SizedBox(width: AppTextStyles.fig(8)),
           Expanded(
             child: Column(
@@ -150,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Rent',
                         style: AppTextStyles.of(
-                          figmaSize: 34,
+                          figmaSize: 28,
                           weight: FontWeight.w700,
                           color: AppColors.navyDeep,
                         ),
@@ -158,25 +202,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Mitra',
                         style: AppTextStyles.of(
-                          figmaSize: 34,
+                          figmaSize: 28,
                           weight: FontWeight.w700,
                           color: AppColors.purple,
                         ),
                       ),
-                      SizedBox(width: AppTextStyles.fig(4)),
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: AppTextStyles.fig(9),
-                          vertical: AppTextStyles.fig(4),
+                          horizontal: AppTextStyles.fig(7),
+                          vertical: AppTextStyles.fig(3),
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.purple,
                           borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: Colors.white, width: 1.2),
                         ),
                         child: Text(
                           '.app',
                           style: AppTextStyles.of(
-                            figmaSize: 12,
+                            figmaSize: 10,
                             weight: FontWeight.w700,
                             color: Colors.white,
                           ),
@@ -242,6 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
               iconColor: AppColors.categoryBlue,
               priceColor: AppColors.categoryBlue,
               bgColor: AppColors.bgCardPurple,
+              iconAnimationDelay: const Duration(milliseconds: 0),
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const AcScreen())),
             ),
@@ -255,6 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
               iconColor: AppColors.categoryGreen,
               priceColor: AppColors.categoryGreen,
               bgColor: AppColors.bgCardNeutral,
+              iconAnimationDelay: const Duration(milliseconds: 150),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
               ),
@@ -269,6 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
               iconColor: AppColors.categoryOrange,
               priceColor: AppColors.categoryOrange,
               bgColor: AppColors.bgCardPeach,
+              iconAnimationDelay: const Duration(milliseconds: 300),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
               ),
@@ -288,6 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 AppColors.comboBlueBright,
               ],
               badgeText: 'Best Value',
+              iconAnimationDelay: const Duration(milliseconds: 450),
               onTap: _openCombos,
             ),
           ),
@@ -300,65 +348,141 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Washing Machine — side by side in one row, each a compact checklist +
   /// product photo + variant-tabs card.
   Widget _sectionShowcaseCards() {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: ApplianceShowcaseCard(
-              title: 'Smart Inverter\nSplit AC',
-              titleColor: AppColors.titleBlue,
-              checklist: const [
-                'Powerful cooling',
-                'Low power consumption',
-                'Smart Plug Included',
-              ],
-              image: const AcProductImage(width: 46),
-              tabs: const ['1 Ton', '1.5 Ton'],
-              tabIcon: Icons.ac_unit,
-              onTap: () => Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => const AcScreen())),
+    // Plain Row with top-aligned cards rather than IntrinsicHeight +
+    // stretch: forcing all three to one shared intrinsic height is fragile
+    // once Google Fonts' Inter face swaps in after the fallback font's
+    // first layout pass — the two passes' line metrics can differ just
+    // enough to overflow the row's cached height by a few pixels. Card
+    // content is symmetric enough (3 checklist items each) that natural
+    // heights land within a pixel of each other anyway.
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: ApplianceShowcaseCard(
+            title: 'Smart Inverter\nSplit AC',
+            titleColor: AppColors.titleBlue,
+            checklist: const [
+              'Powerful cooling',
+              'Low power consumption',
+              'Smart Plug Included',
+            ],
+            images: const [
+              AcProductImage(width: 130),
+              AcProductImage(width: 130),
+            ],
+            tabs: const ['1 Ton', '1.5 Ton'],
+            tabIcon: Icons.ac_unit,
+            onTap: () =>
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => const AcScreen())),
+          ),
+        ),
+        SizedBox(width: AppTextStyles.fig(8)),
+        Expanded(
+          child: ApplianceShowcaseCard(
+            title: 'Refrigerator',
+            titleColor: AppColors.titleGreen,
+            checklist: const [
+              'Freshness that lasts longer.',
+              'Energy efficient',
+              'Spacious storage',
+            ],
+            images: const [
+              FridgeSingleDoorProductImage(width: 105),
+              FridgeProductImage(width: 105),
+            ],
+            tabs: const ['Single Door', 'Double Door'],
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
             ),
           ),
-          SizedBox(width: AppTextStyles.fig(8)),
-          Expanded(
-            child: ApplianceShowcaseCard(
-              title: 'Refrigerator',
-              titleColor: AppColors.titleGreen,
-              checklist: const [
-                'Freshness that lasts longer.',
-                'Energy efficient',
-                'Spacious storage',
-              ],
-              image: const FridgeProductImage(width: 34),
-              tabs: const ['Single Door', 'Double Door'],
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
+        ),
+        SizedBox(width: AppTextStyles.fig(8)),
+        Expanded(
+          child: ApplianceShowcaseCard(
+            title: 'Washing Machine',
+            titleColor: AppColors.titleTerracotta,
+            checklist: const [
+              'Powerful cleaning',
+              'Multiple wash programs',
+              'Gentle on clothes',
+            ],
+            images: const [
+              WasherTopLoadProductImage(width: 112, height: 106),
+              WasherProductImage(width: 112, height: 106),
+            ],
+            tabs: const ['Top Load', 'Front Load'],
+            overlayButton: true,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Dimmed, blurred scrim behind the hamburger menu — tapping it closes the
+/// menu. Skips painting entirely once fully closed so it never eats touches
+/// meant for the home screen underneath.
+class _MenuBackdrop extends StatelessWidget {
+  const _MenuBackdrop({required this.animation, required this.onTap});
+
+  final Animation<double> animation;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        if (animation.value == 0) return const SizedBox.shrink();
+        return Positioned.fill(
+          child: GestureDetector(
+            onTap: onTap,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: 4 * animation.value,
+                sigmaY: 4 * animation.value,
               ),
-            ),
-          ),
-          SizedBox(width: AppTextStyles.fig(8)),
-          Expanded(
-            child: ApplianceShowcaseCard(
-              title: 'Washing Machine',
-              titleColor: AppColors.titleTerracotta,
-              checklist: const [
-                'Powerful cleaning',
-                'Multiple wash programs',
-                'Gentle on clothes',
-              ],
-              image: const WasherProductImage(width: 46, height: 38),
-              overlayButton: true,
-              tabs: const ['Top Load', 'Front Load'],
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const WashingMachineScreen(),
+              child: Container(
+                color: AppColors.navyDeep.withValues(
+                  alpha: 0.45 * animation.value,
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        );
+      },
+    );
+  }
+}
+
+/// Slides [child] in from the left on an eased curve and stops it from
+/// intercepting touches while fully closed.
+class _AnimatedDrawerPanel extends StatelessWidget {
+  const _AnimatedDrawerPanel({required this.animation, required this.child});
+
+  final Animation<double> animation;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final curved = Curves.easeOutCubic.transform(animation.value);
+        return IgnorePointer(
+          ignoring: animation.value == 0,
+          child: Transform.translate(
+            offset: Offset((curved - 1) * 298, 0),
+            child: child,
+          ),
+        );
+      },
+      child: child,
     );
   }
 }
@@ -378,14 +502,14 @@ class _HeroBannerState extends State<_HeroBanner> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 22, 14, 20),
+      padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: AppColors.heroBanner,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,9 +518,11 @@ class _HeroBannerState extends State<_HeroBanner> {
           // a taller floor via the outer [ConstrainedBox] so the image
           // slider renders large and dominant instead of shrinking to the
           // text column's natural height. [BoxFit.contain] on the slides
-          // themselves still guarantees nothing is ever cropped.
+          // themselves still guarantees nothing is ever cropped. Kept
+          // compact (client feedback: the hero was eating the whole first
+          // screen) so "Shop by Category" lands within the same viewport.
           ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 232),
+            constraints: const BoxConstraints(minHeight: 158),
             child: IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -430,14 +556,14 @@ class _HeroBannerState extends State<_HeroBanner> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
                         RichText(
                           text: TextSpan(
                             children: [
                               TextSpan(
                                 text: 'Rent Smart.\n',
                                 style: AppTextStyles.of(
-                                  figmaSize: 33,
+                                  figmaSize: 22,
                                   weight: FontWeight.w800,
                                   color: AppColors.navy,
                                   height: 1.08,
@@ -446,7 +572,7 @@ class _HeroBannerState extends State<_HeroBanner> {
                               TextSpan(
                                 text: 'Live Easy.',
                                 style: AppTextStyles.of(
-                                  figmaSize: 36,
+                                  figmaSize: 24,
                                   weight: FontWeight.w800,
                                   color: AppColors.purple,
                                   height: 1.08,
@@ -455,17 +581,17 @@ class _HeroBannerState extends State<_HeroBanner> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 5),
                         Text(
                           'Premium Appliances on Rent at affordable prices.',
                           style: AppTextStyles.of(
-                            figmaSize: 14,
+                            figmaSize: 11,
                             weight: FontWeight.w500,
                             color: AppColors.textGray,
-                            height: 1.3,
+                            height: 1.25,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         // The primary hero CTA — tappable (scrolls straight
                         // to the category grid), with a soft lifted shadow so
                         // it still reads as a real button; kept minimal (no
@@ -483,18 +609,18 @@ class _HeroBannerState extends State<_HeroBanner> {
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
-                              vertical: 9,
+                              vertical: 6,
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.navyDeep,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
                                   color: AppColors.navyDeep.withValues(
                                     alpha: 0.28,
                                   ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
@@ -508,7 +634,7 @@ class _HeroBannerState extends State<_HeroBanner> {
                                 'AC • Refrigerator • Washing Machine • Combo Plans',
                                 maxLines: 1,
                                 style: AppTextStyles.of(
-                                  figmaSize: 11,
+                                  figmaSize: 10,
                                   weight: FontWeight.w500,
                                   color: Colors.white,
                                 ),
@@ -516,7 +642,7 @@ class _HeroBannerState extends State<_HeroBanner> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 8),
                         // Fills the remaining vertical space the text column
                         // would otherwise leave empty below the CTA, so the
                         // hero content matches the image column's height
@@ -538,7 +664,7 @@ class _HeroBannerState extends State<_HeroBanner> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Center(child: DotIndicator(count: 4, activeIndex: _activeSlide)),
         ],
       ),
@@ -608,22 +734,22 @@ class _HeroBenefitItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 24,
-          height: 24,
+          width: 20,
+          height: 20,
           decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
           ),
           child: Center(child: iconBuilder(startDelay)),
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 2),
         Text(
           label,
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.of(
-            figmaSize: 9,
+            figmaSize: 8,
             weight: FontWeight.w600,
             color: AppColors.textGrayMed,
           ),
@@ -757,8 +883,8 @@ class _HeroImageSliderState extends State<_HeroImageSlider>
             child: ImageFiltered(
               imageFilter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
               child: Container(
-                width: AppTextStyles.fig(260),
-                height: AppTextStyles.fig(260),
+                width: AppTextStyles.fig(170),
+                height: AppTextStyles.fig(170),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
@@ -781,8 +907,8 @@ class _HeroImageSliderState extends State<_HeroImageSlider>
             child: ImageFiltered(
               imageFilter: ImageFilter.blur(sigmaX: 14, sigmaY: 6),
               child: Container(
-                width: AppTextStyles.fig(110),
-                height: AppTextStyles.fig(16),
+                width: AppTextStyles.fig(85),
+                height: AppTextStyles.fig(13),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(30),

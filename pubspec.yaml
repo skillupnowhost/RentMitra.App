@@ -38,6 +38,7 @@ dependencies:
   geolocator: ^14.0.0
   geocoding: ^4.0.0
   shared_preferences: ^2.5.5
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +69,8 @@ flutter:
     - assets/images/ac_product.png
     - assets/images/fridge_product.png
     - assets/images/washer_product.png
+    - assets/images/fridge_single_door_product.png
+    - assets/images/washer_top_load_product.png
     - assets/images/blob_top_left.png
     - assets/images/promo_badge.png
     - assets/images/ac_splash.png
@@ -78,6 +81,8 @@ flutter:
     - "assets/images/air-conditioner icon.png"
     - "assets/images/fridge icon.png"
     - "assets/images/washing-machine icon.png"
+    - "assets/images/Need help.png"
+    - "assets/images/whatsapp icon.png"
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -152,10 +152,14 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   final _pageController = PageController();
   int _page = 0;
   bool _userInteracted = false;
+  bool _isAnimating = false;
+  bool _navigating = false;
   Timer? _autoTimer;
 
   static const _slideCount = 4;
   static const _autoplayInterval = Duration(milliseconds: 4200);
+  static const _transitionDuration = Duration(milliseconds: 550);
+  static const _transitionCurve = Curves.easeInOutCubic;
 
   @override
   void initState() {
@@ -175,14 +179,13 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
     if (_userInteracted) return;
     if (_page >= _slideCount - 1) return;
     _autoTimer = Timer(_autoplayInterval, () {
-      if (!mounted || _userInteracted) return;
+      if (!mounted || _userInteracted || _isAnimating) return;
       final next = _page + 1;
       if (next >= _slideCount) return;
-      _pageController.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 750),
-        curve: Curves.easeInOutCubic,
-      );
+      _isAnimating = true;
+      _pageController
+          .animateToPage(next, duration: _transitionDuration, curve: _transitionCurve)
+          .whenComplete(() => _isAnimating = false);
     });
   }
 
@@ -193,6 +196,8 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   }
 
   void _skipToHome() {
+    if (_navigating) return;
+    _navigating = true;
     Navigator.of(context).pushReplacement(cinematicRoute(const HomeScreen()));
   }
 
@@ -202,14 +207,15 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   }
 
   void _next() {
+    if (_isAnimating || _navigating) return;
     _onUserInteraction();
     if (_page == _slideCount - 1) {
       _skipToHome();
     } else {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOutCubic,
-      );
+      _isAnimating = true;
+      _pageController
+          .nextPage(duration: _transitionDuration, curve: _transitionCurve)
+          .whenComplete(() => _isAnimating = false);
     }
   }
 
@@ -370,10 +376,7 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
                                   activeIndex: _page,
                                 ),
                                 const Spacer(),
-                                PremiumCtaButton(
-                                  expanded: false,
-                                  onTap: _next,
-                                ),
+                                PremiumCtaButton(expanded: false, onTap: _next),
                               ],
                             ),
                     ),
@@ -403,8 +406,7 @@ class _ApplianceSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final artWidth =
-        MediaQuery.of(context).size.width * data.artWidthFraction;
+    final artWidth = MediaQuery.of(context).size.width * data.artWidthFraction;
 
     return LayoutBuilder(
       builder: (context, constraints) {

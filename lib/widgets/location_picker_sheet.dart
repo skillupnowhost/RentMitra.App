@@ -180,6 +180,54 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                 ),
               ),
               SizedBox(height: AppTextStyles.fig(14)),
+              if (_query.trim().isNotEmpty &&
+                  !LocationPickerSheet._serviceableCities.any(
+                    (c) => c.toLowerCase() == _query.trim().toLowerCase(),
+                  ))
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppTextStyles.fig(20),
+                    0,
+                    AppTextStyles.fig(20),
+                    AppTextStyles.fig(14),
+                  ),
+                  child: GestureDetector(
+                    onTap: () => _select(_query.trim()),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppTextStyles.fig(12),
+                        horizontal: AppTextStyles.fig(14),
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCardPurple,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.purple.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.add_location_alt_outlined,
+                            size: 18,
+                            color: AppColors.purple,
+                          ),
+                          SizedBox(width: AppTextStyles.fig(8)),
+                          Expanded(
+                            child: Text(
+                              'Use "${_query.trim()}" as my location',
+                              style: AppTextStyles.of(
+                                figmaSize: 14,
+                                weight: FontWeight.w600,
+                                color: AppColors.purple,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: AppTextStyles.fig(20),

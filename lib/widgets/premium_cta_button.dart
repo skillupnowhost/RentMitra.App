@@ -174,4 +174,3 @@ class _ExpandedCta extends StatelessWidget {
     );
   }
 }
-

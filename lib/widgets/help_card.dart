@@ -27,10 +27,12 @@ class HelpCard extends StatelessWidget {
               color: AppColors.bgCardPurple,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.headset_mic_outlined,
+            child: Image.asset(
+              'assets/images/Need help.png',
+              width: 22,
+              height: 22,
               color: AppColors.purple,
-              size: 22,
+              colorBlendMode: BlendMode.srcIn,
             ),
           ),
           const SizedBox(width: 14),
@@ -81,6 +83,12 @@ class HelpCard extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Image.asset(
+                    'assets/images/whatsapp icon.png',
+                    width: 26,
+                    height: 26,
+                  ),
+                  const SizedBox(width: 8),
                   Text(
                     'WhatsApp Us',
                     style: AppTextStyles.of(
@@ -88,12 +96,6 @@ class HelpCard extends StatelessWidget {
                       weight: FontWeight.w500,
                       color: Colors.white,
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.arrow_forward,
-                    size: 14,
-                    color: Colors.white,
                   ),
                 ],
               ),

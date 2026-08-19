@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -16,6 +18,7 @@ class CategoryCard extends StatelessWidget {
     this.onTap,
     this.gradientColors,
     this.badgeText,
+    this.iconAnimationDelay = Duration.zero,
   }) : assert(
          iconAsset != null || iconWidget != null,
          'Provide either iconAsset or iconWidget',
@@ -43,6 +46,10 @@ class CategoryCard extends StatelessWidget {
   /// Small pill badge (e.g. "Best Value") shown top-right when [gradientColors]
   /// is set.
   final String? badgeText;
+
+  /// Offsets when this card's icon starts its idle breathing loop, so a row
+  /// of cards pulses as a staggered wave rather than everything in lockstep.
+  final Duration iconAnimationDelay;
 
   bool get _highlighted => gradientColors != null;
 
@@ -95,20 +102,23 @@ class CategoryCard extends StatelessWidget {
                   width: double.infinity,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child:
-                        iconWidget ??
-                        ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            onGradientColor ?? iconColor,
-                            BlendMode.srcIn,
+                    child: _BreathingIcon(
+                      startDelay: iconAnimationDelay,
+                      child:
+                          iconWidget ??
+                          ColorFiltered(
+                            colorFilter: ColorFilter.mode(
+                              onGradientColor ?? iconColor,
+                              BlendMode.srcIn,
+                            ),
+                            child: Image.asset(
+                              iconAsset!,
+                              width: 34,
+                              height: 34,
+                              fit: BoxFit.contain,
+                            ),
                           ),
-                          child: Image.asset(
-                            iconAsset!,
-                            width: 34,
-                            height: 34,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+                    ),
                   ),
                 ),
                 SizedBox(height: AppTextStyles.fig(7)),
@@ -385,6 +395,55 @@ class ComboIconRow extends StatelessWidget {
           color: color,
         ),
       ),
+    );
+  }
+}
+
+/// A slow, continuous scale-breathe loop for a category card's icon — just
+/// enough motion to feel alive without competing for attention against the
+/// price/title text around it. [startDelay] staggers a row of cards so they
+/// don't all pulse in lockstep.
+class _BreathingIcon extends StatefulWidget {
+  const _BreathingIcon({required this.child, this.startDelay = Duration.zero});
+
+  final Widget child;
+  final Duration startDelay;
+
+  @override
+  State<_BreathingIcon> createState() => _BreathingIconState();
+}
+
+class _BreathingIconState extends State<_BreathingIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _breathe = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1900),
+  );
+  Timer? _startTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer = Timer(widget.startDelay, () {
+      if (mounted) _breathe.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _startTimer?.cancel();
+    _breathe.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final curved = CurvedAnimation(parent: _breathe, curve: Curves.easeInOut);
+    return AnimatedBuilder(
+      animation: curved,
+      builder: (context, child) =>
+          Transform.scale(scale: 1.0 + curved.value * 0.09, child: child),
+      child: widget.child,
     );
   }
 }

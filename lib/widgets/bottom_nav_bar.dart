@@ -22,7 +22,7 @@ class AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 16, bottom: 12),
+      padding: const EdgeInsets.only(top: 10, bottom: 8),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: AppColors.divider)),
@@ -40,16 +40,23 @@ class AppBottomNavBar extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    active ? filled : outline,
-                    size: 26,
-                    color: active ? AppColors.purple : AppColors.textGraySoft,
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 1, end: active ? 1.16 : 1.0),
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutBack,
+                    builder: (context, scale, child) =>
+                        Transform.scale(scale: scale, child: child),
+                    child: Icon(
+                      active ? filled : outline,
+                      size: 20,
+                      color: active ? AppColors.purple : AppColors.textGraySoft,
+                    ),
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 3),
                   Text(
                     label,
                     style: AppTextStyles.of(
-                      figmaSize: 18,
+                      figmaSize: 14,
                       weight: active ? FontWeight.w700 : FontWeight.w500,
                       color: active ? AppColors.purple : AppColors.textGraySoft,
                     ),

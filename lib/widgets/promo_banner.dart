@@ -11,16 +11,16 @@ class PromoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 90),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      constraints: const BoxConstraints(minHeight: 68),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.promoCardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           const _AnimatedDiscountBadge(),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,24 +29,24 @@ class PromoBanner extends StatelessWidget {
                 Text(
                   'Save 10% on Appliance Combos',
                   style: AppTextStyles.of(
-                    figmaSize: 16,
+                    figmaSize: 13,
                     weight: FontWeight.w600,
                     color: AppColors.textGray,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 // Price and the AC+fridge+washer glyph trio read as one
                 // line — wrapped in [Wrap] rather than [Row] so they stay
                 // together on narrower screens instead of overflowing.
                 Wrap(
-                  spacing: 6,
+                  spacing: 5,
                   runSpacing: 2,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       'Starting at ₹1,887/month',
                       style: AppTextStyles.of(
-                        figmaSize: 14,
+                        figmaSize: 11,
                         weight: FontWeight.w400,
                         color: AppColors.textGrayMed,
                       ),
@@ -57,18 +57,18 @@ class PromoBanner extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: onViewCombos,
             child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [AppColors.purple, AppColors.ctaPurple],
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -76,15 +76,15 @@ class PromoBanner extends StatelessWidget {
                   Text(
                     'View Combos',
                     style: AppTextStyles.of(
-                      figmaSize: 13,
+                      figmaSize: 11,
                       weight: FontWeight.w500,
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 3),
                   const Icon(
                     Icons.arrow_forward,
-                    size: 14,
+                    size: 12,
                     color: Colors.white,
                   ),
                 ],
@@ -122,7 +122,7 @@ class _MiniApplianceIcons extends StatelessWidget {
                 AppColors.purple,
                 BlendMode.srcIn,
               ),
-              child: Image.asset(_icons[i], width: 13, height: 13),
+              child: Image.asset(_icons[i], width: 11, height: 11),
             ),
           ),
       ],
@@ -158,8 +158,8 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 64,
-      height: 64,
+      width: 50,
+      height: 50,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -185,7 +185,7 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
               Text(
                 '10%',
                 style: AppTextStyles.of(
-                  figmaSize: 24,
+                  figmaSize: 18,
                   weight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -193,7 +193,7 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
               Text(
                 'OFF',
                 style: AppTextStyles.of(
-                  figmaSize: 17,
+                  figmaSize: 13,
                   weight: FontWeight.w700,
                   color: Colors.white,
                 ),

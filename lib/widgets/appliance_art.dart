@@ -77,3 +77,42 @@ class WasherProductImage extends StatelessWidget {
     );
   }
 }
+
+class FridgeSingleDoorProductImage extends StatelessWidget {
+  const FridgeSingleDoorProductImage({
+    super.key,
+    this.width = 60,
+    double? height,
+  }) : height = height ?? width * 1.3;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
+      child: Image.asset(
+        'assets/images/fridge_single_door_product.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
+class WasherTopLoadProductImage extends StatelessWidget {
+  const WasherTopLoadProductImage({super.key, this.width = 70, double? height})
+    : height = height ?? width * 1.3;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
+      child: Image.asset(
+        'assets/images/washer_top_load_product.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
