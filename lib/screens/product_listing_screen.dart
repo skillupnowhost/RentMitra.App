@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/feature_strip.dart';
 import '../widgets/help_card.dart';
@@ -83,7 +84,7 @@ class ProductListingScreen extends StatelessWidget {
                         SizedBox(height: AppTextStyles.fig(20)),
                         const FeatureStrip(),
                         SizedBox(height: AppTextStyles.fig(18)),
-                        HelpCard(onWhatsApp: () {}),
+                        HelpCard(onWhatsApp: launchSupportWhatsAppChat),
                       ],
                     ),
                   ),
@@ -180,48 +181,67 @@ class _HeroPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(AppTextStyles.fig(20)),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: AppColors.heroBanner,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: EdgeInsets.all(AppTextStyles.fig(20)),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.heroBanner,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              right: AppTextStyles.fig(-30),
+              top: AppTextStyles.fig(-30),
+              child: Container(
+                width: AppTextStyles.fig(180),
+                height: AppTextStyles.fig(180),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  title,
-                  style: AppTextStyles.of(
-                    figmaSize: 26,
-                    weight: FontWeight.w700,
-                    color: AppColors.navy,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTextStyles.of(
+                          figmaSize: 26,
+                          weight: FontWeight.w700,
+                          color: AppColors.navy,
+                        ),
+                      ),
+                      SizedBox(height: AppTextStyles.fig(10)),
+                      Text(
+                        description,
+                        style: AppTextStyles.of(
+                          figmaSize: 13,
+                          weight: FontWeight.w400,
+                          color: AppColors.textGray,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(10)),
-                Text(
-                  description,
-                  style: AppTextStyles.of(
-                    figmaSize: 13,
-                    weight: FontWeight.w400,
-                    color: AppColors.textGray,
-                    height: 1.4,
-                  ),
-                ),
+                SizedBox(width: AppTextStyles.fig(12)),
+                art,
               ],
             ),
-          ),
-          SizedBox(width: AppTextStyles.fig(12)),
-          art,
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -254,10 +274,14 @@ class _FeatureBadgeRow extends StatelessWidget {
                   width: AppTextStyles.fig(40),
                   height: AppTextStyles.fig(40),
                   decoration: const BoxDecoration(
-                    color: AppColors.bgCardPurple,
+                    gradient: LinearGradient(
+                      colors: [AppColors.purple, AppColors.ctaPurple],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, size: 18, color: AppColors.purple),
+                  child: Icon(icon, size: 18, color: Colors.white),
                 ),
                 SizedBox(height: AppTextStyles.fig(8)),
                 Text(
@@ -366,6 +390,7 @@ class _ServiceBanner extends StatelessWidget {
           ),
           SizedBox(width: AppTextStyles.fig(14)),
           Expanded(
+            flex: 3,
             child: Text(
               text,
               style: AppTextStyles.of(
@@ -376,7 +401,57 @@ class _ServiceBanner extends StatelessWidget {
               ),
             ),
           ),
+          SizedBox(width: AppTextStyles.fig(8)),
+          const Expanded(child: _TechnicianBadge()),
         ],
+      ),
+    );
+  }
+}
+
+/// Small flat "technician at work" mark used as the service-banner
+/// illustration. There's no exported Figma illustration asset to drop in,
+/// so this recreates the same idea (person + tool, brand-purple duotone) as
+/// simple layered shapes rather than leaving the banner illustration-less.
+class _TechnicianBadge extends StatelessWidget {
+  const _TechnicianBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final size = AppTextStyles.fig(56);
+    return SizedBox(
+      height: size,
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: size,
+              height: size,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+            Icon(Icons.engineering, color: AppColors.purple, size: size * 0.6),
+            Positioned(
+              right: -2,
+              bottom: -2,
+              child: Container(
+                width: size * 0.36,
+                height: size * 0.36,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: AppColors.ctaPurple,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.build, color: Colors.white, size: size * 0.2),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

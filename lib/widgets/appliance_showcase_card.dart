@@ -173,43 +173,53 @@ class _ApplianceShowcaseCardState extends State<ApplianceShowcaseCard>
       onTap: () {},
       child: SizedBox(
         width: double.infinity,
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 2,
-          children: [
-            for (var i = 0; i < widget.tabs.length; i++)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _selectTab(i),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.tabIcon != null) ...[
-                      Icon(
-                        widget.tabIcon,
-                        size: 12,
-                        color: i == _selected
-                            ? widget.titleColor
-                            : AppColors.textGraySoft,
+        // FittedBox (not Wrap) so the tabs always render as a single line —
+        // longer label pairs like "Single Door" / "Double Door" don't fit
+        // this card's narrow width at full size and would otherwise wrap to
+        // a second line; scaling the whole row down keeps it on one line
+        // instead.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < widget.tabs.length; i++) ...[
+                if (i != 0) const SizedBox(width: 8),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _selectTab(i),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.tabIcon != null) ...[
+                        Icon(
+                          widget.tabIcon,
+                          size: 12,
+                          color: i == _selected
+                              ? widget.titleColor
+                              : AppColors.textGraySoft,
+                        ),
+                        const SizedBox(width: 3),
+                      ],
+                      Text(
+                        widget.tabs[i],
+                        style: AppTextStyles.of(
+                          figmaSize: 10.5,
+                          weight: i == _selected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: i == _selected
+                              ? widget.titleColor
+                              : AppColors.textGraySoft,
+                        ),
                       ),
-                      const SizedBox(width: 3),
                     ],
-                    Text(
-                      widget.tabs[i],
-                      style: AppTextStyles.of(
-                        figmaSize: 10.5,
-                        weight: i == _selected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: i == _selected
-                            ? widget.titleColor
-                            : AppColors.textGraySoft,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-          ],
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -221,8 +231,8 @@ class _ApplianceShowcaseCardState extends State<ApplianceShowcaseCard>
       onTap: widget.onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: AppTextStyles.fig(16),
-          vertical: AppTextStyles.fig(18),
+          horizontal: AppTextStyles.fig(14),
+          vertical: AppTextStyles.fig(14),
         ),
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -250,24 +260,24 @@ class _ApplianceShowcaseCardState extends State<ApplianceShowcaseCard>
             // throw the three cards out of alignment (or overflow) if
             // height came from content instead.
             SizedBox(
-              height: AppTextStyles.fig(40),
+              height: AppTextStyles.fig(34),
               child: Text(
                 widget.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.of(
-                  figmaSize: 14,
+                  figmaSize: 13,
                   weight: FontWeight.w700,
                   color: widget.titleColor,
                 ),
               ),
             ),
-            SizedBox(height: AppTextStyles.fig(8)),
-            SizedBox(height: AppTextStyles.fig(170), child: _imageArea()),
-            SizedBox(height: AppTextStyles.fig(8)),
+            SizedBox(height: AppTextStyles.fig(6)),
+            SizedBox(height: AppTextStyles.fig(120), child: _imageArea()),
+            SizedBox(height: AppTextStyles.fig(6)),
             for (final item in widget.checklist)
               SizedBox(
-                height: AppTextStyles.fig(30),
+                height: AppTextStyles.fig(28),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -292,10 +302,10 @@ class _ApplianceShowcaseCardState extends State<ApplianceShowcaseCard>
                   ],
                 ),
               ),
-            SizedBox(height: AppTextStyles.fig(6)),
+            SizedBox(height: AppTextStyles.fig(5)),
             Divider(height: 1, color: AppColors.divider),
-            SizedBox(height: AppTextStyles.fig(8)),
-            SizedBox(height: AppTextStyles.fig(28), child: _tabsColumn()),
+            SizedBox(height: AppTextStyles.fig(6)),
+            SizedBox(height: AppTextStyles.fig(24), child: _tabsColumn()),
           ],
         ),
       ),

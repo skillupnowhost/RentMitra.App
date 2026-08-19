@@ -59,8 +59,8 @@ class CategoryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 118),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        constraints: const BoxConstraints(minHeight: 92),
+        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
         decoration: BoxDecoration(
           color: _highlighted ? null : bgColor,
           gradient: _highlighted
@@ -96,9 +96,9 @@ class CategoryCard extends StatelessWidget {
                 // negative-top [Positioned] below instead of reserving
                 // space in this Column, so it no longer forces empty
                 // headroom onto the other three cards.
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 SizedBox(
-                  height: 34,
+                  height: 26,
                   width: double.infinity,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
@@ -113,20 +113,20 @@ class CategoryCard extends StatelessWidget {
                             ),
                             child: Image.asset(
                               iconAsset!,
-                              width: 34,
-                              height: 34,
+                              width: 26,
+                              height: 26,
                               fit: BoxFit.contain,
                             ),
                           ),
                     ),
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(7)),
+                SizedBox(height: AppTextStyles.fig(4)),
                 // Fixed to a 2-line height so "Starting at" / price / +GST
                 // land on the same row across every card regardless of
                 // whether this card's title wraps to 1 or 2 lines.
                 SizedBox(
-                  height: AppTextStyles.fig(34),
+                  height: AppTextStyles.fig(30),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Text(
@@ -135,20 +135,20 @@ class CategoryCard extends StatelessWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.of(
-                        figmaSize: 12,
+                        figmaSize: 11,
                         weight: FontWeight.w700,
                         color: onGradientColor ?? AppColors.navy,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(8)),
+                SizedBox(height: AppTextStyles.fig(5)),
                 Container(
-                  width: AppTextStyles.fig(24),
+                  width: AppTextStyles.fig(22),
                   height: 2,
                   color: onGradientColor ?? iconColor,
                 ),
-                SizedBox(height: AppTextStyles.fig(9)),
+                SizedBox(height: AppTextStyles.fig(6)),
                 Text(
                   'Starting at',
                   textAlign: TextAlign.center,
@@ -160,7 +160,7 @@ class CategoryCard extends StatelessWidget {
                         AppColors.textGraySoft,
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(6)),
+                SizedBox(height: AppTextStyles.fig(4)),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Row(
@@ -171,7 +171,7 @@ class CategoryCard extends StatelessWidget {
                       Text(
                         price,
                         style: AppTextStyles.of(
-                          figmaSize: 20,
+                          figmaSize: 16,
                           weight: FontWeight.w700,
                           color: onGradientColor ?? priceColor,
                         ),
@@ -180,7 +180,7 @@ class CategoryCard extends StatelessWidget {
                       Text(
                         '/month',
                         style: AppTextStyles.of(
-                          figmaSize: 11,
+                          figmaSize: 10,
                           weight: FontWeight.w400,
                           color: (onGradientColor ?? priceColor).withValues(
                             alpha: 0.75,
@@ -285,7 +285,7 @@ class _BestValueBadgeState extends State<_BestValueBadge>
       child: Stack(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
             color: AppColors.comboBadgeBg,
             // FittedBox is a safety net: real-device font metrics can measure
             // a hair wider than the layout pass expects at this tight size,

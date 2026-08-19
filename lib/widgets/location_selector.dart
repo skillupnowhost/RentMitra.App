@@ -22,7 +22,7 @@ class LocationSelector extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 132,
-        height: 42,
+        height: 34,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: Colors.white,

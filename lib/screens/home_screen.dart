@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
 import '../widgets/animated_service_icons.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/appliance_showcase_card.dart';
@@ -14,7 +15,6 @@ import '../widgets/bottom_nav_bar.dart';
 import '../widgets/category_card.dart';
 import '../widgets/dot_indicator.dart';
 import '../widgets/feature_strip.dart';
-import '../widgets/help_card.dart';
 import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
 import '../widgets/logo_mark.dart';
@@ -94,37 +94,45 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     _buildAppBar(),
                     Expanded(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.fromLTRB(
-                          AppTextStyles.fig(16),
-                          AppTextStyles.fig(12),
-                          AppTextStyles.fig(16),
-                          AppTextStyles.fig(24),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _HeroBanner(onExplore: _scrollToCategories),
-                            SizedBox(height: AppTextStyles.fig(16)),
-                            KeyedSubtree(
-                              key: _categorySectionKey,
-                              child: _sectionTitle('Shop by Category'),
+                      child: Stack(
+                        children: [
+                          SingleChildScrollView(
+                            padding: EdgeInsets.fromLTRB(
+                              AppTextStyles.fig(16),
+                              0,
+                              AppTextStyles.fig(16),
+                              AppTextStyles.fig(16),
                             ),
-                            // Fixed (not fig-scaled) so it reliably clears the
-                            // Combo Plans card's "Best Value" badge, which floats
-                            // above that card's top edge.
-                            const SizedBox(height: 20),
-                            _sectionCategoryGrid(),
-                            SizedBox(height: AppTextStyles.fig(20)),
-                            PromoBanner(onViewCombos: _openCombos),
-                            SizedBox(height: AppTextStyles.fig(24)),
-                            _sectionShowcaseCards(),
-                            SizedBox(height: AppTextStyles.fig(20)),
-                            const FeatureStrip(),
-                            SizedBox(height: AppTextStyles.fig(24)),
-                            HelpCard(onWhatsApp: () {}),
-                          ],
-                        ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _HeroBanner(onExplore: _scrollToCategories),
+                                SizedBox(height: AppTextStyles.fig(10)),
+                                KeyedSubtree(
+                                  key: _categorySectionKey,
+                                  child: _sectionTitle('Shop by Category'),
+                                ),
+                                // Fixed (not fig-scaled) so it reliably clears
+                                // the Combo Plans card's "Best Value" badge,
+                                // which floats above that card's top edge.
+                                const SizedBox(height: 20),
+                                _sectionCategoryGrid(),
+                                SizedBox(height: AppTextStyles.fig(20)),
+                                PromoBanner(onViewCombos: _openCombos),
+                                SizedBox(height: AppTextStyles.fig(14)),
+                                _sectionShowcaseCards(),
+                                SizedBox(height: AppTextStyles.fig(20)),
+                                const FeatureStrip(),
+                                const SizedBox(height: 8),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            right: AppTextStyles.fig(16),
+                            bottom: AppTextStyles.fig(16),
+                            child: const _FloatingSupportButtons(),
+                          ),
+                        ],
                       ),
                     ),
                     AppBottomNavBar(
@@ -161,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildAppBar() {
     return Container(
-      height: 60,
+      height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       alignment: Alignment.center,
       child: Row(
@@ -173,12 +181,12 @@ class _HomeScreenState extends State<HomeScreen>
               icon: AnimatedIcons.menu_close,
               progress: _menuController,
               color: AppColors.navy,
-              size: 20,
+              size: 17,
             ),
           ),
-          SizedBox(width: AppTextStyles.fig(14)),
-          const LogoMark(width: 26),
-          SizedBox(width: AppTextStyles.fig(8)),
+          SizedBox(width: AppTextStyles.fig(10)),
+          const LogoMark(width: 21),
+          SizedBox(width: AppTextStyles.fig(7)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,13 +196,18 @@ class _HomeScreenState extends State<HomeScreen>
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    // .end (not .center) so the ".app" pill's bottom edge
+                    // lines up with the bottom of "Rent"/"Mitra" instead of
+                    // floating mid-height — matches the main lockup in
+                    // logo_full.png, where the badge sits on the wordmark's
+                    // baseline rather than centered beside it.
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Rent',
                         style: AppTextStyles.of(
-                          figmaSize: 28,
+                          figmaSize: 20,
                           weight: FontWeight.w700,
                           color: AppColors.navyDeep,
                         ),
@@ -202,27 +215,41 @@ class _HomeScreenState extends State<HomeScreen>
                       Text(
                         'Mitra',
                         style: AppTextStyles.of(
-                          figmaSize: 28,
+                          figmaSize: 20,
                           weight: FontWeight.w700,
                           color: AppColors.purple,
                         ),
                       ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppTextStyles.fig(7),
-                          vertical: AppTextStyles.fig(3),
+                      Padding(
+                        // Nudges the pill down those last couple of px so it
+                        // truly sits on the letters' bottom edge rather than
+                        // just close to it — the Row's own .end alignment
+                        // gets it close but the pill's rounded padding still
+                        // reads as slightly high without this.
+                        padding: EdgeInsets.only(
+                          left: AppTextStyles.fig(1),
+                          bottom: AppTextStyles.fig(0.5),
                         ),
-                        decoration: BoxDecoration(
-                          color: AppColors.purple,
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(color: Colors.white, width: 1.2),
-                        ),
-                        child: Text(
-                          '.app',
-                          style: AppTextStyles.of(
-                            figmaSize: 10,
-                            weight: FontWeight.w700,
-                            color: Colors.white,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppTextStyles.fig(3.5),
+                            vertical: AppTextStyles.fig(2),
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.purple,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            '.app',
+                            style: AppTextStyles.of(
+                              figmaSize: 7.5,
+                              weight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -232,10 +259,10 @@ class _HomeScreenState extends State<HomeScreen>
                 Text(
                   'RENT MADE EASY',
                   style: AppTextStyles.of(
-                    figmaSize: 11,
+                    figmaSize: 9,
                     weight: FontWeight.w500,
                     color: AppColors.textGraySoft,
-                    letterSpacing: 1.4,
+                    letterSpacing: 1.2,
                   ),
                 ),
               ],
@@ -368,8 +395,8 @@ class _HomeScreenState extends State<HomeScreen>
               'Smart Plug Included',
             ],
             images: const [
-              AcProductImage(width: 130),
-              AcProductImage(width: 130),
+              AcProductImage(width: 105),
+              AcProductImage(width: 105),
             ],
             tabs: const ['1 Ton', '1.5 Ton'],
             tabIcon: Icons.ac_unit,
@@ -389,8 +416,8 @@ class _HomeScreenState extends State<HomeScreen>
               'Spacious storage',
             ],
             images: const [
-              FridgeSingleDoorProductImage(width: 105),
-              FridgeProductImage(width: 105),
+              FridgeSingleDoorProductImage(width: 85),
+              FridgeProductImage(width: 85),
             ],
             tabs: const ['Single Door', 'Double Door'],
             onTap: () => Navigator.of(context).push(
@@ -409,11 +436,10 @@ class _HomeScreenState extends State<HomeScreen>
               'Gentle on clothes',
             ],
             images: const [
-              WasherTopLoadProductImage(width: 112, height: 106),
-              WasherProductImage(width: 112, height: 106),
+              WasherTopLoadProductImage(width: 90, height: 85),
+              WasherProductImage(width: 90, height: 85),
             ],
             tabs: const ['Top Load', 'Front Load'],
-            overlayButton: true,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
             ),
@@ -477,7 +503,7 @@ class _AnimatedDrawerPanel extends StatelessWidget {
         return IgnorePointer(
           ignoring: animation.value == 0,
           child: Transform.translate(
-            offset: Offset((curved - 1) * 298, 0),
+            offset: Offset((curved - 1) * 263, 0),
             child: child,
           ),
         );
@@ -502,7 +528,7 @@ class _HeroBannerState extends State<_HeroBanner> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
+      padding: const EdgeInsets.fromLTRB(14, 5, 12, 10),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: AppColors.heroBanner,
@@ -693,14 +719,14 @@ class _HeroBenefitsRow extends StatelessWidget {
           child: _HeroBenefitItem(
             label: 'Free\nDelivery',
             iconBuilder: (delay) =>
-                DeliveryTruckIcon(size: 12, startDelay: delay),
+                DeliveryTruckIcon(size: 10, startDelay: delay),
           ),
         ),
         Expanded(
           child: _HeroBenefitItem(
             label: 'Free\nInstallation',
             iconBuilder: (delay) =>
-                InstallationIcon(size: 12, startDelay: delay),
+                InstallationIcon(size: 10, startDelay: delay),
             startDelay: const Duration(milliseconds: 150),
           ),
         ),
@@ -708,7 +734,7 @@ class _HeroBenefitsRow extends StatelessWidget {
           child: _HeroBenefitItem(
             label: 'Service &\nMaintenance',
             iconBuilder: (delay) =>
-                MaintenanceIcon(size: 12, startDelay: delay),
+                MaintenanceIcon(size: 10, startDelay: delay),
             startDelay: const Duration(milliseconds: 300),
           ),
         ),
@@ -957,6 +983,160 @@ class _HeroImageSliderState extends State<_HeroImageSlider>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Bottom-right floating support stack — replaces the old inline "Need
+/// Help?" card. Pinned to the same screen corner regardless of scroll
+/// position (a [Positioned] sibling of the scroll view, not part of its
+/// content) so support is always one tap away without eating vertical space
+/// in the feed. The small purple "Need Help" launcher sits above the
+/// primary green WhatsApp action, mirroring the common chat-widget pattern.
+class _FloatingSupportButtons extends StatelessWidget {
+  const _FloatingSupportButtons();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _FloatingActionCircle(
+          diameter: 46,
+          background: Colors.white,
+          onTap: () => _showHelpSheet(context),
+          child: Image.asset(
+            'assets/images/Need help.png',
+            width: 21,
+            height: 21,
+            color: AppColors.purple,
+            colorBlendMode: BlendMode.srcIn,
+          ),
+        ),
+        const SizedBox(height: 10),
+        _FloatingActionCircle(
+          diameter: 50,
+          background: Colors.white,
+          onTap: launchSupportWhatsAppChat,
+          child: Image.asset(
+            'assets/images/whatsapp icon.png',
+            width: 26,
+            height: 26,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showHelpSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Need Help?',
+              style: AppTextStyles.of(
+                figmaSize: 18,
+                weight: FontWeight.w700,
+                color: AppColors.textGray,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Our team is here to assist you.',
+              style: AppTextStyles.of(
+                figmaSize: 13,
+                weight: FontWeight.w400,
+                color: AppColors.textGrayMed,
+              ),
+            ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                launchSupportWhatsAppChat();
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.purple, AppColors.ctaPurple],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/whatsapp icon.png',
+                      width: 20,
+                      height: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Chat on WhatsApp',
+                      style: AppTextStyles.of(
+                        figmaSize: 14,
+                        weight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FloatingActionCircle extends StatelessWidget {
+  const _FloatingActionCircle({
+    required this.diameter,
+    required this.background,
+    required this.onTap,
+    required this.child,
+  });
+
+  final double diameter;
+  final Color background;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: diameter,
+        height: diameter,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: background,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: child,
       ),
     );
   }

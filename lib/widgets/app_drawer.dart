@@ -64,7 +64,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 250,
+      width: 215,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.horizontal(
@@ -116,14 +116,14 @@ class AppDrawer extends StatelessWidget {
                 ),
                 SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                    padding: const EdgeInsets.fromLTRB(14, 8, 14, 18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _header(context),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 12),
                         const Divider(height: 1, color: AppColors.divider),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 12),
                         for (var i = 0; i < _items.length; i++)
                           _StaggeredEntry(
                             animation: animation,
@@ -151,7 +151,7 @@ class AppDrawer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
       child: SizedBox(
-        height: 36,
+        height: 30,
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -162,8 +162,8 @@ class AppDrawer extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const LogoMark(width: 26),
-                    const SizedBox(width: 8),
+                    const LogoMark(width: 21),
+                    const SizedBox(width: 6),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -171,7 +171,7 @@ class AppDrawer extends StatelessWidget {
                         Text(
                           'Rent',
                           style: AppTextStyles.of(
-                            figmaSize: 27,
+                            figmaSize: 20,
                             weight: FontWeight.w700,
                             color: AppColors.navyDeep,
                           ),
@@ -179,26 +179,33 @@ class AppDrawer extends StatelessWidget {
                         Text(
                           'Mitra',
                           style: AppTextStyles.of(
-                            figmaSize: 27,
+                            figmaSize: 20,
                             weight: FontWeight.w700,
                             color: AppColors.purple,
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
+                          padding: const EdgeInsets.only(
+                            left: 1,
+                            bottom: 0.5,
+                          ),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
+                              horizontal: 3.5,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.purple,
                               borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1,
+                              ),
                             ),
                             child: Text(
                               '.app',
                               style: AppTextStyles.of(
-                                figmaSize: 11,
+                                figmaSize: 7.5,
                                 weight: FontWeight.w700,
                                 color: Colors.white,
                               ),
@@ -215,10 +222,10 @@ class AppDrawer extends StatelessWidget {
               right: 0,
               child: _AnimatedIconTap(
                 onTap: onClose,
-                size: 32,
+                size: 28,
                 child: const Icon(
                   Icons.close,
-                  size: 20,
+                  size: 17,
                   color: AppColors.navy,
                 ),
               ),
@@ -303,14 +310,14 @@ class _DrawerItemState extends State<_DrawerItem> {
           onTap: widget.onTap,
           onHighlightChanged: (pressed) => setState(() => _pressed = pressed),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
             child: Row(
               children: [
                 SizedBox(
-                  width: 36,
-                  height: 36,
+                  width: 30,
+                  height: 30,
                   child: Center(
-                    child: Icon(widget.icon, size: 22, color: AppColors.purple)
+                    child: Icon(widget.icon, size: 18, color: AppColors.purple)
                         .animate(target: _pressed ? 1 : 0)
                         .scaleXY(
                           begin: 1,
@@ -320,11 +327,11 @@ class _DrawerItemState extends State<_DrawerItem> {
                         ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Text(
                   widget.label,
                   style: AppTextStyles.of(
-                    figmaSize: 20,
+                    figmaSize: 16,
                     weight: FontWeight.w600,
                     color: AppColors.textGray,
                   ),
@@ -332,7 +339,7 @@ class _DrawerItemState extends State<_DrawerItem> {
                 const Spacer(),
                 Icon(
                   Icons.chevron_right,
-                  size: 18,
+                  size: 15,
                   color: AppColors.textGraySoft.withValues(alpha: 0.6),
                 ),
               ],

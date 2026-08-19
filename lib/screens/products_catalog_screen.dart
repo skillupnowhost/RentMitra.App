@@ -219,7 +219,6 @@ class ProductsCatalogScreen extends StatelessWidget {
               WasherTopLoadProductImage(width: 112, height: 106),
               WasherProductImage(width: 112, height: 106),
             ],
-            overlayButton: true,
             tabs: const ['Top Load', 'Front Load'],
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const WashingMachineScreen()),

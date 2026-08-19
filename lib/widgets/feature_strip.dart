@@ -20,7 +20,7 @@ class FeatureStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(14)),
+      padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(9)),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -54,13 +54,13 @@ class _FeatureItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20, color: AppColors.purple),
-        SizedBox(height: AppTextStyles.fig(6)),
+        Icon(icon, size: 16, color: AppColors.purple),
+        SizedBox(height: AppTextStyles.fig(4)),
         Text(
           label,
           textAlign: TextAlign.center,
           style: AppTextStyles.of(
-            figmaSize: 10,
+            figmaSize: 9,
             weight: FontWeight.w600,
             color: AppColors.textGrayMed,
           ),

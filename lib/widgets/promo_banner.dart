@@ -11,8 +11,8 @@ class PromoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 68),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      constraints: const BoxConstraints(minHeight: 58),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.promoCardBg,
         borderRadius: BorderRadius.circular(14),
@@ -61,8 +61,8 @@ class PromoBanner extends StatelessWidget {
           GestureDetector(
             onTap: onViewCombos,
             child: Container(
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              height: 32,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -158,8 +158,8 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 50,
-      height: 50,
+      width: 42,
+      height: 42,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -185,7 +185,7 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
               Text(
                 '10%',
                 style: AppTextStyles.of(
-                  figmaSize: 18,
+                  figmaSize: 15,
                   weight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -193,7 +193,7 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
               Text(
                 'OFF',
                 style: AppTextStyles.of(
-                  figmaSize: 13,
+                  figmaSize: 11,
                   weight: FontWeight.w700,
                   color: Colors.white,
                 ),
