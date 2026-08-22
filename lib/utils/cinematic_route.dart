@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// Fade + gentle scale-down page transition used across the splash /
+/// Fade + gentle rise + scale-down page transition used across the splash /
 /// onboarding hand-offs, so moving between screens reads as one continuous
-/// cinematic sequence instead of a platform-default slide cut.
+/// cinematic sequence instead of a platform-default slide cut. The incoming
+/// page eases up into place from just below its resting position while
+/// settling from a slight zoom, reading as an "arrival" rather than a flat
+/// cross-fade.
 Route<T> cinematicRoute<T>(Widget page) {
   return PageRouteBuilder<T>(
-    transitionDuration: const Duration(milliseconds: 620),
-    reverseTransitionDuration: const Duration(milliseconds: 420),
+    transitionDuration: const Duration(milliseconds: 560),
+    reverseTransitionDuration: const Duration(milliseconds: 380),
     pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       final curved = CurvedAnimation(
@@ -15,9 +18,15 @@ Route<T> cinematicRoute<T>(Widget page) {
       );
       return FadeTransition(
         opacity: curved,
-        child: ScaleTransition(
-          scale: Tween<double>(begin: 1.06, end: 1.0).animate(curved),
-          child: child,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.035),
+            end: Offset.zero,
+          ).animate(curved),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 1.045, end: 1.0).animate(curved),
+            child: child,
+          ),
         ),
       );
     },

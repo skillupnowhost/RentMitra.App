@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../services/location_controller.dart';
+import '../services/place_search_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -10,18 +13,49 @@ import '../theme/app_text_styles.dart';
 class LocationPickerSheet extends StatefulWidget {
   const LocationPickerSheet({super.key});
 
-  static const List<String> _serviceableCities = [
-    'Chennai',
-    'Bangalore',
-    'Hyderabad',
-    'Mumbai',
-    'Delhi',
-    'Pune',
-    'Kolkata',
-    'Coimbatore',
-    'Kochi',
-    'Ahmedabad',
-  ];
+  static const Map<String, List<String>> _citiesByState = {
+    'Tamil Nadu': [
+      'Chennai',
+      'Coimbatore',
+      'Madurai',
+      'Tiruchirappalli',
+      'Salem',
+      'Tirunelveli',
+      'Erode',
+      'Vellore',
+      'Thoothukudi',
+      'Dindigul',
+      'Thanjavur',
+      'Karur',
+      'Nagercoil',
+      'Hosur',
+      'Cuddalore',
+      'Kanchipuram',
+    ],
+    'Other States': [
+      'Bangalore',
+      'Hyderabad',
+      'Mumbai',
+      'Delhi',
+      'Pune',
+      'Kolkata',
+      'Kochi',
+      'Thiruvananthapuram',
+      'Ahmedabad',
+      'Surat',
+      'Jaipur',
+      'Lucknow',
+      'Chandigarh',
+      'Bhopal',
+      'Indore',
+      'Nagpur',
+      'Visakhapatnam',
+      'Vijayawada',
+    ],
+  };
+
+  static List<String> get _allCities =>
+      _citiesByState.values.expand((cities) => cities).toList();
 
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet(
@@ -41,10 +75,58 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
   String _query = '';
   bool _detecting = false;
 
+  List<PlaceSuggestion> _remoteResults = const [];
+  bool _searching = false;
+  Timer? _debounce;
+  int _searchToken = 0;
+
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onQueryChanged(String value) {
+    setState(() => _query = value);
+    _debounce?.cancel();
+
+    final trimmed = value.trim();
+    if (trimmed.length < 3) {
+      setState(() {
+        _remoteResults = const [];
+        _searching = false;
+      });
+      return;
+    }
+
+    setState(() => _searching = true);
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _runSearch(trimmed);
+    });
+  }
+
+  Future<void> _runSearch(String query) async {
+    final token = ++_searchToken;
+    debugPrint('LOCSEARCH: running search for "$query"');
+    try {
+      final results = await PlaceSearchService.instance.search(query);
+      debugPrint('LOCSEARCH: got ${results.length} results: ${results.map((r) => r.label).toList()}');
+      if (!mounted || token != _searchToken) return;
+      setState(() {
+        _remoteResults = results;
+        _searching = false;
+      });
+    } catch (e, st) {
+      // Offline or Nominatim unreachable — the "Use it as typed" fallback
+      // below still lets the user pick a manually-entered city.
+      debugPrint('LOCSEARCH: error $e\n$st');
+      if (!mounted || token != _searchToken) return;
+      setState(() {
+        _remoteResults = const [];
+        _searching = false;
+      });
+    }
   }
 
   Future<void> _useCurrentLocation() async {
@@ -83,9 +165,43 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final results = LocationPickerSheet._serviceableCities
-        .where((c) => c.toLowerCase().contains(_query.trim().toLowerCase()))
+    return ValueListenableBuilder<String>(
+      valueListenable: LocationController.instance.city,
+      builder: (context, currentCity, _) => _buildSheet(context, currentCity),
+    );
+  }
+
+  Widget _buildSheet(BuildContext context, String currentCity) {
+    final query = _query.trim().toLowerCase();
+    final rows = <_LocationRow>[];
+    for (final entry in LocationPickerSheet._citiesByState.entries) {
+      final matches = entry.value
+          .where((c) => c.toLowerCase().contains(query))
+          .toList();
+      if (matches.isEmpty) continue;
+      rows.add(_LocationRow.header(entry.key));
+      rows.addAll(matches.map(_LocationRow.city));
+    }
+
+    final localNames = LocationPickerSheet._allCities
+        .map((c) => c.toLowerCase())
+        .toSet();
+    final newRemoteResults = _remoteResults
+        .where((r) => !localNames.contains(r.name.toLowerCase()))
         .toList();
+    if (newRemoteResults.isNotEmpty) {
+      rows.add(_LocationRow.header('Search Results'));
+      rows.addAll(
+        newRemoteResults.map(
+          (r) => _LocationRow.city(r.label, value: r.name),
+        ),
+      );
+    }
+
+    final normalizedCurrent = currentCity.trim().toLowerCase();
+    final currentIsListed = LocationPickerSheet._allCities.any(
+      (c) => c.toLowerCase() == normalizedCurrent,
+    );
 
     return DraggableScrollableSheet(
       initialChildSize: 0.72,
@@ -162,7 +278,7 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                       Expanded(
                         child: TextField(
                           controller: _controller,
-                          onChanged: (v) => setState(() => _query = v),
+                          onChanged: _onQueryChanged,
                           style: AppTextStyles.of(
                             figmaSize: 15,
                             weight: FontWeight.w400,
@@ -175,13 +291,22 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                           ),
                         ),
                       ),
+                      if (_searching)
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.purple,
+                          ),
+                        ),
                     ],
                   ),
                 ),
               ),
               SizedBox(height: AppTextStyles.fig(14)),
               if (_query.trim().isNotEmpty &&
-                  !LocationPickerSheet._serviceableCities.any(
+                  !LocationPickerSheet._allCities.any(
                     (c) => c.toLowerCase() == _query.trim().toLowerCase(),
                   ))
                 Padding(
@@ -287,6 +412,47 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                   },
                 ),
               ),
+              if (!currentIsListed &&
+                  currentCity.trim().isNotEmpty &&
+                  _query.trim().isEmpty)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppTextStyles.fig(20),
+                    0,
+                    AppTextStyles.fig(20),
+                    AppTextStyles.fig(4),
+                  ),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.my_location,
+                      color: AppColors.purple,
+                      size: 20,
+                    ),
+                    title: Text(
+                      currentCity,
+                      style: AppTextStyles.of(
+                        figmaSize: 15,
+                        weight: FontWeight.w600,
+                        color: AppColors.purple,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Your current location',
+                      style: AppTextStyles.of(
+                        figmaSize: 11,
+                        weight: FontWeight.w400,
+                        color: AppColors.textGraySoft,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.check_circle,
+                      color: AppColors.purple,
+                      size: 18,
+                    ),
+                    onTap: () => Navigator.of(context).pop(),
+                  ),
+                ),
               SizedBox(height: AppTextStyles.fig(10)),
               Expanded(
                 child: ListView.separated(
@@ -295,26 +461,66 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                     horizontal: AppTextStyles.fig(20),
                     vertical: AppTextStyles.fig(8),
                   ),
-                  itemCount: results.length,
-                  separatorBuilder: (context, i) =>
-                      Divider(height: 1, color: AppColors.divider),
+                  itemCount: rows.length,
+                  separatorBuilder: (context, i) {
+                    if (rows[i].isHeader || rows[i + 1].isHeader) {
+                      return const SizedBox.shrink();
+                    }
+                    return Divider(height: 1, color: AppColors.divider);
+                  },
                   itemBuilder: (context, i) {
-                    final city = results[i];
+                    final row = rows[i];
+                    if (row.isHeader) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          top: i == 0 ? 0 : AppTextStyles.fig(14),
+                          bottom: AppTextStyles.fig(6),
+                        ),
+                        child: Text(
+                          row.text,
+                          style: AppTextStyles.of(
+                            figmaSize: 12,
+                            weight: FontWeight.w700,
+                            color: AppColors.textGraySoft,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      );
+                    }
+
+                    final city = row.value;
+                    final isSelected =
+                        city.toLowerCase() == normalizedCurrent;
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(
-                        Icons.location_on_outlined,
-                        color: AppColors.textGraySoft,
+                      leading: Icon(
+                        isSelected
+                            ? Icons.location_on
+                            : Icons.location_on_outlined,
+                        color: isSelected
+                            ? AppColors.purple
+                            : AppColors.textGraySoft,
                         size: 20,
                       ),
                       title: Text(
-                        city,
+                        row.text,
                         style: AppTextStyles.of(
                           figmaSize: 15,
-                          weight: FontWeight.w400,
-                          color: AppColors.navy,
+                          weight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: isSelected
+                              ? AppColors.purple
+                              : AppColors.navy,
                         ),
                       ),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: AppColors.purple,
+                              size: 18,
+                            )
+                          : null,
                       onTap: () => _select(city),
                     );
                   },
@@ -326,4 +532,19 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
       },
     );
   }
+}
+
+class _LocationRow {
+  const _LocationRow.header(this.text) : isHeader = true, value = '';
+  const _LocationRow.city(this.text, {String? value})
+    : isHeader = false,
+      value = value ?? text;
+
+  /// What's shown in the row.
+  final String text;
+
+  /// What's actually selected on tap — differs from [text] for remote
+  /// results, which display as "City, State" but select just the city.
+  final String value;
+  final bool isHeader;
 }

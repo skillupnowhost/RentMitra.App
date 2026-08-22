@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -157,8 +156,10 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   Timer? _autoTimer;
 
   static const _slideCount = 4;
-  static const _autoplayInterval = Duration(milliseconds: 4200);
-  static const _transitionDuration = Duration(milliseconds: 550);
+  // 4 slides × 1.8s dwell each, plus the transition itself, then
+  // auto-advance to Home.
+  static const _autoplayInterval = Duration(milliseconds: 1800);
+  static const _transitionDuration = Duration(milliseconds: 500);
   static const _transitionCurve = Curves.easeInOutCubic;
 
   @override
@@ -177,11 +178,15 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   void _armAutoplay() {
     _autoTimer?.cancel();
     if (_userInteracted) return;
-    if (_page >= _slideCount - 1) return;
     _autoTimer = Timer(_autoplayInterval, () {
       if (!mounted || _userInteracted || _isAnimating) return;
+      // Last slide's turn is up — auto-advance straight to Home, same as
+      // tapping the CTA manually would.
+      if (_page >= _slideCount - 1) {
+        _skipToHome();
+        return;
+      }
       final next = _page + 1;
-      if (next >= _slideCount) return;
       _isAnimating = true;
       _pageController
           .animateToPage(next, duration: _transitionDuration, curve: _transitionCurve)
@@ -226,31 +231,50 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
     return _page.toDouble();
   }
 
+  /// Depth-card motion: neighbouring slides recede on a subtle 3D tilt
+  /// (perspective + rotateY) rather than the flat scale/fade most carousels
+  /// use, with a cheap alpha-blend dim standing in for a blurred-background
+  /// depth cue — no per-frame [ImageFilter], so it stays smooth even on
+  /// modest hardware. Driven continuously off the live [_pageController]
+  /// value, so it reads identically whether the page change is a manual
+  /// drag or a programmatic [PageController.animateToPage].
   Widget _withPageTransform(int index, Widget child) {
     return AnimatedBuilder(
       animation: _pageController,
       builder: (context, _) {
         final t = (index - _currentPageValue()).clamp(-1.0, 1.0);
         final absT = t.abs();
-        final scale = 1.0 - absT * 0.10;
-        final opacity = (1.0 - absT).clamp(0.0, 1.0);
-        final dy = t * 28;
-        final blurSigma = absT > 0.03 ? absT * 5 : 0.0;
+        final eased = Curves.easeOutCubic.transform(absT);
 
-        Widget content = Opacity(
-          opacity: opacity,
-          child: Transform.translate(
-            offset: Offset(0, dy),
-            child: Transform.scale(scale: scale, child: child),
-          ),
-        );
-        if (blurSigma > 0) {
-          content = ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+        final scale = 1.0 - eased * 0.06;
+        final opacity = (1.0 - eased).clamp(0.0, 1.0);
+        final tilt = t * 0.11;
+        final dx = t * 18.0;
+        final dim = eased * 0.12;
+
+        Widget content = child;
+        if (dim > 0.001) {
+          content = ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withValues(alpha: dim),
+              BlendMode.srcATop,
+            ),
             child: content,
           );
         }
-        return content;
+
+        return Opacity(
+          opacity: opacity,
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.0014)
+              ..translateByDouble(dx, 0, 0, 1)
+              ..rotateY(tilt)
+              ..scaleByDouble(scale, scale, scale, 1),
+            child: content,
+          ),
+        );
       },
       child: child,
     );

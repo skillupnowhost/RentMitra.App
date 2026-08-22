@@ -32,7 +32,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   int _navIndex = 0;
   final GlobalKey _categorySectionKey = GlobalKey();
 
@@ -49,13 +49,22 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     LocationController.instance.autoDetectOnce();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _menuController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      LocationController.instance.recheckIfNeeded();
+    }
   }
 
   void _openMenu() => _menuController.forward();

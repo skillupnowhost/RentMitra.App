@@ -82,7 +82,11 @@ void main() {
       expect(find.text('Skip'), findsNothing);
 
       await tester.tap(find.text('Get Started'));
-      await tester.pumpAndSettle();
+      // Home has several continuously-repeating decorative animations
+      // (glow, float, rotate…), so pumpAndSettle would never converge —
+      // pump a bounded number of frames past the page transition instead.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
 
       expect(find.byType(HomeScreen), findsOneWidget);
     },
@@ -95,14 +99,19 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.text('Smart Inverter Split AC').first);
-      await tester.pumpAndSettle();
+      // Home has continuously-repeating decorative animations, so
+      // pumpAndSettle would never converge — bounded pump instead.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
 
       expect(find.byType(AcScreen), findsOneWidget);
       expect(find.text('1 Ton'), findsWidgets);
       expect(find.text('1.5 Ton'), findsWidgets);
 
       await tester.tap(find.byIcon(Icons.arrow_back));
-      await tester.pumpAndSettle();
+      // Back on Home, whose animations still repeat forever.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
 
       expect(find.byType(HomeScreen), findsOneWidget);
     },
@@ -115,10 +124,28 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     await tester.tap(find.text('Chennai').first);
-    await tester.pumpAndSettle();
+    // Home has continuously-repeating decorative animations, so
+    // pumpAndSettle would never converge — bounded pump instead.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
 
     expect(find.text('Select Your Location'), findsOneWidget);
     expect(find.text('Use current location'), findsOneWidget);
+    expect(find.text('Tamil Nadu'), findsOneWidget);
+    expect(find.text('Madurai'), findsOneWidget);
+
+    // "Other States" and its cities are further down the grouped list;
+    // scroll incrementally (row heights aren't worth hardcoding) until one
+    // comes into view.
+    for (
+      var i = 0;
+      i < 10 && find.text('Bangalore').evaluate().isEmpty;
+      i++
+    ) {
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pump();
+    }
+
     expect(find.text('Bangalore'), findsOneWidget);
   });
 }

@@ -69,6 +69,25 @@ class LocationController {
     await detectCurrentCity();
   }
 
+  /// Re-runs detection when the app resumes from background, but only if
+  /// the last attempt actually failed (permission/services were off). Lets
+  /// a user who backgrounds the app to flip on location in system settings
+  /// come back to a freshly-detected city instead of a stale fallback.
+  Future<void> recheckIfNeeded() async {
+    switch (status.value) {
+      case LocationStatus.denied:
+      case LocationStatus.deniedForever:
+      case LocationStatus.servicesDisabled:
+      case LocationStatus.unavailable:
+        await detectCurrentCity();
+      case LocationStatus.idle:
+      case LocationStatus.detecting:
+      case LocationStatus.detected:
+      case LocationStatus.manual:
+        break;
+    }
+  }
+
   Future<bool> detectCurrentCity() async {
     status.value = LocationStatus.detecting;
     try {
