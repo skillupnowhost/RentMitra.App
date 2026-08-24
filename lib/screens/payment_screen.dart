@@ -19,6 +19,12 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'UPI';
 
+  String? _topErrorMessage;
+
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -38,64 +44,174 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 _buildHeader(),
 
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      AppTextStyles.fig(16),
-                      AppTextStyles.fig(8),
-                      AppTextStyles.fig(16),
-                      AppTextStyles.fig(120),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildOrderSummary(),
-
-                        SizedBox(
-                          height: AppTextStyles.fig(20),
+                  child: Stack(
+                    children: [
+                      SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          AppTextStyles.fig(16),
+                          AppTextStyles.fig(8),
+                          AppTextStyles.fig(16),
+                          AppTextStyles.fig(190),
                         ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // =================================================
+                            // TOP ERROR
+                            // =================================================
 
-                        _buildPaymentHeader(),
+                            if (_topErrorMessage != null) ...[
+                              _buildTopErrorMessage(),
 
-                        SizedBox(
-                          height: AppTextStyles.fig(12),
+                              SizedBox(
+                                height: AppTextStyles.fig(12),
+                              ),
+                            ],
+
+                            // =================================================
+                            // ORDER SUMMARY
+                            // =================================================
+
+                            _buildOrderSummary(),
+
+                            SizedBox(
+                              height: AppTextStyles.fig(22),
+                            ),
+
+                            // =================================================
+                            // PAYMENT HEADER
+                            // =================================================
+
+                            _buildPaymentHeader(),
+
+                            SizedBox(
+                              height: AppTextStyles.fig(14),
+                            ),
+
+                            // =================================================
+                            // PAYMENT METHODS
+                            // =================================================
+
+                            _buildPaymentMethod(
+                              icon: Icons.account_balance_wallet_outlined,
+                              title: 'UPI',
+                              subtitle:
+                                  'Pay using Google Pay, PhonePe, Paytm etc.',
+                              value: 'UPI',
+                            ),
+
+                            _buildPaymentMethod(
+                              icon: Icons.credit_card_outlined,
+                              title: 'Credit / Debit Card',
+                              subtitle:
+                                  'Visa, Mastercard, RuPay and more',
+                              value: 'Credit / Debit Card',
+                            ),
+
+                            _buildPaymentMethod(
+                              icon: Icons.account_balance_outlined,
+                              title: 'Net Banking',
+                              subtitle:
+                                  'Pay directly through your bank',
+                              value: 'Net Banking',
+                            ),
+
+                            SizedBox(
+                              height: AppTextStyles.fig(20),
+                            ),
+
+                            // =================================================
+                            // PRICE DETAILS
+                            // =================================================
+
+                            _buildPriceDetails(),
+
+                            SizedBox(
+                              height: AppTextStyles.fig(20),
+                            ),
+
+                            _buildSecurePaymentInfo(),
+                          ],
                         ),
+                      ),
 
-                        _buildPaymentMethod(
-                          icon: Icons.account_balance_wallet_outlined,
-                          title: 'UPI',
-                          subtitle: 'Pay using Google Pay, PhonePe, Paytm etc.',
-                          value: 'UPI',
-                        ),
+                      // =======================================================
+                      // FIXED BOTTOM PAYMENT BAR
+                      // =======================================================
 
-                        _buildPaymentMethod(
-                          icon: Icons.credit_card_outlined,
-                          title: 'Credit / Debit Card',
-                          subtitle: 'Visa, Mastercard, RuPay and more',
-                          value: 'Credit / Debit Card',
-                        ),
-
-                        _buildPaymentMethod(
-                          icon: Icons.account_balance_outlined,
-                          title: 'Net Banking',
-                          subtitle: 'Pay directly through your bank',
-                          value: 'Net Banking',
-                        ),
-
-                        SizedBox(
-                          height: AppTextStyles.fig(20),
-                        ),
-
-                        _buildPriceDetails(),
-                      ],
-                    ),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _buildBottomPaymentBar(),
+                      ),
+                    ],
                   ),
                 ),
-
-                _buildBottomPaymentBar(),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // TOP ERROR MESSAGE
+  // ============================================================
+
+  Widget _buildTopErrorMessage() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTextStyles.fig(14),
+        vertical: AppTextStyles.fig(12),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.red.shade300,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Colors.red.shade700,
+            size: 22,
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(10),
+          ),
+
+          Expanded(
+            child: Text(
+              _topErrorMessage!,
+              style: AppTextStyles.of(
+                figmaSize: 12,
+                weight: FontWeight.w600,
+                color: Colors.red.shade700,
+                height: 1.35,
+              ),
+            ),
+          ),
+
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _topErrorMessage = null;
+              });
+            },
+            child: Icon(
+              Icons.close,
+              color: Colors.red.shade700,
+              size: 18,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -115,7 +231,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () {
+              Navigator.of(context).maybePop();
+            },
             child: const Icon(
               Icons.arrow_back,
               color: AppColors.navy,
@@ -183,7 +301,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
 
           SizedBox(
-            height: AppTextStyles.fig(12),
+            height: AppTextStyles.fig(10),
           ),
 
           Text(
@@ -199,6 +317,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             SizedBox(
               height: AppTextStyles.fig(5),
             ),
+
             Text(
               product.description!,
               style: AppTextStyles.of(
@@ -235,6 +354,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
               ),
+
               Text(
                 _money(product.total),
                 style: AppTextStyles.of(
@@ -275,31 +395,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
           width: AppTextStyles.fig(12),
         ),
 
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Choose Payment Method',
-              style: AppTextStyles.of(
-                figmaSize: 18,
-                weight: FontWeight.w700,
-                color: AppColors.navy,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Choose Payment Method',
+                style: AppTextStyles.of(
+                  figmaSize: 18,
+                  weight: FontWeight.w700,
+                  color: AppColors.navy,
+                ),
               ),
-            ),
 
-            SizedBox(
-              height: AppTextStyles.fig(2),
-            ),
-
-            Text(
-              'Select your preferred payment method',
-              style: AppTextStyles.of(
-                figmaSize: 12,
-                weight: FontWeight.w400,
-                color: AppColors.textGray,
+              SizedBox(
+                height: AppTextStyles.fig(2),
               ),
-            ),
-          ],
+
+              Text(
+                'Select your preferred payment method',
+                style: AppTextStyles.of(
+                  figmaSize: 12,
+                  weight: FontWeight.w400,
+                  color: AppColors.textGray,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -321,9 +443,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       onTap: () {
         setState(() {
           _selectedPaymentMethod = value;
+          _topErrorMessage = null;
         });
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         width: double.infinity,
         margin: EdgeInsets.only(
           bottom: AppTextStyles.fig(10),
@@ -332,7 +456,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
           AppTextStyles.fig(14),
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: isSelected
+              ? AppColors.bgCardPurple
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
@@ -343,6 +469,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         child: Row(
           children: [
+            // ICON
             Container(
               width: AppTextStyles.fig(44),
               height: AppTextStyles.fig(44),
@@ -361,6 +488,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               width: AppTextStyles.fig(12),
             ),
 
+            // TEXT
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,6 +518,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
 
+            SizedBox(
+              width: AppTextStyles.fig(8),
+            ),
+
+            // RADIO
             Icon(
               isSelected
                   ? Icons.radio_button_checked
@@ -440,6 +573,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
             height: AppTextStyles.fig(14),
           ),
 
+          // ======================================================
+          // COMBO
+          // ======================================================
+
           if (product.isCombo) ...[
             _priceRow(
               'Monthly Rent',
@@ -461,10 +598,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
 
             _priceRow(
+              'Monthly Rent After Discount',
+              product.afterDiscount,
+            ),
+
+            SizedBox(
+              height: AppTextStyles.fig(9),
+            ),
+
+            _priceRow(
               'GST (18%)',
               product.gst,
             ),
-          ] else ...[
+          ]
+
+          // ======================================================
+          // INDIVIDUAL PRODUCT
+          // ======================================================
+
+          else ...[
             _priceRow(
               'Monthly Rent',
               product.monthlyRent,
@@ -490,6 +642,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
+          // ======================================================
+          // TOTAL
+          // ======================================================
+
           _priceRow(
             'Total',
             product.total,
@@ -501,6 +657,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
     );
   }
+
+  // ============================================================
+  // PRICE ROW
+  // ============================================================
 
   Widget _priceRow(
     String title,
@@ -539,6 +699,52 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   // ============================================================
+  // SECURE PAYMENT INFO
+  // ============================================================
+
+  Widget _buildSecurePaymentInfo() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTextStyles.fig(14),
+        vertical: AppTextStyles.fig(12),
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.bgCardPurple,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.lock_outline,
+            color: AppColors.purple,
+            size: 22,
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(10),
+          ),
+
+          Expanded(
+            child: Text(
+              'Your payment information is secure and protected. '
+              'You will be redirected to the secure payment gateway '
+              'when payment integration is connected.',
+              style: AppTextStyles.of(
+                figmaSize: 11,
+                weight: FontWeight.w400,
+                color: AppColors.navy,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
   // BOTTOM PAYMENT BAR
   // ============================================================
 
@@ -551,58 +757,71 @@ class _PaymentScreenState extends State<PaymentScreen> {
         AppTextStyles.fig(18),
         AppTextStyles.fig(16),
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.bgCardPurple,
-        borderRadius: const BorderRadius.vertical(
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(12),
         ),
       ),
       child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Total Amount',
-                style: AppTextStyles.of(
-                  figmaSize: 11,
-                  weight: FontWeight.w500,
-                  color: AppColors.navy,
-                ),
-              ),
+          // ======================================================
+          // TOTAL
+          // ======================================================
 
-              SizedBox(
-                height: AppTextStyles.fig(2),
-              ),
-
-              Text(
-                _money(widget.product.total),
-                style: AppTextStyles.of(
-                  figmaSize: 22,
-                  weight: FontWeight.w700,
-                  color: AppColors.purple,
+          SizedBox(
+            width: AppTextStyles.fig(125),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Total Amount',
+                  style: AppTextStyles.of(
+                    figmaSize: 11,
+                    weight: FontWeight.w500,
+                    color: AppColors.navy,
+                  ),
                 ),
-              ),
-            ],
+
+                SizedBox(
+                  height: AppTextStyles.fig(2),
+                ),
+
+                Text(
+                  _money(widget.product.total),
+                  style: AppTextStyles.of(
+                    figmaSize: 22,
+                    weight: FontWeight.w700,
+                    color: AppColors.purple,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ======================================================
+          // DIVIDER
+          // ======================================================
+
+          Container(
+            width: 1,
+            height: AppTextStyles.fig(48),
+            color: AppColors.divider,
           ),
 
           SizedBox(
             width: AppTextStyles.fig(16),
           ),
 
+          // ======================================================
+          // PAY BUTTON
+          // ======================================================
+
           Expanded(
             child: SizedBox(
               height: AppTextStyles.fig(54),
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Payment integration will be connected later.',
-                      ),
-                    ),
-                  );
-                },
+                onPressed: _payNow,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.purple,
                   foregroundColor: Colors.white,
@@ -611,13 +830,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Text(
-                  'Pay Now',
-                  style: AppTextStyles.of(
-                    figmaSize: 15,
-                    weight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Pay Now',
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.of(
+                          figmaSize: 15,
+                          weight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: AppTextStyles.fig(10),
+                    ),
+
+                    const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.white,
+                      size: 25,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -627,8 +864,58 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // ============================================================
+  // PAY NOW
+  // ============================================================
+
+  void _payNow() {
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _topErrorMessage = null;
+    });
+
+    // ============================================================
+    // PAYMENT METHOD VALIDATION
+    // ============================================================
+
+    if (_selectedPaymentMethod.trim().isEmpty) {
+      setState(() {
+        _topErrorMessage =
+            'Please select a payment method before proceeding.';
+      });
+
+      return;
+    }
+
+    // ============================================================
+    // TEMPORARY PAYMENT MESSAGE
+    // ============================================================
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$_selectedPaymentMethod selected. Payment gateway integration will be connected next.',
+        ),
+        backgroundColor: AppColors.purple,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(
+          AppTextStyles.fig(16),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // MONEY FORMAT
+  // ============================================================
+
   String _money(int value) {
     final sign = value < 0 ? '-' : '';
+
     final number = value.abs().toString();
 
     final formatted = number.replaceAllMapped(
