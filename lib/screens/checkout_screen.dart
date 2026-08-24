@@ -1,0 +1,1505 @@
+import 'package:flutter/material.dart';
+
+import '../services/location_controller.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/location_picker_sheet.dart';
+import '../widgets/location_selector.dart';
+import 'payment_screen.dart';
+
+class CheckoutScreen extends StatefulWidget {
+  const CheckoutScreen({
+    super.key,
+    this.product = CheckoutProduct.starterHomeCombo,
+  });
+
+  final CheckoutProduct product;
+
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
+
+  final _houseController = TextEditingController();
+  final _buildingController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _landmarkController = TextEditingController();
+  final _cityController = TextEditingController(text: 'Chennai');
+  final _pincodeController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  bool _emailUpdates = true;
+
+  String? _topErrorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Keep the checkout city synchronized with the selected location.
+    _cityController.text = LocationController.instance.city.value;
+
+    LocationController.instance.city.addListener(_onCityChanged);
+  }
+
+  void _onCityChanged() {
+    final selectedCity = LocationController.instance.city.value.trim();
+
+    if (selectedCity.isEmpty) {
+      return;
+    }
+
+    if (_cityController.text != selectedCity) {
+      _cityController.text = selectedCity;
+    }
+  }
+
+  @override
+  void dispose() {
+    LocationController.instance.city.removeListener(_onCityChanged);
+
+    _scrollController.dispose();
+
+    _houseController.dispose();
+    _buildingController.dispose();
+    _streetController.dispose();
+    _landmarkController.dispose();
+    _cityController.dispose();
+    _pincodeController.dispose();
+    _mobileController.dispose();
+    _emailController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final contentWidth = width > 520 ? 520.0 : width;
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: contentWidth,
+            ),
+            child: Column(
+              children: [
+                _buildHeader(),
+
+                Expanded(
+                  child: Stack(
+                    children: [
+                      SingleChildScrollView(
+                        controller: _scrollController,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: EdgeInsets.fromLTRB(
+                          AppTextStyles.fig(16),
+                          AppTextStyles.fig(8),
+                          AppTextStyles.fig(16),
+                          AppTextStyles.fig(190),
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // TOP ERROR MESSAGE
+                              if (_topErrorMessage != null) ...[
+                                _buildTopErrorMessage(),
+
+                                SizedBox(
+                                  height: AppTextStyles.fig(12),
+                                ),
+                              ],
+
+                              _buildProductCard(),
+
+                              SizedBox(
+                                height: AppTextStyles.fig(14),
+                              ),
+
+                              _buildGstInfo(),
+
+                              SizedBox(
+                                height: AppTextStyles.fig(26),
+                              ),
+
+                              _buildDeliveryHeader(),
+
+                              SizedBox(
+                                height: AppTextStyles.fig(16),
+                              ),
+
+                              // HOUSE / FLAT NUMBER
+                              _buildAddressField(
+                                icon: Icons.home_outlined,
+                                title: 'House / Flat Number',
+                                hint: 'Enter house / flat number',
+                                controller: _houseController,
+                                requiredField: true,
+                              ),
+
+                              // APARTMENT / BUILDING
+                              _buildAddressField(
+                                icon: Icons.apartment_outlined,
+                                title: 'Apartment / Building Name',
+                                hint:
+                                    'Enter apartment / building / society name',
+                                controller: _buildingController,
+                                requiredField: true,
+                              ),
+
+                              // STREET / AREA
+                              _buildAddressField(
+                                icon: Icons.alt_route_outlined,
+                                title: 'Street / Area',
+                                hint: 'Enter street / area / locality',
+                                controller: _streetController,
+                                requiredField: true,
+                              ),
+
+                              // LANDMARK
+                              _buildAddressField(
+                                icon: Icons.location_on_outlined,
+                                title: 'Landmark',
+                                hint: 'Enter nearby landmark',
+                                controller: _landmarkController,
+                                requiredField: false,
+                              ),
+
+                              // CITY + PINCODE
+                              Row(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: _buildAddressField(
+                                      icon: Icons.location_city_outlined,
+                                      title: 'City',
+                                      hint: 'Enter city',
+                                      controller: _cityController,
+                                      requiredField: true,
+                                      compact: true,
+                                    ),
+                                  ),
+
+                                  SizedBox(
+                                    width: AppTextStyles.fig(10),
+                                  ),
+
+                                  Expanded(
+                                    child: _buildAddressField(
+                                      icon: Icons.pin_drop_outlined,
+                                      title: 'Pincode',
+                                      hint: 'Enter pincode',
+                                      controller: _pincodeController,
+                                      requiredField: true,
+                                      compact: true,
+                                      keyboardType: TextInputType.number,
+                                      maxLength: 6,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              // MOBILE NUMBER
+                              _buildMobileField(),
+
+                              // EMAIL ADDRESS
+                              _buildAddressField(
+                                icon: Icons.mail_outline,
+                                title: 'Email Address',
+                                hint: 'Enter your email address',
+                                controller: _emailController,
+                                requiredField: true,
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+
+                              // EMAIL NOTICE
+                              _buildEmailNotice(),
+
+                              SizedBox(
+                                height: AppTextStyles.fig(30),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // FIXED PAYMENT BAR
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _buildBottomPaymentBar(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // TOP ERROR MESSAGE
+  // ============================================================
+
+  Widget _buildTopErrorMessage() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTextStyles.fig(14),
+        vertical: AppTextStyles.fig(12),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.red.shade300,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Colors.red.shade700,
+            size: 22,
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(10),
+          ),
+
+          Expanded(
+            child: Text(
+              _topErrorMessage!,
+              style: AppTextStyles.of(
+                figmaSize: 12,
+                weight: FontWeight.w600,
+                color: Colors.red.shade700,
+                height: 1.35,
+              ),
+            ),
+          ),
+
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _topErrorMessage = null;
+              });
+            },
+            child: Icon(
+              Icons.close,
+              color: Colors.red.shade700,
+              size: 18,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // HEADER
+  // ============================================================
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppTextStyles.fig(16),
+        AppTextStyles.fig(8),
+        AppTextStyles.fig(16),
+        AppTextStyles.fig(8),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.of(context).maybePop(),
+            child: const Icon(
+              Icons.arrow_back,
+              color: AppColors.navy,
+              size: 28,
+            ),
+          ),
+
+          Expanded(
+            child: Text(
+              'Checkout',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.of(
+                figmaSize: 20,
+                weight: FontWeight.w700,
+                color: AppColors.navy,
+              ),
+            ),
+          ),
+
+          ValueListenableBuilder<String>(
+            valueListenable: LocationController.instance.city,
+            builder: (context, city, _) {
+              return ValueListenableBuilder<LocationStatus>(
+                valueListenable: LocationController.instance.status,
+                builder: (context, status, _) {
+                  return LocationSelector(
+                    city: city.isEmpty ? 'Chennai' : city,
+                    status: status,
+                    onTap: () {
+                      LocationPickerSheet.show(context);
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // PRODUCT CARD
+  // ============================================================
+
+  Widget _buildProductCard() {
+    final product = widget.product;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(
+        AppTextStyles.fig(18),
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.divider,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Selected Product',
+            style: AppTextStyles.of(
+              figmaSize: 16,
+              weight: FontWeight.w700,
+              color: AppColors.purple,
+            ),
+          ),
+
+          SizedBox(
+            height: AppTextStyles.fig(10),
+          ),
+
+          Text(
+            product.name,
+            style: AppTextStyles.of(
+              figmaSize: 22,
+              weight: FontWeight.w700,
+              color: AppColors.navy,
+            ),
+          ),
+
+          if (product.description != null) ...[
+            SizedBox(
+              height: AppTextStyles.fig(4),
+            ),
+
+            Text(
+              product.description!,
+              style: AppTextStyles.of(
+                figmaSize: 13,
+                weight: FontWeight.w400,
+                color: AppColors.navy,
+                height: 1.35,
+              ),
+            ),
+          ],
+
+          SizedBox(
+            height: AppTextStyles.fig(14),
+          ),
+
+          Container(
+            height: 1,
+            color: AppColors.divider,
+          ),
+
+          SizedBox(
+            height: AppTextStyles.fig(14),
+          ),
+
+          if (product.isCombo) ...[
+            _priceRow(
+              'Monthly Rent (Before Discount)',
+              product.monthlyRent,
+            ),
+
+            SizedBox(
+              height: AppTextStyles.fig(10),
+            ),
+
+            _priceRow(
+              'Combo Discount (10%)',
+              -product.discount,
+              valueColor: Colors.green,
+            ),
+
+            Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: AppTextStyles.fig(12),
+              ),
+              child: _dashedDivider(),
+            ),
+
+            _priceRow(
+              'Monthly Rent (After Discount)',
+              product.afterDiscount,
+            ),
+
+            SizedBox(
+              height: AppTextStyles.fig(10),
+            ),
+
+            _priceRow(
+              'GST (18%)',
+              product.gst,
+            ),
+          ] else ...[
+            _priceRow(
+              'Monthly Rent',
+              product.monthlyRent,
+            ),
+
+            SizedBox(
+              height: AppTextStyles.fig(10),
+            ),
+
+            _priceRow(
+              'GST (18%)',
+              product.gst,
+            ),
+          ],
+
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: AppTextStyles.fig(14),
+            ),
+            child: _dashedDivider(),
+          ),
+
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Total Monthly Amount',
+                  style: AppTextStyles.of(
+                    figmaSize: 16,
+                    weight: FontWeight.w700,
+                    color: AppColors.navy,
+                  ),
+                ),
+              ),
+
+              Text(
+                _money(product.total),
+                style: AppTextStyles.of(
+                  figmaSize: 27,
+                  weight: FontWeight.w700,
+                  color: AppColors.purple,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // PRICE ROW
+  // ============================================================
+
+  Widget _priceRow(
+    String title,
+    int amount, {
+    Color? valueColor,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: AppTextStyles.of(
+              figmaSize: 14,
+              weight: FontWeight.w400,
+              color: AppColors.navy,
+            ),
+          ),
+        ),
+
+        Text(
+          _money(amount),
+          style: AppTextStyles.of(
+            figmaSize: 14,
+            weight: FontWeight.w600,
+            color: valueColor ?? AppColors.navy,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // DASHED DIVIDER
+  // ============================================================
+
+  Widget _dashedDivider() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final count = (constraints.maxWidth / 7).floor();
+
+        return Row(
+          children: List.generate(
+            count,
+            (index) => Expanded(
+              child: Container(
+                height: 1,
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 1,
+                ),
+                color: AppColors.divider,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // GST INFO
+  // ============================================================
+
+  Widget _buildGstInfo() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTextStyles.fig(14),
+        vertical: AppTextStyles.fig(12),
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.bgCardPurple,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: AppTextStyles.fig(28),
+            height: AppTextStyles.fig(28),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: AppColors.purple,
+                width: 2,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.info_outline,
+              color: AppColors.purple,
+              size: 18,
+            ),
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(12),
+          ),
+
+          Expanded(
+            child: Text(
+              'GST (18%) is charged as per applicable regulations.',
+              style: AppTextStyles.of(
+                figmaSize: 12,
+                weight: FontWeight.w400,
+                color: AppColors.navy,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // DELIVERY HEADER
+  // ============================================================
+
+  Widget _buildDeliveryHeader() {
+    return Row(
+      children: [
+        Container(
+          width: AppTextStyles.fig(52),
+          height: AppTextStyles.fig(52),
+          decoration: const BoxDecoration(
+            color: AppColors.bgCardPurple,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.home_outlined,
+            color: AppColors.purple,
+            size: 30,
+          ),
+        ),
+
+        SizedBox(
+          width: AppTextStyles.fig(14),
+        ),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Delivery Address',
+                style: AppTextStyles.of(
+                  figmaSize: 19,
+                  weight: FontWeight.w700,
+                  color: AppColors.navy,
+                ),
+              ),
+
+              SizedBox(
+                height: AppTextStyles.fig(2),
+              ),
+
+              Text(
+                'Please enter correct address for smooth delivery',
+                style: AppTextStyles.of(
+                  figmaSize: 12,
+                  weight: FontWeight.w400,
+                  color: AppColors.textGray,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // ADDRESS FIELD
+  // ============================================================
+
+  Widget _buildAddressField({
+    required IconData icon,
+    required String title,
+    required String hint,
+    required TextEditingController controller,
+    required bool requiredField,
+    bool compact = false,
+    TextInputType? keyboardType,
+    int? maxLength,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: AppTextStyles.fig(10),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTextStyles.fig(12),
+        vertical: AppTextStyles.fig(
+          compact ? 8 : 9,
+        ),
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.divider,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: AppTextStyles.fig(40),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: AppTextStyles.fig(4),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.textGrayMed,
+                size: 26,
+              ),
+            ),
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(8),
+          ),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    text: title,
+                    style: AppTextStyles.of(
+                      figmaSize: 12,
+                      weight: FontWeight.w700,
+                      color: AppColors.navy,
+                    ),
+                    children: requiredField
+                        ? const [
+                            TextSpan(
+                              text: ' *',
+                              style: TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                          ]
+                        : [],
+                  ),
+                ),
+
+                SizedBox(
+                  height: AppTextStyles.fig(2),
+                ),
+
+                TextFormField(
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  maxLength: maxLength,
+                  textInputAction: TextInputAction.next,
+
+                  // IMPORTANT:
+                  // No validator here.
+                  // All validation is handled at the top.
+
+                  style: AppTextStyles.of(
+                    figmaSize: 13,
+                    weight: FontWeight.w400,
+                    color: AppColors.navy,
+                  ),
+
+                  decoration: InputDecoration(
+                    hintText: hint,
+
+                    hintStyle: AppTextStyles.of(
+                      figmaSize: 14,
+                      weight: FontWeight.w400,
+                      color: AppColors.textGray,
+                    ),
+
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+
+                    counterText: '',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // MOBILE FIELD
+  // ============================================================
+
+  Widget _buildMobileField() {
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: AppTextStyles.fig(10),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTextStyles.fig(12),
+        vertical: AppTextStyles.fig(9),
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.divider,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: AppTextStyles.fig(40),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: AppTextStyles.fig(4),
+              ),
+              child: const Icon(
+                Icons.phone_android_outlined,
+                color: AppColors.textGrayMed,
+                size: 26,
+              ),
+            ),
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(8),
+          ),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    text: 'Mobile Number',
+                    style: AppTextStyles.of(
+                      figmaSize: 12,
+                      weight: FontWeight.w700,
+                      color: AppColors.navy,
+                    ),
+                    children: const [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(
+                  height: AppTextStyles.fig(4),
+                ),
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 25,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFFFF9933),
+                            Colors.white,
+                            Color(0xFF138808),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: AppTextStyles.fig(8),
+                    ),
+
+                    Text(
+                      '+91',
+                      style: AppTextStyles.of(
+                        figmaSize: 12,
+                        weight: FontWeight.w600,
+                        color: AppColors.navy,
+                      ),
+                    ),
+
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: AppColors.navy,
+                    ),
+
+                    SizedBox(
+                      width: AppTextStyles.fig(8),
+                    ),
+
+                    Expanded(
+                      child: TextFormField(
+                        controller: _mobileController,
+                        keyboardType: TextInputType.phone,
+                        maxLength: 10,
+                        textInputAction: TextInputAction.next,
+
+                        // No validator here.
+                        // Validation is handled at the top.
+
+                        style: AppTextStyles.of(
+                          figmaSize: 13,
+                          weight: FontWeight.w400,
+                          color: AppColors.navy,
+                        ),
+
+                        decoration: InputDecoration(
+                          hintText:
+                              'Enter 10 digit mobile number',
+
+                          hintStyle: AppTextStyles.of(
+                            figmaSize: 14,
+                            weight: FontWeight.w400,
+                            color: AppColors.textGray,
+                          ),
+
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+
+                          isDense: true,
+                          counterText: '',
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // EMAIL NOTICE
+  // ============================================================
+
+  Widget _buildEmailNotice() {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppTextStyles.fig(6),
+        bottom: AppTextStyles.fig(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _emailUpdates = !_emailUpdates;
+              });
+            },
+            child: Icon(
+              _emailUpdates
+                  ? Icons.check_box_outlined
+                  : Icons.check_box_outline_blank,
+              color: AppColors.purple,
+              size: 23,
+            ),
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(8),
+          ),
+
+          Expanded(
+            child: Text(
+              'Rental invoices and order updates will be sent to this email address.',
+              style: AppTextStyles.of(
+                figmaSize: 11,
+                weight: FontWeight.w400,
+                color: AppColors.textGray,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // BOTTOM PAYMENT BAR
+  // ============================================================
+
+  Widget _buildBottomPaymentBar() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(
+        AppTextStyles.fig(18),
+        AppTextStyles.fig(12),
+        AppTextStyles.fig(18),
+        AppTextStyles.fig(16),
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.bgCardPurple,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(12),
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: AppTextStyles.fig(125),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Total Monthly Amount',
+                  style: AppTextStyles.of(
+                    figmaSize: 11,
+                    weight: FontWeight.w500,
+                    color: AppColors.navy,
+                  ),
+                ),
+
+                SizedBox(
+                  height: AppTextStyles.fig(2),
+                ),
+
+                Text(
+                  _money(widget.product.total),
+                  style: AppTextStyles.of(
+                    figmaSize: 24,
+                    weight: FontWeight.w700,
+                    color: AppColors.purple,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Container(
+            width: 1,
+            height: AppTextStyles.fig(48),
+            color: AppColors.divider,
+          ),
+
+          SizedBox(
+            width: AppTextStyles.fig(16),
+          ),
+
+          Expanded(
+            child: SizedBox(
+              height: AppTextStyles.fig(54),
+              child: ElevatedButton(
+                onPressed: _proceedToPayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.purple,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Proceed to Payment',
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.of(
+                          figmaSize: 15,
+                          weight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: AppTextStyles.fig(10),
+                    ),
+
+                    const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.white,
+                      size: 27,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // VALIDATION
+  // ============================================================
+
+  void _proceedToPayment() {
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _topErrorMessage = null;
+    });
+
+    // ------------------------------------------------------------
+    // FIRST: CHECK ALL REQUIRED FIELDS
+    // ------------------------------------------------------------
+
+    final requiredFieldsEmpty =
+        _houseController.text.trim().isEmpty ||
+        _buildingController.text.trim().isEmpty ||
+        _streetController.text.trim().isEmpty ||
+        _cityController.text.trim().isEmpty ||
+        _pincodeController.text.trim().isEmpty ||
+        _mobileController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty;
+
+    if (requiredFieldsEmpty) {
+      setState(() {
+        _topErrorMessage =
+            'Please fill all the required fields before proceeding to payment.';
+      });
+
+      _scrollToTop();
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // SECOND: CHECK PINCODE
+    // ------------------------------------------------------------
+
+    final pincode = _pincodeController.text.trim();
+
+    if (!RegExp(r'^\d{6}$').hasMatch(pincode)) {
+      setState(() {
+        _topErrorMessage =
+            'Please enter a valid 6 digit pincode.';
+      });
+
+      _scrollToTop();
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // THIRD: CHECK MOBILE NUMBER
+    // ------------------------------------------------------------
+
+    final mobile = _mobileController.text.trim();
+
+    if (!RegExp(r'^\d{10}$').hasMatch(mobile)) {
+      setState(() {
+        _topErrorMessage =
+            'Please enter a valid 10 digit mobile number.';
+      });
+
+      _scrollToTop();
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // FOURTH: CHECK EMAIL
+    // ------------------------------------------------------------
+
+    final email = _emailController.text.trim();
+
+    if (!RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    ).hasMatch(email)) {
+      setState(() {
+        _topErrorMessage =
+            'Please enter a valid email address.';
+      });
+
+      _scrollToTop();
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // EVERYTHING IS VALID
+    // ------------------------------------------------------------
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PaymentScreen(
+          product: widget.product,
+        ),
+      ),
+    );
+  }
+
+  void _scrollToTop() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) {
+        return;
+      }
+
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  // ============================================================
+  // MONEY FORMAT
+  // ============================================================
+
+  String _money(int value) {
+    final sign = value < 0 ? '-' : '';
+    final number = value.abs().toString();
+
+    final formatted = number.replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (match) => '${match[1]},',
+    );
+
+    return '$sign₹$formatted';
+  }
+}
+
+// ================================================================
+// CHECKOUT PRODUCT DATA
+// ================================================================
+
+enum CheckoutProduct {
+  starterHomeCombo,
+  familyEssential,
+  premiumFamily,
+  comfortPlus,
+
+  washingMachineTopLoad,
+  washingMachineFrontLoad,
+
+  acOneTon,
+  acOnePointFiveTon,
+
+  refrigeratorSingleDoor,
+  refrigeratorDoubleDoor,
+
+  essentialCombo,
+  premiumCombo,
+}
+
+extension CheckoutProductData on CheckoutProduct {
+  String get name {
+    switch (this) {
+      case CheckoutProduct.starterHomeCombo:
+        return 'Starter Home Combo';
+
+      case CheckoutProduct.familyEssential:
+        return 'Family Essential';
+
+      case CheckoutProduct.premiumFamily:
+        return 'Premium Family';
+
+      case CheckoutProduct.comfortPlus:
+        return 'Comfort Plus';
+
+      case CheckoutProduct.washingMachineTopLoad:
+        return 'Top Load Washing Machine';
+
+      case CheckoutProduct.washingMachineFrontLoad:
+        return 'Front Load Washing Machine';
+
+      case CheckoutProduct.acOneTon:
+        return '1 Ton Smart Inverter Split AC';
+
+      case CheckoutProduct.acOnePointFiveTon:
+        return '1.5 Ton Smart Inverter Split AC';
+
+      case CheckoutProduct.refrigeratorSingleDoor:
+        return 'Single Door Refrigerator';
+
+      case CheckoutProduct.refrigeratorDoubleDoor:
+        return 'Double Door Refrigerator';
+
+      case CheckoutProduct.essentialCombo:
+        return 'Essential Combo';
+
+      case CheckoutProduct.premiumCombo:
+        return 'Premium Combo';
+    }
+  }
+
+  String? get description {
+    switch (this) {
+      case CheckoutProduct.starterHomeCombo:
+        return '(1 Ton AC + Single Door Refrigerator + Top Load Washing Machine)';
+
+      case CheckoutProduct.familyEssential:
+        return '(1 Ton AC + Double Door Refrigerator + Top Load Washing Machine)';
+
+      case CheckoutProduct.premiumFamily:
+        return '(1.5 Ton AC + Double Door Refrigerator + Top Load Washing Machine)';
+
+      case CheckoutProduct.comfortPlus:
+        return '(1.5 Ton AC + Single Door Refrigerator + Top Load Washing Machine)';
+
+      case CheckoutProduct.washingMachineTopLoad:
+        return 'Powerful cleaning with multiple wash programs.';
+
+      case CheckoutProduct.washingMachineFrontLoad:
+        return 'Energy efficient washing with gentle fabric care.';
+
+      case CheckoutProduct.acOneTon:
+        return 'Powerful cooling with low power consumption.';
+
+      case CheckoutProduct.acOnePointFiveTon:
+        return 'Powerful cooling for larger rooms with low power consumption.';
+
+      case CheckoutProduct.refrigeratorSingleDoor:
+        return 'Efficient cooling with spacious storage.';
+
+      case CheckoutProduct.refrigeratorDoubleDoor:
+        return 'Powerful cooling with large storage capacity.';
+
+      case CheckoutProduct.essentialCombo:
+        return '(1 Ton AC + Single Door Refrigerator + Top Load Washing Machine)';
+
+      case CheckoutProduct.premiumCombo:
+        return '(1.5 Ton AC + Double Door Refrigerator + Front Load Washing Machine)';
+    }
+  }
+
+  bool get isCombo {
+    switch (this) {
+      case CheckoutProduct.starterHomeCombo:
+      case CheckoutProduct.familyEssential:
+      case CheckoutProduct.premiumFamily:
+      case CheckoutProduct.comfortPlus:
+      case CheckoutProduct.essentialCombo:
+      case CheckoutProduct.premiumCombo:
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  int get monthlyRent {
+    switch (this) {
+      case CheckoutProduct.starterHomeCombo:
+        return 2097;
+
+      case CheckoutProduct.familyEssential:
+        return 2349;
+
+      case CheckoutProduct.premiumFamily:
+        return 2647;
+
+      case CheckoutProduct.comfortPlus:
+        return 2397;
+
+      case CheckoutProduct.washingMachineTopLoad:
+        return 599;
+
+      case CheckoutProduct.washingMachineFrontLoad:
+        return 899;
+
+      case CheckoutProduct.acOneTon:
+        return 999;
+
+      case CheckoutProduct.acOnePointFiveTon:
+        return 1299;
+
+      case CheckoutProduct.refrigeratorSingleDoor:
+        return 499;
+
+      case CheckoutProduct.refrigeratorDoubleDoor:
+        return 749;
+
+      case CheckoutProduct.essentialCombo:
+        return 2097;
+
+      case CheckoutProduct.premiumCombo:
+        return 2652;
+    }
+  }
+
+  int get discount {
+    switch (this) {
+      case CheckoutProduct.starterHomeCombo:
+        return 210;
+
+      case CheckoutProduct.familyEssential:
+        return 237;
+
+      case CheckoutProduct.premiumFamily:
+        return 265;
+
+      case CheckoutProduct.comfortPlus:
+        return 240;
+
+      case CheckoutProduct.essentialCombo:
+        return 210;
+
+      case CheckoutProduct.premiumCombo:
+        return 265;
+
+      default:
+        return 0;
+    }
+  }
+
+  int get afterDiscount {
+    return monthlyRent - discount;
+  }
+
+  int get gst {
+    switch (this) {
+      case CheckoutProduct.starterHomeCombo:
+        return 340;
+
+      case CheckoutProduct.familyEssential:
+        return 380;
+
+      case CheckoutProduct.premiumFamily:
+        return 429;
+
+      case CheckoutProduct.comfortPlus:
+        return 388;
+
+      case CheckoutProduct.washingMachineTopLoad:
+        return 108;
+
+      case CheckoutProduct.washingMachineFrontLoad:
+        return 162;
+
+      case CheckoutProduct.acOneTon:
+        return 180;
+
+      case CheckoutProduct.acOnePointFiveTon:
+        return 234;
+
+      case CheckoutProduct.refrigeratorSingleDoor:
+        return 90;
+
+      case CheckoutProduct.refrigeratorDoubleDoor:
+        return 135;
+
+      case CheckoutProduct.essentialCombo:
+        return 340;
+
+      case CheckoutProduct.premiumCombo:
+        return 430;
+    }
+  }
+
+  int get total {
+    return afterDiscount + gst;
+  }
+}

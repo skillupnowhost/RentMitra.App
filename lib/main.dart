@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'screens/splash_screen.dart';
+ import 'screens/splash_screen.dart';
+// import 'screens/checkout_screen.dart';
 import 'services/location_controller.dart';
 import 'theme/app_colors.dart';
 
@@ -30,7 +31,8 @@ class RentMitraApp extends StatelessWidget {
         textTheme: GoogleFonts.interTextTheme(),
         fontFamily: GoogleFonts.inter().fontFamily,
       ),
-      home: const SplashScreen(),
+       home: const SplashScreen(),
+      // home: const CheckoutScreen(),
     );
   }
 }
