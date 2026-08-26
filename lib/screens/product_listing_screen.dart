@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
@@ -93,12 +94,11 @@ class ProductListingScreen extends StatelessWidget {
                   currentIndex: 0,
                   onTap: (i) {
                     if (i == 0) {
-                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      context.go('/home');
+                    } else if (i == 1) {
+                      context.go('/my-rentals');
                     } else {
-                      final label = i == 1 ? 'My Rentals' : 'Profile';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('$label — coming soon')),
-                      );
+                      context.go('/profile');
                     }
                   },
                 ),

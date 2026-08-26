@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
-import '../utils/cinematic_route.dart';
 import '../widgets/floating_orbs.dart';
-import 'splash_slider_screen.dart';
 
 /// Cinematic brand splash: an animated gradient + drifting orb field behind
 /// a fade/scale reveal of the full RentMitra.app logo lockup — held
@@ -37,8 +36,7 @@ class _SplashScreenState extends State<SplashScreen>
     _reveal.forward();
     _navTimer = Timer(const Duration(milliseconds: 2400), () {
       if (!mounted) return;
-      Navigator.of(context)
-          .pushReplacement(cinematicRoute(const SplashSliderScreen()));
+      context.go('/splash-slider');
     });
   }
 

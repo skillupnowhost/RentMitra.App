@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../models/product.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/product_option_card.dart';
 import 'checkout_screen.dart';
 import 'product_listing_screen.dart';
+
+const _refrigeratorFooterText =
+    'All Refrigerators come with free delivery, free installation and maintenance & service included.';
 
 class RefrigeratorScreen extends StatelessWidget {
   const RefrigeratorScreen({super.key});
@@ -26,8 +31,7 @@ class RefrigeratorScreen extends StatelessWidget {
 
       sectionTitle: 'Choose Your Refrigerator',
 
-      footerText:
-          'All Refrigerators come with free delivery, free installation and maintenance & service included.',
+      footerText: _refrigeratorFooterText,
 
       options: [
         // ============================================================
@@ -48,16 +52,26 @@ class RefrigeratorScreen extends StatelessWidget {
 
           price: '₹499',
 
-          // SINGLE DOOR → CHECKOUT
-          onContinue: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const CheckoutScreen(
-                  product: CheckoutProduct.refrigeratorSingleDoor,
-                ),
-              ),
-            );
-          },
+          // SINGLE DOOR → PRODUCT DETAILS
+          onContinue: () => context.push(
+            '/product-details',
+            extra: const Product(
+              badge: 'Single Door',
+              title: 'Single Door Refrigerator',
+              description:
+                  'Keep your food fresh for longer with reliable performance and efficient cooling.',
+              checklist: [
+                'Efficient cooling',
+                'Spacious storage',
+                'Low power consumption',
+                'Sturdy & durable design',
+              ],
+              art: FridgeProductImage(width: 110),
+              price: '₹499',
+              checkoutProduct: CheckoutProduct.refrigeratorSingleDoor,
+              footerText: _refrigeratorFooterText,
+            ),
+          ),
         ),
 
         // ============================================================
@@ -78,16 +92,26 @@ class RefrigeratorScreen extends StatelessWidget {
 
           price: '₹749',
 
-          // DOUBLE DOOR → CHECKOUT
-          onContinue: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const CheckoutScreen(
-                  product: CheckoutProduct.refrigeratorDoubleDoor,
-                ),
-              ),
-            );
-          },
+          // DOUBLE DOOR → PRODUCT DETAILS
+          onContinue: () => context.push(
+            '/product-details',
+            extra: const Product(
+              badge: 'Double Door',
+              title: 'Double Door Refrigerator',
+              description:
+                  'Keep your food fresh for longer with reliable performance and efficient cooling.',
+              checklist: [
+                'Powerful cooling',
+                'Large storage capacity',
+                'Low power consumption',
+                'Sturdy & durable design',
+              ],
+              art: FridgeProductImage(width: 110),
+              price: '₹749',
+              checkoutProduct: CheckoutProduct.refrigeratorDoubleDoor,
+              footerText: _refrigeratorFooterText,
+            ),
+          ),
         ),
       ],
     );

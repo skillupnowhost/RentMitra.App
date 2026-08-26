@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
@@ -19,10 +20,6 @@ import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
 import '../widgets/logo_mark.dart';
 import '../widgets/promo_banner.dart';
-import 'ac_screen.dart';
-import 'combo_screen.dart';
-import 'refrigerator_screen.dart';
-import 'washing_machine_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,7 +30,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  int _navIndex = 0;
   final GlobalKey _categorySectionKey = GlobalKey();
 
   /// Drives the hamburger menu end to end: the panel's slide-in, the
@@ -71,8 +67,7 @@ class _HomeScreenState extends State<HomeScreen>
   void _closeMenu() => _menuController.reverse();
 
   void _openCombos() {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const ComboScreen()));
+    context.push('/combo');
   }
 
   void _scrollToCategories() {
@@ -145,14 +140,12 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     AppBottomNavBar(
-                      currentIndex: _navIndex,
+                      currentIndex: 0,
                       onTap: (i) {
-                        setState(() => _navIndex = i);
-                        if (i != 0) {
-                          final label = i == 1 ? 'My Rentals' : 'Profile';
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('$label — coming soon')),
-                          );
+                        if (i == 1) {
+                          context.go('/my-rentals');
+                        } else if (i == 2) {
+                          context.go('/profile');
                         }
                       },
                     ),
@@ -323,8 +316,7 @@ class _HomeScreenState extends State<HomeScreen>
               priceColor: AppColors.categoryBlue,
               bgColor: AppColors.bgCardPurple,
               iconAnimationDelay: const Duration(milliseconds: 0),
-              onTap: () => Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => const AcScreen())),
+              onTap: () => context.push('/ac'),
             ),
           ),
           SizedBox(width: AppTextStyles.fig(8)),
@@ -337,9 +329,7 @@ class _HomeScreenState extends State<HomeScreen>
               priceColor: AppColors.categoryGreen,
               bgColor: AppColors.bgCardNeutral,
               iconAnimationDelay: const Duration(milliseconds: 150),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
-              ),
+              onTap: () => context.push('/refrigerator'),
             ),
           ),
           SizedBox(width: AppTextStyles.fig(8)),
@@ -352,9 +342,7 @@ class _HomeScreenState extends State<HomeScreen>
               priceColor: AppColors.categoryOrange,
               bgColor: AppColors.bgCardPeach,
               iconAnimationDelay: const Duration(milliseconds: 300),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
-              ),
+              onTap: () => context.push('/washing-machine'),
             ),
           ),
           SizedBox(width: AppTextStyles.fig(8)),
@@ -409,9 +397,7 @@ class _HomeScreenState extends State<HomeScreen>
             ],
             tabs: const ['1 Ton', '1.5 Ton'],
             tabIcon: Icons.ac_unit,
-            onTap: () =>
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const AcScreen())),
+            onTap: () => context.push('/ac'),
           ),
         ),
         SizedBox(width: AppTextStyles.fig(8)),
@@ -429,9 +415,7 @@ class _HomeScreenState extends State<HomeScreen>
               FridgeProductImage(width: 85),
             ],
             tabs: const ['Single Door', 'Double Door'],
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
-            ),
+            onTap: () => context.push('/refrigerator'),
           ),
         ),
         SizedBox(width: AppTextStyles.fig(8)),
@@ -449,9 +433,7 @@ class _HomeScreenState extends State<HomeScreen>
               WasherProductImage(width: 90, height: 85),
             ],
             tabs: const ['Top Load', 'Front Load'],
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
-            ),
+            onTap: () => context.push('/washing-machine'),
           ),
         ),
       ],

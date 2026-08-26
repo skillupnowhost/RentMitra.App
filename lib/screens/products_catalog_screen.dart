@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/appliance_showcase_card.dart';
 import '../widgets/category_card.dart';
-import 'ac_screen.dart';
-import 'combo_screen.dart';
-import 'refrigerator_screen.dart';
-import 'washing_machine_screen.dart';
 
 /// The full product catalog opened from the hamburger menu's "Products"
 /// item — the same category grid and appliance showcase cards shown on the
@@ -103,8 +100,7 @@ class ProductsCatalogScreen extends StatelessWidget {
               priceColor: AppColors.categoryBlue,
               bgColor: AppColors.bgCardPurple,
               iconAnimationDelay: const Duration(milliseconds: 0),
-              onTap: () => Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => const AcScreen())),
+              onTap: () => context.push('/ac'),
             ),
           ),
           SizedBox(width: AppTextStyles.fig(8)),
@@ -117,9 +113,7 @@ class ProductsCatalogScreen extends StatelessWidget {
               priceColor: AppColors.categoryGreen,
               bgColor: AppColors.bgCardNeutral,
               iconAnimationDelay: const Duration(milliseconds: 150),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
-              ),
+              onTap: () => context.push('/refrigerator'),
             ),
           ),
           SizedBox(width: AppTextStyles.fig(8)),
@@ -132,9 +126,7 @@ class ProductsCatalogScreen extends StatelessWidget {
               priceColor: AppColors.categoryOrange,
               bgColor: AppColors.bgCardPeach,
               iconAnimationDelay: const Duration(milliseconds: 300),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
-              ),
+              onTap: () => context.push('/washing-machine'),
             ),
           ),
           SizedBox(width: AppTextStyles.fig(8)),
@@ -152,8 +144,7 @@ class ProductsCatalogScreen extends StatelessWidget {
               ],
               badgeText: 'Best Value',
               iconAnimationDelay: const Duration(milliseconds: 450),
-              onTap: () => Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (_) => const ComboScreen())),
+              onTap: () => context.push('/combo'),
             ),
           ),
         ],
@@ -180,9 +171,7 @@ class ProductsCatalogScreen extends StatelessWidget {
             ],
             tabs: const ['1 Ton', '1.5 Ton'],
             tabIcon: Icons.ac_unit,
-            onTap: () =>
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (_) => const AcScreen())),
+            onTap: () => context.push('/ac'),
           ),
         ),
         SizedBox(width: AppTextStyles.fig(8)),
@@ -200,9 +189,7 @@ class ProductsCatalogScreen extends StatelessWidget {
               FridgeProductImage(width: 105),
             ],
             tabs: const ['Single Door', 'Double Door'],
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const RefrigeratorScreen()),
-            ),
+            onTap: () => context.push('/refrigerator'),
           ),
         ),
         SizedBox(width: AppTextStyles.fig(8)),
@@ -220,9 +207,7 @@ class ProductsCatalogScreen extends StatelessWidget {
               WasherProductImage(width: 112, height: 106),
             ],
             tabs: const ['Top Load', 'Front Load'],
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const WashingMachineScreen()),
-            ),
+            onTap: () => context.push('/washing-machine'),
           ),
         ),
       ],

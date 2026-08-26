@@ -1,17 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import '../utils/cinematic_route.dart';
 import '../widgets/animated_feature_badge.dart';
 import '../widgets/dot_indicator.dart';
 import '../widgets/floating_art.dart';
 import '../widgets/premium_cta_button.dart';
 import '../widgets/reveal_text.dart';
 import '../widgets/skip_button.dart';
-import 'home_screen.dart';
 
 /// Splash carousel — the full-ecosystem hero first, then AC / Washing
 /// Machine / Refrigerator deep-dives — each with its own headline, feature
@@ -203,7 +202,7 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
   void _skipToHome() {
     if (_navigating) return;
     _navigating = true;
-    Navigator.of(context).pushReplacement(cinematicRoute(const HomeScreen()));
+    context.go('/home');
   }
 
   void _onPageChanged(int i) {

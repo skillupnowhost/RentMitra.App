@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../models/order.dart';
+import '../providers/order_provider.dart';
+import '../services/payment_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'checkout_screen.dart';
@@ -20,6 +25,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'UPI';
 
   String? _topErrorMessage;
+
+  bool _isPaying = false;
 
   // ============================================================
   // BUILD
@@ -282,7 +289,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -821,7 +828,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: SizedBox(
               height: AppTextStyles.fig(54),
               child: ElevatedButton(
-                onPressed: _payNow,
+                onPressed: _isPaying ? null : _payNow,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.purple,
                   foregroundColor: Colors.white,
@@ -830,32 +837,41 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        'Pay Now',
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.of(
-                          figmaSize: 15,
-                          weight: FontWeight.w700,
+                child: _isPaying
+                    ? SizedBox(
+                        width: AppTextStyles.fig(22),
+                        height: AppTextStyles.fig(22),
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2.4,
                           color: Colors.white,
                         ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Pay Now',
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.of(
+                                figmaSize: 15,
+                                weight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(
+                            width: AppTextStyles.fig(10),
+                          ),
+
+                          const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 25,
+                          ),
+                        ],
                       ),
-                    ),
-
-                    SizedBox(
-                      width: AppTextStyles.fig(10),
-                    ),
-
-                    const Icon(
-                      Icons.arrow_forward,
-                      color: Colors.white,
-                      size: 25,
-                    ),
-                  ],
-                ),
               ),
             ),
           ),
@@ -868,7 +884,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // PAY NOW
   // ============================================================
 
-  void _payNow() {
+  Future<void> _payNow() async {
+    if (_isPaying) return;
+
     FocusScope.of(context).unfocus();
 
     setState(() {
@@ -889,24 +907,48 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
 
     // ============================================================
-    // TEMPORARY PAYMENT MESSAGE
+    // SIMULATED PAYMENT
+    //
+    // No real gateway wired up yet — PaymentService.simulate() stands in
+    // for a real Razorpay checkout (backed by a server order-create/verify
+    // step) so the flow end-to-end works today. Swapping that call for a
+    // real one is the entire scope of connecting real payments later.
     // ============================================================
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$_selectedPaymentMethod selected. Payment gateway integration will be connected next.',
-        ),
-        backgroundColor: AppColors.purple,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(
-          AppTextStyles.fig(16),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
+    setState(() {
+      _isPaying = true;
+    });
+
+    final result = await PaymentService.simulate(
+      method: _selectedPaymentMethod,
+      amount: widget.product.total,
     );
+
+    if (!mounted) return;
+
+    if (!result.success) {
+      setState(() {
+        _isPaying = false;
+        _topErrorMessage = 'Payment failed. Please try again.';
+      });
+      return;
+    }
+
+    final order = Order(
+      id: result.transactionId!,
+      productName: widget.product.name,
+      amount: widget.product.total,
+      paymentMethod: _selectedPaymentMethod,
+      placedAt: DateTime.now(),
+    );
+
+    context.read<OrderProvider>().placeOrder(order);
+
+    setState(() {
+      _isPaying = false;
+    });
+
+    context.go('/order-success', extra: order);
   }
 
   // ============================================================

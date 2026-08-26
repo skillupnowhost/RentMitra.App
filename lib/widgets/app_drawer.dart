@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 
-import '../screens/products_catalog_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'logo_mark.dart';
@@ -32,32 +32,24 @@ class AppDrawer extends StatelessWidget {
   static const _items = [
     (Icons.receipt_long_outlined, 'My Rentals'),
     (Icons.grid_view_rounded, 'Products'),
+    (Icons.local_offer_outlined, 'Offers'),
     (Icons.person_outline, 'Profile'),
     (Icons.settings_outlined, 'Settings'),
   ];
 
   void _handle(BuildContext context, int index) {
+    onClose();
     switch (index) {
       case 0:
-        onClose();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('My Rentals — coming soon')),
-        );
+        context.go('/my-rentals');
       case 1:
-        onClose();
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ProductsCatalogScreen()),
-        );
+        context.push('/catalog');
       case 2:
-        onClose();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Profile — coming soon')));
+        context.push('/offers');
       case 3:
-        onClose();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Settings — coming soon')));
+        context.go('/profile');
+      case 4:
+        context.push('/settings');
     }
   }
 

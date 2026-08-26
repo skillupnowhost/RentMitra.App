@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../models/product.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/product_option_card.dart';
 import 'checkout_screen.dart';
 import 'product_listing_screen.dart';
+
+const _washerFooterText =
+    'All Washing Machines come with free delivery, free installation and maintenance & service included.';
 
 class WashingMachineScreen extends StatelessWidget {
   const WashingMachineScreen({super.key});
@@ -37,8 +42,7 @@ class WashingMachineScreen extends StatelessWidget {
 
       sectionTitle: 'Choose Your Washing Machine',
 
-      footerText:
-          'All Washing Machines come with free delivery, free installation and maintenance & service included.',
+      footerText: _washerFooterText,
 
       options: [
         // ==========================================================
@@ -62,18 +66,25 @@ class WashingMachineScreen extends StatelessWidget {
 
           price: '₹599',
 
-          onContinue: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    const CheckoutScreen(
-                  product:
-                      CheckoutProduct
-                          .washingMachineTopLoad,
-                ),
-              ),
-            );
-          },
+          onContinue: () => context.push(
+            '/product-details',
+            extra: const Product(
+              badge: 'Top Load',
+              title: 'Top Load Washing Machine',
+              description:
+                  'Powerful cleaning and gentle care for your clothes, with programs for every fabric.',
+              checklist: [
+                'Powerful cleaning',
+                'Multiple wash programs',
+                'Gentle on clothes',
+                'Low power consumption',
+              ],
+              art: WasherProductImage(width: 110),
+              price: '₹599',
+              checkoutProduct: CheckoutProduct.washingMachineTopLoad,
+              footerText: _washerFooterText,
+            ),
+          ),
         ),
 
         // ==========================================================
@@ -98,18 +109,25 @@ class WashingMachineScreen extends StatelessWidget {
           // Corrected price
           price: '₹899',
 
-          onContinue: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    const CheckoutScreen(
-                  product:
-                      CheckoutProduct
-                          .washingMachineFrontLoad,
-                ),
-              ),
-            );
-          },
+          onContinue: () => context.push(
+            '/product-details',
+            extra: const Product(
+              badge: 'Front Load',
+              title: 'Front Load Washing Machine',
+              description:
+                  'Powerful cleaning and gentle care for your clothes, with programs for every fabric.',
+              checklist: [
+                'Powerful cleaning',
+                'Multiple wash programs',
+                'Energy efficient',
+                'Gentle on clothes',
+              ],
+              art: WasherProductImage(width: 110),
+              price: '₹899',
+              checkoutProduct: CheckoutProduct.washingMachineFrontLoad,
+              footerText: _washerFooterText,
+            ),
+          ),
         ),
       ],
     );

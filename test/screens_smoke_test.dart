@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import 'package:rentmitra_app/core/router/app_router.dart';
+import 'package:rentmitra_app/models/order.dart';
+import 'package:rentmitra_app/models/product.dart';
+import 'package:rentmitra_app/providers/order_provider.dart';
 import 'package:rentmitra_app/screens/ac_screen.dart';
-import 'package:rentmitra_app/screens/combo_screen.dart';
+import 'package:rentmitra_app/screens/checkout_screen.dart';
 import 'package:rentmitra_app/screens/home_screen.dart';
 import 'package:rentmitra_app/screens/onboarding_screen.dart';
-import 'package:rentmitra_app/screens/refrigerator_screen.dart';
-import 'package:rentmitra_app/screens/splash_screen.dart';
-import 'package:rentmitra_app/screens/splash_slider_screen.dart';
-import 'package:rentmitra_app/screens/washing_machine_screen.dart';
 
 /// Pumps every screen at a set of real device widths (the narrowest common
 /// phones through a small tablet) and asserts nothing threw — catches
 /// RenderFlex overflow and layout exceptions that `flutter analyze` can't
 /// see, without needing a browser or display.
+///
+/// Every screen except `Onboarding` (dead code, not reachable from the app,
+/// exercised only by its own dedicated test below) now navigates via
+/// `context.go`/`context.push`, which requires a `GoRouter` ancestor — so
+/// each is pumped through a real (minimal) `GoRouter` built from the app's
+/// own [appRoutes], not a bare `MaterialApp`. Screens that read
+/// `OrderProvider` (MyRentals, OrderSuccess) also need that provider above
+/// the router, exactly as `main.dart` wires it in production.
 void main() {
   // Prevents google_fonts from attempting a real network fetch in the test
   // sandbox (no internet access here), which otherwise stalls every test
@@ -31,16 +41,60 @@ void main() {
     Size(600, 1024), // small tablet
   ];
 
-  final screens = <String, WidgetBuilder>{
-    'Splash': (_) => const SplashScreen(),
-    'Splash Slider': (_) => const SplashSliderScreen(),
-    'Onboarding': (_) => const OnboardingScreen(),
-    'Home': (_) => const HomeScreen(),
-    'AC': (_) => const AcScreen(),
-    'Refrigerator': (_) => const RefrigeratorScreen(),
-    'Washing Machine': (_) => const WashingMachineScreen(),
-    'Combo': (_) => const ComboScreen(),
+  final sampleProduct = Product(
+    badge: '1 Ton',
+    title: 'Smart Inverter Split AC',
+    description: 'Sample product for widget tests.',
+    checklist: const ['Powerful cooling'],
+    art: const Icon(Icons.ac_unit),
+    price: '₹999',
+    checkoutProduct: CheckoutProduct.acOneTon,
+  );
+
+  final sampleOrder = Order(
+    id: 'TEST-ORDER-1',
+    productName: 'Smart Inverter Split AC',
+    amount: 999,
+    paymentMethod: 'UPI',
+    placedAt: DateTime(2026, 1, 1),
+  );
+
+  // name -> (route path, extra). `null` path means "pump the widget
+  // directly, no router" — only Onboarding, which isn't a registered route.
+  final screens = <String, (String?, Object?)>{
+    'Splash': ('/', null),
+    'Splash Slider': ('/splash-slider', null),
+    'Onboarding': (null, null),
+    'Home': ('/home', null),
+    'AC': ('/ac', null),
+    'Refrigerator': ('/refrigerator', null),
+    'Washing Machine': ('/washing-machine', null),
+    'Combo': ('/combo', null),
+    'Product Details': ('/product-details', sampleProduct),
+    'Checkout': ('/checkout', CheckoutProduct.acOneTon),
+    'Payment': ('/payment', CheckoutProduct.acOneTon),
+    'Order Success': ('/order-success', sampleOrder),
+    'My Rentals': ('/my-rentals', null),
+    'Profile': ('/profile', null),
+    'Offers': ('/offers', null),
+    'Settings': ('/settings', null),
   };
+
+  Widget pumpableFor(String? path, Object? extra) {
+    if (path == null) {
+      return const MaterialApp(home: OnboardingScreen());
+    }
+    return ChangeNotifierProvider<OrderProvider>(
+      create: (_) => OrderProvider(),
+      child: MaterialApp.router(
+        routerConfig: GoRouter(
+          routes: appRoutes,
+          initialLocation: path,
+          initialExtra: extra,
+        ),
+      ),
+    );
+  }
 
   for (final size in sizes) {
     group('at ${size.width.toInt()}x${size.height.toInt()}', () {
@@ -51,12 +105,12 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
 
-          await tester.pumpWidget(
-            MaterialApp(home: Builder(builder: entry.value)),
-          );
+          final (path, extra) = entry.value;
+          await tester.pumpWidget(pumpableFor(path, extra));
           // Home kicks off a fire-and-forget, timeout-bounded GPS lookup in
-          // initState; flush well past that bound so its fake-async Timer
-          // doesn't outlive the widget tree teardown.
+          // initState, and Splash/Splash Slider auto-advance on their own
+          // timers; flush well past all of those bounds so no fake-async
+          // Timer outlives the widget tree teardown.
           await tester.pump(const Duration(seconds: 13));
 
           expect(tester.takeException(), isNull);
@@ -95,7 +149,7 @@ void main() {
   testWidgets(
     'Home: tapping the AC category card navigates to AcScreen and back',
     (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.pumpWidget(pumpableFor('/home', null));
       await tester.pump(const Duration(milliseconds: 100));
 
       await tester.tap(find.text('Smart Inverter Split AC').first);
@@ -120,7 +174,7 @@ void main() {
   testWidgets('Home: tapping the location chip opens the picker sheet', (
     tester,
   ) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpWidget(pumpableFor('/home', null));
     await tester.pump(const Duration(milliseconds: 100));
 
     await tester.tap(find.text('Chennai').first);
