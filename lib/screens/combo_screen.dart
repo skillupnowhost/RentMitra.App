@@ -58,7 +58,7 @@ class ComboScreen extends StatelessWidget {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => const CheckoutScreen(
-                  product: CheckoutProduct.starterHomeCombo,
+                  product: CheckoutProduct.essentialCombo,
                 ),
               ),
             );
@@ -89,7 +89,7 @@ class ComboScreen extends StatelessWidget {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => const CheckoutScreen(
-                  product: CheckoutProduct.premiumFamily,
+                  product: CheckoutProduct.premiumCombo,
                 ),
               ),
             );
