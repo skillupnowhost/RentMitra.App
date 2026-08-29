@@ -17,32 +17,21 @@ class WashingMachineScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProductListingScreen(
       title: 'Washing Machine',
-      description:
-          'Powerful cleaning and gentle care for your clothes, with programs for every fabric.',
-      heroArt: const WasherProductImage(width: 84),
+      description: 'Powerful cleaning, better care and energy efficiency.',
+      heroArt: const WasherTopLoadImage(width: 100),
+      heroBlobImage: 'assets/images/Background shape.png',
 
       badgeFeatures: const [
-        (
-          Icons.local_laundry_service_outlined,
-          'Powerful\nCleaning',
-        ),
-        (
-          Icons.bolt,
-          'Energy\nEfficient',
-        ),
-        (
-          Icons.volume_off,
-          'Low Noise\nOperation',
-        ),
-        (
-          Icons.shield_outlined,
-          'Long\nLasting',
-        ),
+        (Icons.eco_outlined, 'Energy\nEfficient'),
+        (Icons.local_laundry_service_outlined, 'Powerful\nCleaning'),
+        (Icons.volume_off, 'Low Noise\nOperation'),
+        (Icons.shield_outlined, 'Long\nLasting'),
       ],
 
       sectionTitle: 'Choose Your Washing Machine',
 
       footerText: _washerFooterText,
+      footerImage: 'assets/images/Washing machine install.png',
 
       options: [
         // ==========================================================
@@ -55,14 +44,13 @@ class WashingMachineScreen extends StatelessWidget {
 
           checklist: const [
             'Powerful cleaning',
-            'Multiple wash programs',
-            'Gentle on clothes',
-            'Low power consumption',
+            'Large capacity',
+            'Low water consumption',
+            'Sturdy & durable design',
           ],
 
-          art: const WasherProductImage(
-            width: 70,
-          ),
+          art: const WasherTopLoadImage(width: 110),
+          artColumnWidth: 145,
 
           price: '₹599',
 
@@ -71,17 +59,28 @@ class WashingMachineScreen extends StatelessWidget {
             extra: const Product(
               badge: 'Top Load',
               title: 'Top Load Washing Machine',
-              description:
-                  'Powerful cleaning and gentle care for your clothes, with programs for every fabric.',
+              description: 'Powerful cleaning, better care and energy efficiency.',
               checklist: [
                 'Powerful cleaning',
-                'Multiple wash programs',
-                'Gentle on clothes',
-                'Low power consumption',
+                'Large capacity',
+                'Low water consumption',
+                'Sturdy & durable design',
               ],
-              art: WasherProductImage(width: 110),
+              art: WasherTopLoadImage(width: 110),
               price: '₹599',
               checkoutProduct: CheckoutProduct.washingMachineTopLoad,
+              specs: [
+                ProductSpec(
+                  icon: Icons.local_laundry_service_outlined,
+                  label: 'Capacity',
+                  value: '7 Kg',
+                ),
+                ProductSpec(
+                  icon: Icons.speed,
+                  label: 'Spin Speed',
+                  value: '700 RPM',
+                ),
+              ],
               footerText: _washerFooterText,
             ),
           ),
@@ -90,41 +89,49 @@ class WashingMachineScreen extends StatelessWidget {
         // ==========================================================
         // FRONT LOAD WASHING MACHINE
         // ==========================================================
-
         ProductOptionCard(
           badge: 'Front Load',
           title: 'Front Load Washing Machine',
 
           checklist: const [
-            'Powerful cleaning',
-            'Multiple wash programs',
-            'Energy efficient',
-            'Gentle on clothes',
+            'Advanced fabric care',
+            'High energy efficiency',
+            'Low water consumption',
+            'Sturdy & durable design',
           ],
 
-          art: const WasherProductImage(
-            width: 70,
-          ),
+          art: const WasherFrontLoadImage(width: 110),
+          artColumnWidth: 145,
 
-          // Corrected price
-          price: '₹899',
+          price: '₹849',
 
           onContinue: () => context.push(
             '/product-details',
             extra: const Product(
               badge: 'Front Load',
               title: 'Front Load Washing Machine',
-              description:
-                  'Powerful cleaning and gentle care for your clothes, with programs for every fabric.',
+              description: 'Powerful cleaning, better care and energy efficiency.',
               checklist: [
-                'Powerful cleaning',
-                'Multiple wash programs',
-                'Energy efficient',
-                'Gentle on clothes',
+                'Advanced fabric care',
+                'High energy efficiency',
+                'Low water consumption',
+                'Sturdy & durable design',
               ],
-              art: WasherProductImage(width: 110),
-              price: '₹899',
+              art: WasherFrontLoadImage(width: 110),
+              price: '₹849',
               checkoutProduct: CheckoutProduct.washingMachineFrontLoad,
+              specs: [
+                ProductSpec(
+                  icon: Icons.local_laundry_service_outlined,
+                  label: 'Capacity',
+                  value: '6 Kg',
+                ),
+                ProductSpec(
+                  icon: Icons.speed,
+                  label: 'Spin Speed',
+                  value: '1000 RPM',
+                ),
+              ],
               footerText: _washerFooterText,
             ),
           ),

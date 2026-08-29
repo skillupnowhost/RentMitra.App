@@ -20,7 +20,7 @@ class AcScreen extends StatelessWidget {
     return ProductListingScreen(
       title: 'Smart Inverter Split AC',
       description: _acDescription,
-      heroArt: const AcProductImage(width: 110),
+      heroArt: const AcProductImage(width: 155),
 
       badgeFeatures: const [
         (Icons.bolt, 'Energy\nEfficient'),
@@ -32,6 +32,7 @@ class AcScreen extends StatelessWidget {
       sectionTitle: 'Choose Your AC',
 
       footerText: _acFooterText,
+      footerImage: 'assets/images/AC install.png',
 
       options: [
         // ============================================================
@@ -48,7 +49,8 @@ class AcScreen extends StatelessWidget {
             'Smart Plug included',
           ],
 
-          art: const AcProductImage(width: 90),
+          art: const AcProductImage(width: 155),
+          artColumnWidth: 195,
 
           price: '₹999',
 
@@ -78,7 +80,7 @@ class AcScreen extends StatelessWidget {
                 'Smart performance',
                 'Smart Plug included',
               ],
-              art: AcProductImage(width: 140),
+              art: AcProductImage(width: 155),
               price: '₹999',
               checkoutProduct: CheckoutProduct.acOneTon,
               specs: [
@@ -112,7 +114,8 @@ class AcScreen extends StatelessWidget {
             'Smart Plug included',
           ],
 
-          art: const AcProductImage(width: 90),
+          art: const AcProductImage(width: 155),
+          artColumnWidth: 195,
 
           price: '₹1,299',
 
@@ -142,7 +145,7 @@ class AcScreen extends StatelessWidget {
                 'Smart performance',
                 'Smart Plug included',
               ],
-              art: AcProductImage(width: 140),
+              art: AcProductImage(width: 155),
               price: '₹1,299',
               checkoutProduct: CheckoutProduct.acOnePointFiveTon,
               specs: [

@@ -5,6 +5,8 @@ import '../models/product.dart';
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
+import '../widgets/help_card.dart';
 import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
 
@@ -176,6 +178,8 @@ class ProductDetailsScreen extends StatelessWidget {
                             ),
                           ),
                         ],
+                        SizedBox(height: AppTextStyles.fig(20)),
+                        HelpCard(onWhatsApp: launchSupportWhatsAppChat),
                       ],
                     ),
                   ),
@@ -398,10 +402,8 @@ class _RentNowBar extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () => context.push(
-              '/checkout',
-              extra: product.checkoutProduct,
-            ),
+            onTap: () =>
+                context.push('/checkout', extra: product.checkoutProduct),
             child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: AppTextStyles.fig(26),

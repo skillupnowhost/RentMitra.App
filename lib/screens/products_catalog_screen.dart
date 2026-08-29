@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/appliance_showcase_card.dart';
 import '../widgets/category_card.dart';
+import '../widgets/help_card.dart';
 
 /// The full product catalog opened from the hamburger menu's "Products"
 /// item — the same category grid and appliance showcase cards shown on the
@@ -50,6 +52,8 @@ class ProductsCatalogScreen extends StatelessWidget {
                         ),
                         SizedBox(height: AppTextStyles.fig(14)),
                         _showcaseCards(context),
+                        SizedBox(height: AppTextStyles.fig(20)),
+                        HelpCard(onWhatsApp: launchSupportWhatsAppChat),
                       ],
                     ),
                   ),
@@ -186,7 +190,7 @@ class ProductsCatalogScreen extends StatelessWidget {
             ],
             images: const [
               FridgeSingleDoorProductImage(width: 105),
-              FridgeProductImage(width: 105),
+              FridgeDoubleDoorProductImage(width: 105),
             ],
             tabs: const ['Single Door', 'Double Door'],
             onTap: () => context.push('/refrigerator'),

@@ -16,6 +16,7 @@ import '../widgets/bottom_nav_bar.dart';
 import '../widgets/category_card.dart';
 import '../widgets/dot_indicator.dart';
 import '../widgets/feature_strip.dart';
+import '../widgets/help_card.dart';
 import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
 import '../widgets/logo_mark.dart';
@@ -98,45 +99,37 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     _buildAppBar(),
                     Expanded(
-                      child: Stack(
-                        children: [
-                          SingleChildScrollView(
-                            padding: EdgeInsets.fromLTRB(
-                              AppTextStyles.fig(16),
-                              0,
-                              AppTextStyles.fig(16),
-                              AppTextStyles.fig(16),
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          AppTextStyles.fig(16),
+                          0,
+                          AppTextStyles.fig(16),
+                          AppTextStyles.fig(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _HeroBanner(onExplore: _scrollToCategories),
+                            SizedBox(height: AppTextStyles.fig(10)),
+                            KeyedSubtree(
+                              key: _categorySectionKey,
+                              child: _sectionTitle('Shop by Category'),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _HeroBanner(onExplore: _scrollToCategories),
-                                SizedBox(height: AppTextStyles.fig(10)),
-                                KeyedSubtree(
-                                  key: _categorySectionKey,
-                                  child: _sectionTitle('Shop by Category'),
-                                ),
-                                // Fixed (not fig-scaled) so it reliably clears
-                                // the Combo Plans card's "Best Value" badge,
-                                // which floats above that card's top edge.
-                                const SizedBox(height: 20),
-                                _sectionCategoryGrid(),
-                                SizedBox(height: AppTextStyles.fig(20)),
-                                PromoBanner(onViewCombos: _openCombos),
-                                SizedBox(height: AppTextStyles.fig(14)),
-                                _sectionShowcaseCards(),
-                                SizedBox(height: AppTextStyles.fig(20)),
-                                const FeatureStrip(),
-                                const SizedBox(height: 8),
-                              ],
-                            ),
-                          ),
-                          Positioned(
-                            right: AppTextStyles.fig(16),
-                            bottom: AppTextStyles.fig(16),
-                            child: const _FloatingSupportButtons(),
-                          ),
-                        ],
+                            // Fixed (not fig-scaled) so it reliably clears
+                            // the Combo Plans card's "Best Value" badge,
+                            // which floats above that card's top edge.
+                            const SizedBox(height: 20),
+                            _sectionCategoryGrid(),
+                            SizedBox(height: AppTextStyles.fig(20)),
+                            PromoBanner(onViewCombos: _openCombos),
+                            SizedBox(height: AppTextStyles.fig(14)),
+                            _sectionShowcaseCards(),
+                            SizedBox(height: AppTextStyles.fig(20)),
+                            const FeatureStrip(),
+                            SizedBox(height: AppTextStyles.fig(20)),
+                            HelpCard(onWhatsApp: launchSupportWhatsAppChat),
+                          ],
+                        ),
                       ),
                     ),
                     AppBottomNavBar(
@@ -240,10 +233,7 @@ class _HomeScreenState extends State<HomeScreen>
                           decoration: BoxDecoration(
                             color: AppColors.purple,
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1,
-                            ),
+                            border: Border.all(color: Colors.white, width: 1),
                           ),
                           child: Text(
                             '.app',
@@ -412,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen>
             ],
             images: const [
               FridgeSingleDoorProductImage(width: 85),
-              FridgeProductImage(width: 85),
+              FridgeDoubleDoorProductImage(width: 85),
             ],
             tabs: const ['Single Door', 'Double Door'],
             onTap: () => context.push('/refrigerator'),
@@ -974,160 +964,6 @@ class _HeroImageSliderState extends State<_HeroImageSlider>
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Bottom-right floating support stack — replaces the old inline "Need
-/// Help?" card. Pinned to the same screen corner regardless of scroll
-/// position (a [Positioned] sibling of the scroll view, not part of its
-/// content) so support is always one tap away without eating vertical space
-/// in the feed. The small purple "Need Help" launcher sits above the
-/// primary green WhatsApp action, mirroring the common chat-widget pattern.
-class _FloatingSupportButtons extends StatelessWidget {
-  const _FloatingSupportButtons();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        _FloatingActionCircle(
-          diameter: 46,
-          background: Colors.white,
-          onTap: () => _showHelpSheet(context),
-          child: Image.asset(
-            'assets/images/Need help.png',
-            width: 21,
-            height: 21,
-            color: AppColors.purple,
-            colorBlendMode: BlendMode.srcIn,
-          ),
-        ),
-        const SizedBox(height: 10),
-        _FloatingActionCircle(
-          diameter: 50,
-          background: Colors.white,
-          onTap: launchSupportWhatsAppChat,
-          child: Image.asset(
-            'assets/images/whatsapp icon.png',
-            width: 26,
-            height: 26,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showHelpSheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Need Help?',
-              style: AppTextStyles.of(
-                figmaSize: 18,
-                weight: FontWeight.w700,
-                color: AppColors.textGray,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Our team is here to assist you.',
-              style: AppTextStyles.of(
-                figmaSize: 13,
-                weight: FontWeight.w400,
-                color: AppColors.textGrayMed,
-              ),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-                launchSupportWhatsAppChat();
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.purple, AppColors.ctaPurple],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/whatsapp icon.png',
-                      width: 20,
-                      height: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Chat on WhatsApp',
-                      style: AppTextStyles.of(
-                        figmaSize: 14,
-                        weight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FloatingActionCircle extends StatelessWidget {
-  const _FloatingActionCircle({
-    required this.diameter,
-    required this.background,
-    required this.onTap,
-    required this.child,
-  });
-
-  final double diameter;
-  final Color background;
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: diameter,
-        height: diameter,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: background,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: child,
       ),
     );
   }

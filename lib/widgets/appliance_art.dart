@@ -42,8 +42,8 @@ class AcProductImage extends StatelessWidget {
   }
 }
 
-class FridgeProductImage extends StatelessWidget {
-  const FridgeProductImage({super.key, this.width = 60, double? height})
+class FridgeDoubleDoorProductImage extends StatelessWidget {
+  const FridgeDoubleDoorProductImage({super.key, this.width = 60, double? height})
     : height = height ?? width * 1.3;
   final double width;
   final double height;
@@ -53,7 +53,25 @@ class FridgeProductImage extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: width, maxHeight: height),
       child: Image.asset(
-        'assets/images/fridge_product.png',
+        'assets/images/Double door fridge.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
+class FridgeDoubleDoorHeaderImage extends StatelessWidget {
+  const FridgeDoubleDoorHeaderImage({super.key, this.width = 95, double? height})
+    : height = height ?? width * 1.3;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
+      child: Image.asset(
+        'assets/images/Double door fridge (header).png',
         fit: BoxFit.contain,
       ),
     );
@@ -111,6 +129,42 @@ class WasherTopLoadProductImage extends StatelessWidget {
       constraints: BoxConstraints(maxWidth: width, maxHeight: height),
       child: Image.asset(
         'assets/images/washer_top_load_product.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
+class WasherTopLoadImage extends StatelessWidget {
+  const WasherTopLoadImage({super.key, this.width = 70, double? height})
+    : height = height ?? width * 1.3;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
+      child: Image.asset(
+        'assets/images/Washing machine (header).png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
+class WasherFrontLoadImage extends StatelessWidget {
+  const WasherFrontLoadImage({super.key, this.width = 70, double? height})
+    : height = height ?? width * 1.3;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
+      child: Image.asset(
+        'assets/images/Washing machine  2.png',
         fit: BoxFit.contain,
       ),
     );

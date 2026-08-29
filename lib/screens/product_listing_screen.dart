@@ -1,4 +1,7 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/location_controller.dart';
@@ -16,8 +19,8 @@ typedef ProductFeature = (IconData icon, String label);
 
 /// Shared scaffold for the AC / Refrigerator / Washing Machine / Combo
 /// listing pages: back header, hero panel, a 4-badge feature row, the
-/// selectable [ProductOptionCard]s, a service-coverage banner, the feature
-/// strip and help card — reused as-is across all four pages since the
+/// selectable [ProductOptionCard]s, a service-coverage banner and the
+/// feature strip — reused as-is across all four pages since the
 /// reference screenshots for AC and Refrigerator are structurally
 /// identical, differing only in copy, art and pricing.
 class ProductListingScreen extends StatelessWidget {
@@ -30,6 +33,8 @@ class ProductListingScreen extends StatelessWidget {
     required this.sectionTitle,
     required this.options,
     required this.footerText,
+    required this.footerImage,
+    this.heroBlobImage,
   });
 
   final String title;
@@ -39,6 +44,11 @@ class ProductListingScreen extends StatelessWidget {
   final String sectionTitle;
   final List<ProductOptionCard> options;
   final String footerText;
+  final String footerImage;
+  /// Optional Figma "background shape" blob to draw behind [heroArt]
+  /// instead of the default pair of plain translucent circles. Opt-in per
+  /// screen so existing pages keep their current look unless they pass this.
+  final String? heroBlobImage;
 
   @override
   Widget build(BuildContext context) {
@@ -67,25 +77,65 @@ class ProductListingScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _HeroPanel(
-                          title: title,
-                          description: description,
-                          art: heroArt,
-                        ),
+                              title: title,
+                              description: description,
+                              art: heroArt,
+                              blobImage: heroBlobImage,
+                            )
+                            .animate()
+                            .fadeIn(duration: 420.ms)
+                            .slideY(
+                              begin: 0.08,
+                              end: 0,
+                              duration: 420.ms,
+                              curve: Curves.easeOut,
+                            ),
                         SizedBox(height: AppTextStyles.fig(14)),
-                        _FeatureBadgeRow(features: badgeFeatures),
+                        _FeatureBadgeRow(features: badgeFeatures)
+                            .animate()
+                            .fadeIn(delay: 100.ms, duration: 380.ms)
+                            .slideY(
+                              begin: 0.12,
+                              end: 0,
+                              delay: 100.ms,
+                              duration: 380.ms,
+                              curve: Curves.easeOut,
+                            ),
                         SizedBox(height: AppTextStyles.fig(24)),
-                        _SectionHeading(title: sectionTitle),
+                        _SectionHeading(title: sectionTitle)
+                            .animate()
+                            .fadeIn(delay: 160.ms, duration: 380.ms),
                         SizedBox(height: AppTextStyles.fig(16)),
-                        for (final option in options) ...[
-                          option,
-                          SizedBox(height: AppTextStyles.fig(16)),
+                        for (final (i, option) in options.indexed) ...[
+                          option
+                              .animate()
+                              .fadeIn(
+                                delay: (220 + i * 90).ms,
+                                duration: 380.ms,
+                              )
+                              .slideY(
+                                begin: 0.1,
+                                end: 0,
+                                delay: (220 + i * 90).ms,
+                                duration: 380.ms,
+                                curve: Curves.easeOut,
+                              ),
+                          if (i != options.length - 1)
+                            SizedBox(height: AppTextStyles.fig(16)),
                         ],
                         SizedBox(height: AppTextStyles.fig(8)),
-                        _ServiceBanner(text: footerText),
+                        _ServiceBanner(text: footerText, image: footerImage)
+                            .animate()
+                            .fadeIn(delay: 380.ms, duration: 380.ms),
                         SizedBox(height: AppTextStyles.fig(20)),
-                        const FeatureStrip(),
-                        SizedBox(height: AppTextStyles.fig(18)),
-                        HelpCard(onWhatsApp: launchSupportWhatsAppChat),
+                        const FeatureStrip().animate().fadeIn(
+                          delay: 440.ms,
+                          duration: 380.ms,
+                        ),
+                        SizedBox(height: AppTextStyles.fig(20)),
+                        HelpCard(
+                          onWhatsApp: launchSupportWhatsAppChat,
+                        ).animate().fadeIn(delay: 500.ms, duration: 380.ms),
                       ],
                     ),
                   ),
@@ -174,10 +224,12 @@ class _HeroPanel extends StatelessWidget {
     required this.title,
     required this.description,
     required this.art,
+    this.blobImage,
   });
   final String title;
   final String description;
   final Widget art;
+  final String? blobImage;
 
   @override
   Widget build(BuildContext context) {
@@ -195,18 +247,54 @@ class _HeroPanel extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Positioned(
-              right: AppTextStyles.fig(-30),
-              top: AppTextStyles.fig(-30),
-              child: Container(
-                width: AppTextStyles.fig(180),
-                height: AppTextStyles.fig(180),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.35),
-                ),
+            if (blobImage == null) ...[
+              Positioned(
+                right: AppTextStyles.fig(-70),
+                top: AppTextStyles.fig(-70),
+                child:
+                    Container(
+                          width: AppTextStyles.fig(320),
+                          height: AppTextStyles.fig(320),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.35),
+                          ),
+                        )
+                        .animate(onPlay: (c) => c.repeat(reverse: true))
+                        .scaleXY(
+                          begin: 1,
+                          end: 1.06,
+                          duration: 2600.ms,
+                          curve: Curves.easeInOut,
+                        )
+                        .fade(
+                          begin: 0.75,
+                          end: 1,
+                          duration: 2600.ms,
+                          curve: Curves.easeInOut,
+                        ),
               ),
-            ),
+              Positioned(
+                right: AppTextStyles.fig(10),
+                top: AppTextStyles.fig(30),
+                child:
+                    Container(
+                          width: AppTextStyles.fig(140),
+                          height: AppTextStyles.fig(140),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                        )
+                        .animate(onPlay: (c) => c.repeat(reverse: true))
+                        .scaleXY(
+                          begin: 1.05,
+                          end: 1,
+                          duration: 3200.ms,
+                          curve: Curves.easeInOut,
+                        ),
+              ),
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -237,7 +325,50 @@ class _HeroPanel extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: AppTextStyles.fig(12)),
-                art,
+                // Same background-shape treatment as the option cards below —
+                // a shape sized and nudged relative to the product photo
+                // itself, not anchored to the panel's outer corner.
+                if (blobImage != null)
+                  SizedBox(
+                    height: AppTextStyles.fig(146),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      clipBehavior: Clip.none,
+                      children: [
+                        Align(
+                          alignment: const Alignment(-0.2, 0.35),
+                          child: Opacity(
+                            opacity: 0.65,
+                            child: Image.asset(
+                              blobImage!,
+                              width: AppTextStyles.fig(220),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        // Soft grounding shadow under the hero product photo,
+                        // per the Figma reference — same treatment as the
+                        // option cards below.
+                        Positioned(
+                          bottom: AppTextStyles.fig(2),
+                          child: ImageFiltered(
+                            imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 3),
+                            child: Container(
+                              width: AppTextStyles.fig(66),
+                              height: AppTextStyles.fig(14),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.22),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                        ),
+                        art,
+                      ],
+                    ),
+                  )
+                else
+                  art,
               ],
             ),
           ],
@@ -255,50 +386,79 @@ class _FeatureBadgeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: AppTextStyles.fig(16),
-        horizontal: AppTextStyles.fig(8),
+        vertical: AppTextStyles.fig(14),
+        horizontal: AppTextStyles.fig(10),
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.divider),
       ),
-      child: Row(
-        children: features.map((f) {
-          final (icon, label) = f;
-          return Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: AppTextStyles.fig(40),
-                  height: AppTextStyles.fig(40),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.purple, AppColors.ctaPurple],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < features.length; i++) ...[
+              if (i != 0)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppTextStyles.fig(6),
+                    vertical: AppTextStyles.fig(4),
                   ),
-                  child: Icon(icon, size: 18, color: Colors.white),
+                  child: Container(width: 1, color: AppColors.divider),
                 ),
-                SizedBox(height: AppTextStyles.fig(8)),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: AppTextStyles.of(
-                    figmaSize: 10,
-                    weight: FontWeight.w600,
-                    color: AppColors.textGrayMed,
-                  ),
+              Expanded(
+                child: _FeatureBadgeItem(
+                  icon: features[i].$1,
+                  label: features[i].$2,
                 ),
-              ],
-            ),
-          );
-        }).toList(),
+              ),
+            ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _FeatureBadgeItem extends StatelessWidget {
+  const _FeatureBadgeItem({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: AppTextStyles.fig(36),
+          height: AppTextStyles.fig(36),
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.purple, AppColors.ctaPurple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 16, color: Colors.white),
+        ),
+        SizedBox(width: AppTextStyles.fig(7)),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 2,
+            style: AppTextStyles.of(
+              figmaSize: 10.5,
+              weight: FontWeight.w700,
+              color: AppColors.navy,
+              height: 1.25,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -323,13 +483,17 @@ class _SectionHeading extends StatelessWidget {
         SizedBox(height: AppTextStyles.fig(6)),
         Row(
           children: [
-            const Icon(Icons.check_circle, size: 14, color: AppColors.check),
+            const Icon(
+              Icons.check_circle,
+              size: 14,
+              color: AppColors.checkGreen,
+            ),
             SizedBox(width: AppTextStyles.fig(5)),
             Text(
               'Free Installation',
               style: AppTextStyles.of(
                 figmaSize: 12,
-                weight: FontWeight.w600,
+                weight: FontWeight.w700,
                 color: AppColors.textGray,
               ),
             ),
@@ -361,94 +525,64 @@ class _SectionHeading extends StatelessWidget {
 }
 
 class _ServiceBanner extends StatelessWidget {
-  const _ServiceBanner({required this.text});
+  const _ServiceBanner({required this.text, required this.image});
   final String text;
+  final String image;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(AppTextStyles.fig(18)),
+      padding: EdgeInsets.fromLTRB(
+        AppTextStyles.fig(18),
+        AppTextStyles.fig(10),
+        AppTextStyles.fig(18),
+        AppTextStyles.fig(18),
+      ),
       decoration: BoxDecoration(
         color: AppColors.bgCardPurple,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: AppTextStyles.fig(48),
-            height: AppTextStyles.fig(48),
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.verified_user,
-              color: AppColors.purple,
-              size: 24,
-            ),
-          ),
-          SizedBox(width: AppTextStyles.fig(14)),
-          Expanded(
-            flex: 3,
-            child: Text(
-              text,
-              style: AppTextStyles.of(
-                figmaSize: 12,
-                weight: FontWeight.w400,
-                color: AppColors.textGray,
-                height: 1.4,
-              ),
-            ),
-          ),
-          SizedBox(width: AppTextStyles.fig(8)),
-          const Expanded(child: _TechnicianBadge()),
-        ],
-      ),
-    );
-  }
-}
-
-/// Small flat "technician at work" mark used as the service-banner
-/// illustration. There's no exported Figma illustration asset to drop in,
-/// so this recreates the same idea (person + tool, brand-purple duotone) as
-/// simple layered shapes rather than leaving the banner illustration-less.
-class _TechnicianBadge extends StatelessWidget {
-  const _TechnicianBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    final size = AppTextStyles.fig(56);
-    return SizedBox(
-      height: size,
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: size,
-              height: size,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-            ),
-            Icon(Icons.engineering, color: AppColors.purple, size: size * 0.6),
-            Positioned(
-              right: -2,
-              bottom: -2,
+            Center(
               child: Container(
-                width: size * 0.36,
-                height: size * 0.36,
+                width: AppTextStyles.fig(48),
+                height: AppTextStyles.fig(48),
                 alignment: Alignment.center,
                 decoration: const BoxDecoration(
-                  color: AppColors.ctaPurple,
+                  color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.build, color: Colors.white, size: size * 0.2),
+                child: const Icon(
+                  Icons.verified_user,
+                  color: AppColors.purple,
+                  size: 24,
+                ),
               ),
+            ),
+            SizedBox(width: AppTextStyles.fig(14)),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  text,
+                  style: AppTextStyles.of(
+                    figmaSize: 12,
+                    weight: FontWeight.w500,
+                    color: AppColors.textGray,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: AppTextStyles.fig(8)),
+            Image.asset(
+              image,
+              width: AppTextStyles.fig(120),
+              height: AppTextStyles.fig(51),
+              fit: BoxFit.contain,
             ),
           ],
         ),

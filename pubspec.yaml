@@ -71,7 +71,6 @@ flutter:
     - assets/images/logo_full.png
     - assets/images/appliance_cluster.png
     - assets/images/ac_product.png
-    - assets/images/fridge_product.png
     - assets/images/washer_product.png
     - assets/images/fridge_single_door_product.png
     - assets/images/washer_top_load_product.png
@@ -87,6 +86,14 @@ flutter:
     - "assets/images/washing-machine icon.png"
     - "assets/images/Need help.png"
     - "assets/images/whatsapp icon.png"
+    - "assets/images/AC install.png"
+    - "assets/images/Fridge install.png"
+    - "assets/images/Double door fridge.png"
+    - "assets/images/Double door fridge (header).png"
+    - "assets/images/Washing machine  2.png"
+    - "assets/images/Washing machine (header).png"
+    - "assets/images/Washing machine install.png"
+    - "assets/images/Background shape.png"
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

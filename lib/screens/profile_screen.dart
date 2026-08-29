@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/help_card.dart';
 
 /// The "Profile" bottom-nav tab. Scoped as an honest placeholder — real
 /// account/profile management is out of scope for this navigation-flow
@@ -81,6 +83,8 @@ class ProfileScreen extends StatelessWidget {
                           label: 'Settings',
                           onTap: () => context.push('/settings'),
                         ),
+                        SizedBox(height: AppTextStyles.fig(10)),
+                        HelpCard(onWhatsApp: launchSupportWhatsAppChat),
                       ],
                     ),
                   ),

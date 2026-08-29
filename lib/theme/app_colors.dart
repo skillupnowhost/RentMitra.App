@@ -53,7 +53,8 @@ class AppColors {
   static const Color helpCardBg = Color(0xFFF4F4FB);
   static const Color featureStripBg = Color(0xFFFDFDFC);
   static const Color divider = Color(0xFFEDEDF5);
-  static const Color check = Color(0xFF63B37B);
+  static const Color check = purple;
+  static const Color checkGreen = Color(0xFF16A34A);
 
   static const List<Color> splashBackground = [
     Color(0xFFFCFBFF),

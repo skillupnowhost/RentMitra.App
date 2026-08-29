@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
+import '../widgets/help_card.dart';
 import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
 
@@ -87,9 +89,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: contentWidth,
-            ),
+            constraints: BoxConstraints(maxWidth: contentWidth),
             child: Column(
               children: [
                 _buildHeader(),
@@ -116,28 +116,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               if (_topErrorMessage != null) ...[
                                 _buildTopErrorMessage(),
 
-                                SizedBox(
-                                  height: AppTextStyles.fig(12),
-                                ),
+                                SizedBox(height: AppTextStyles.fig(12)),
                               ],
 
                               _buildProductCard(),
 
-                              SizedBox(
-                                height: AppTextStyles.fig(14),
-                              ),
+                              SizedBox(height: AppTextStyles.fig(14)),
 
                               _buildGstInfo(),
 
-                              SizedBox(
-                                height: AppTextStyles.fig(26),
-                              ),
+                              SizedBox(height: AppTextStyles.fig(26)),
 
                               _buildDeliveryHeader(),
 
-                              SizedBox(
-                                height: AppTextStyles.fig(16),
-                              ),
+                              SizedBox(height: AppTextStyles.fig(16)),
 
                               // HOUSE / FLAT NUMBER
                               _buildAddressField(
@@ -178,8 +170,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                               // CITY + PINCODE
                               Row(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
                                     child: _buildAddressField(
@@ -192,9 +183,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     ),
                                   ),
 
-                                  SizedBox(
-                                    width: AppTextStyles.fig(10),
-                                  ),
+                                  SizedBox(width: AppTextStyles.fig(10)),
 
                                   Expanded(
                                     child: _buildAddressField(
@@ -227,9 +216,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               // EMAIL NOTICE
                               _buildEmailNotice(),
 
-                              SizedBox(
-                                height: AppTextStyles.fig(30),
-                              ),
+                              SizedBox(height: AppTextStyles.fig(20)),
+
+                              HelpCard(onWhatsApp: launchSupportWhatsAppChat),
+
+                              SizedBox(height: AppTextStyles.fig(30)),
                             ],
                           ),
                         ),
@@ -267,22 +258,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.red.shade300,
-        ),
+        border: Border.all(color: Colors.red.shade300),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: Colors.red.shade700,
-            size: 22,
-          ),
+          Icon(Icons.error_outline, color: Colors.red.shade700, size: 22),
 
-          SizedBox(
-            width: AppTextStyles.fig(10),
-          ),
+          SizedBox(width: AppTextStyles.fig(10)),
 
           Expanded(
             child: Text(
@@ -302,11 +285,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _topErrorMessage = null;
               });
             },
-            child: Icon(
-              Icons.close,
-              color: Colors.red.shade700,
-              size: 18,
-            ),
+            child: Icon(Icons.close, color: Colors.red.shade700, size: 18),
           ),
         ],
       ),
@@ -379,15 +358,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        AppTextStyles.fig(18),
-      ),
+      padding: EdgeInsets.all(AppTextStyles.fig(18)),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -408,9 +383,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          SizedBox(
-            height: AppTextStyles.fig(10),
-          ),
+          SizedBox(height: AppTextStyles.fig(10)),
 
           Text(
             product.name,
@@ -422,9 +395,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
 
           if (product.description != null) ...[
-            SizedBox(
-              height: AppTextStyles.fig(4),
-            ),
+            SizedBox(height: AppTextStyles.fig(4)),
 
             Text(
               product.description!,
@@ -437,28 +408,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
-          Container(
-            height: 1,
-            color: AppColors.divider,
-          ),
+          Container(height: 1, color: AppColors.divider),
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
           if (product.isCombo) ...[
-            _priceRow(
-              'Monthly Rent (Before Discount)',
-              product.monthlyRent,
-            ),
+            _priceRow('Monthly Rent (Before Discount)', product.monthlyRent),
 
-            SizedBox(
-              height: AppTextStyles.fig(10),
-            ),
+            SizedBox(height: AppTextStyles.fig(10)),
 
             _priceRow(
               'Combo Discount (10%)',
@@ -467,45 +426,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
 
             Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: AppTextStyles.fig(12),
-              ),
+              padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(12)),
               child: _dashedDivider(),
             ),
 
-            _priceRow(
-              'Monthly Rent (After Discount)',
-              product.afterDiscount,
-            ),
+            _priceRow('Monthly Rent (After Discount)', product.afterDiscount),
 
-            SizedBox(
-              height: AppTextStyles.fig(10),
-            ),
+            SizedBox(height: AppTextStyles.fig(10)),
 
-            _priceRow(
-              'GST (18%)',
-              product.gst,
-            ),
+            _priceRow('GST (18%)', product.gst),
           ] else ...[
-            _priceRow(
-              'Monthly Rent',
-              product.monthlyRent,
-            ),
+            _priceRow('Monthly Rent', product.monthlyRent),
 
-            SizedBox(
-              height: AppTextStyles.fig(10),
-            ),
+            SizedBox(height: AppTextStyles.fig(10)),
 
-            _priceRow(
-              'GST (18%)',
-              product.gst,
-            ),
+            _priceRow('GST (18%)', product.gst),
           ],
 
           Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: AppTextStyles.fig(14),
-            ),
+            padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(14)),
             child: _dashedDivider(),
           ),
 
@@ -541,11 +480,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // PRICE ROW
   // ============================================================
 
-  Widget _priceRow(
-    String title,
-    int amount, {
-    Color? valueColor,
-  }) {
+  Widget _priceRow(String title, int amount, {Color? valueColor}) {
     return Row(
       children: [
         Expanded(
@@ -586,9 +521,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             (index) => Expanded(
               child: Container(
                 height: 1,
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 1,
-                ),
+                margin: const EdgeInsets.symmetric(horizontal: 1),
                 color: AppColors.divider,
               ),
             ),
@@ -619,10 +552,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             width: AppTextStyles.fig(28),
             height: AppTextStyles.fig(28),
             decoration: BoxDecoration(
-              border: Border.all(
-                color: AppColors.purple,
-                width: 2,
-              ),
+              border: Border.all(color: AppColors.purple, width: 2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -632,9 +562,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          SizedBox(
-            width: AppTextStyles.fig(12),
-          ),
+          SizedBox(width: AppTextStyles.fig(12)),
 
           Expanded(
             child: Text(
@@ -672,9 +600,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
 
-        SizedBox(
-          width: AppTextStyles.fig(14),
-        ),
+        SizedBox(width: AppTextStyles.fig(14)),
 
         Expanded(
           child: Column(
@@ -689,9 +615,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
 
-              SizedBox(
-                height: AppTextStyles.fig(2),
-              ),
+              SizedBox(height: AppTextStyles.fig(2)),
 
               Text(
                 'Please enter correct address for smooth delivery',
@@ -723,21 +647,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     int? maxLength,
   }) {
     return Container(
-      margin: EdgeInsets.only(
-        bottom: AppTextStyles.fig(10),
-      ),
+      margin: EdgeInsets.only(bottom: AppTextStyles.fig(10)),
       padding: EdgeInsets.symmetric(
         horizontal: AppTextStyles.fig(12),
-        vertical: AppTextStyles.fig(
-          compact ? 8 : 9,
-        ),
+        vertical: AppTextStyles.fig(compact ? 8 : 9),
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -745,20 +663,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(
             width: AppTextStyles.fig(40),
             child: Padding(
-              padding: EdgeInsets.only(
-                top: AppTextStyles.fig(4),
-              ),
-              child: Icon(
-                icon,
-                color: AppColors.textGrayMed,
-                size: 26,
-              ),
+              padding: EdgeInsets.only(top: AppTextStyles.fig(4)),
+              child: Icon(icon, color: AppColors.textGrayMed, size: 26),
             ),
           ),
 
-          SizedBox(
-            width: AppTextStyles.fig(8),
-          ),
+          SizedBox(width: AppTextStyles.fig(8)),
 
           Expanded(
             child: Column(
@@ -776,18 +686,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? const [
                             TextSpan(
                               text: ' *',
-                              style: TextStyle(
-                                color: Colors.red,
-                              ),
+                              style: TextStyle(color: Colors.red),
                             ),
                           ]
                         : [],
                   ),
                 ),
 
-                SizedBox(
-                  height: AppTextStyles.fig(2),
-                ),
+                SizedBox(height: AppTextStyles.fig(2)),
 
                 TextFormField(
                   controller: controller,
@@ -798,7 +704,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   // IMPORTANT:
                   // No validator here.
                   // All validation is handled at the top.
-
                   style: AppTextStyles.of(
                     figmaSize: 13,
                     weight: FontWeight.w400,
@@ -838,9 +743,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildMobileField() {
     return Container(
-      margin: EdgeInsets.only(
-        bottom: AppTextStyles.fig(10),
-      ),
+      margin: EdgeInsets.only(bottom: AppTextStyles.fig(10)),
       padding: EdgeInsets.symmetric(
         horizontal: AppTextStyles.fig(12),
         vertical: AppTextStyles.fig(9),
@@ -848,9 +751,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -858,9 +759,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(
             width: AppTextStyles.fig(40),
             child: Padding(
-              padding: EdgeInsets.only(
-                top: AppTextStyles.fig(4),
-              ),
+              padding: EdgeInsets.only(top: AppTextStyles.fig(4)),
               child: const Icon(
                 Icons.phone_android_outlined,
                 color: AppColors.textGrayMed,
@@ -869,9 +768,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          SizedBox(
-            width: AppTextStyles.fig(8),
-          ),
+          SizedBox(width: AppTextStyles.fig(8)),
 
           Expanded(
             child: Column(
@@ -888,17 +785,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: const [
                       TextSpan(
                         text: ' *',
-                        style: TextStyle(
-                          color: Colors.red,
-                        ),
+                        style: TextStyle(color: Colors.red),
                       ),
                     ],
                   ),
                 ),
 
-                SizedBox(
-                  height: AppTextStyles.fig(4),
-                ),
+                SizedBox(height: AppTextStyles.fig(4)),
 
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -919,9 +812,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
 
-                    SizedBox(
-                      width: AppTextStyles.fig(8),
-                    ),
+                    SizedBox(width: AppTextStyles.fig(8)),
 
                     Text(
                       '+91',
@@ -938,9 +829,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       color: AppColors.navy,
                     ),
 
-                    SizedBox(
-                      width: AppTextStyles.fig(8),
-                    ),
+                    SizedBox(width: AppTextStyles.fig(8)),
 
                     Expanded(
                       child: TextFormField(
@@ -951,7 +840,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                         // No validator here.
                         // Validation is handled at the top.
-
                         style: AppTextStyles.of(
                           figmaSize: 13,
                           weight: FontWeight.w400,
@@ -959,8 +847,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
 
                         decoration: InputDecoration(
-                          hintText:
-                              'Enter 10 digit mobile number',
+                          hintText: 'Enter 10 digit mobile number',
 
                           hintStyle: AppTextStyles.of(
                             figmaSize: 14,
@@ -1016,9 +903,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          SizedBox(
-            width: AppTextStyles.fig(8),
-          ),
+          SizedBox(width: AppTextStyles.fig(8)),
 
           Expanded(
             child: Text(
@@ -1050,9 +935,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
       decoration: const BoxDecoration(
         color: AppColors.bgCardPurple,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(12),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         children: [
@@ -1070,9 +953,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
 
-                SizedBox(
-                  height: AppTextStyles.fig(2),
-                ),
+                SizedBox(height: AppTextStyles.fig(2)),
 
                 Text(
                   _money(widget.product.total),
@@ -1092,9 +973,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             color: AppColors.divider,
           ),
 
-          SizedBox(
-            width: AppTextStyles.fig(16),
-          ),
+          SizedBox(width: AppTextStyles.fig(16)),
 
           Expanded(
             child: SizedBox(
@@ -1124,9 +1003,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
 
-                    SizedBox(
-                      width: AppTextStyles.fig(10),
-                    ),
+                    SizedBox(width: AppTextStyles.fig(10)),
 
                     const Icon(
                       Icons.arrow_forward,
@@ -1185,8 +1062,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (!RegExp(r'^\d{6}$').hasMatch(pincode)) {
       setState(() {
-        _topErrorMessage =
-            'Please enter a valid 6 digit pincode.';
+        _topErrorMessage = 'Please enter a valid 6 digit pincode.';
       });
 
       _scrollToTop();
@@ -1201,8 +1077,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (!RegExp(r'^\d{10}$').hasMatch(mobile)) {
       setState(() {
-        _topErrorMessage =
-            'Please enter a valid 10 digit mobile number.';
+        _topErrorMessage = 'Please enter a valid 10 digit mobile number.';
       });
 
       _scrollToTop();
@@ -1215,12 +1090,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final email = _emailController.text.trim();
 
-    if (!RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    ).hasMatch(email)) {
+    if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        .hasMatch(email)) {
       setState(() {
-        _topErrorMessage =
-            'Please enter a valid email address.';
+        _topErrorMessage = 'Please enter a valid email address.';
       });
 
       _scrollToTop();

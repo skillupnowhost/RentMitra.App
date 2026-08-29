@@ -35,6 +35,7 @@ class ComboScreen extends StatelessWidget {
       sectionTitle: 'Choose Your Combo',
 
       footerText: _comboFooterText,
+      footerImage: 'assets/images/AC install.png',
 
       options: [
         // ============================================================

@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
+import '../widgets/help_card.dart';
 
 /// The drawer's "Settings" destination. Honestly-scoped placeholder — a
 /// few static rows, no real functionality — since implementing settings is
@@ -78,6 +80,15 @@ class SettingsScreen extends StatelessWidget {
                       );
                     },
                   ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppTextStyles.fig(16),
+                    AppTextStyles.fig(10),
+                    AppTextStyles.fig(16),
+                    0,
+                  ),
+                  child: HelpCard(onWhatsApp: launchSupportWhatsAppChat),
                 ),
                 SizedBox(height: AppTextStyles.fig(16)),
               ],

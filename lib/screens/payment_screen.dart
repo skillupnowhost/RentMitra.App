@@ -7,13 +7,12 @@ import '../providers/order_provider.dart';
 import '../services/payment_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
+import '../widgets/help_card.dart';
 import 'checkout_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({
-    super.key,
-    required this.product,
-  });
+  const PaymentScreen({super.key, required this.product});
 
   final CheckoutProduct product;
 
@@ -43,9 +42,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: contentWidth,
-            ),
+            constraints: BoxConstraints(maxWidth: contentWidth),
             child: Column(
               children: [
                 _buildHeader(),
@@ -70,35 +67,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             if (_topErrorMessage != null) ...[
                               _buildTopErrorMessage(),
 
-                              SizedBox(
-                                height: AppTextStyles.fig(12),
-                              ),
+                              SizedBox(height: AppTextStyles.fig(12)),
                             ],
 
                             // =================================================
                             // ORDER SUMMARY
                             // =================================================
-
                             _buildOrderSummary(),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(22),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(22)),
 
                             // =================================================
                             // PAYMENT HEADER
                             // =================================================
-
                             _buildPaymentHeader(),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(14),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(14)),
 
                             // =================================================
                             // PAYMENT METHODS
                             // =================================================
-
                             _buildPaymentMethod(
                               icon: Icons.account_balance_wallet_outlined,
                               title: 'UPI',
@@ -110,34 +98,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             _buildPaymentMethod(
                               icon: Icons.credit_card_outlined,
                               title: 'Credit / Debit Card',
-                              subtitle:
-                                  'Visa, Mastercard, RuPay and more',
+                              subtitle: 'Visa, Mastercard, RuPay and more',
                               value: 'Credit / Debit Card',
                             ),
 
                             _buildPaymentMethod(
                               icon: Icons.account_balance_outlined,
                               title: 'Net Banking',
-                              subtitle:
-                                  'Pay directly through your bank',
+                              subtitle: 'Pay directly through your bank',
                               value: 'Net Banking',
                             ),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(20),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(20)),
 
                             // =================================================
                             // PRICE DETAILS
                             // =================================================
-
                             _buildPriceDetails(),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(20),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(20)),
 
                             _buildSecurePaymentInfo(),
+
+                            SizedBox(height: AppTextStyles.fig(20)),
+
+                            HelpCard(onWhatsApp: launchSupportWhatsAppChat),
                           ],
                         ),
                       ),
@@ -145,7 +130,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       // =======================================================
                       // FIXED BOTTOM PAYMENT BAR
                       // =======================================================
-
                       Positioned(
                         left: 0,
                         right: 0,
@@ -177,22 +161,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.red.shade300,
-        ),
+        border: Border.all(color: Colors.red.shade300),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: Colors.red.shade700,
-            size: 22,
-          ),
+          Icon(Icons.error_outline, color: Colors.red.shade700, size: 22),
 
-          SizedBox(
-            width: AppTextStyles.fig(10),
-          ),
+          SizedBox(width: AppTextStyles.fig(10)),
 
           Expanded(
             child: Text(
@@ -212,11 +188,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 _topErrorMessage = null;
               });
             },
-            child: Icon(
-              Icons.close,
-              color: Colors.red.shade700,
-              size: 18,
-            ),
+            child: Icon(Icons.close, color: Colors.red.shade700, size: 18),
           ),
         ],
       ),
@@ -261,9 +233,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
 
           // Keeps the title centered.
-          const SizedBox(
-            width: 28,
-          ),
+          const SizedBox(width: 28),
         ],
       ),
     );
@@ -278,15 +248,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        AppTextStyles.fig(18),
-      ),
+      padding: EdgeInsets.all(AppTextStyles.fig(18)),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -307,9 +273,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          SizedBox(
-            height: AppTextStyles.fig(10),
-          ),
+          SizedBox(height: AppTextStyles.fig(10)),
 
           Text(
             product.name,
@@ -321,9 +285,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
 
           if (product.description != null) ...[
-            SizedBox(
-              height: AppTextStyles.fig(5),
-            ),
+            SizedBox(height: AppTextStyles.fig(5)),
 
             Text(
               product.description!,
@@ -336,18 +298,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ],
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
-          Container(
-            height: 1,
-            color: AppColors.divider,
-          ),
+          Container(height: 1, color: AppColors.divider),
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
           Row(
             children: [
@@ -398,9 +353,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ),
 
-        SizedBox(
-          width: AppTextStyles.fig(12),
-        ),
+        SizedBox(width: AppTextStyles.fig(12)),
 
         Expanded(
           child: Column(
@@ -415,9 +368,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
 
-              SizedBox(
-                height: AppTextStyles.fig(2),
-              ),
+              SizedBox(height: AppTextStyles.fig(2)),
 
               Text(
                 'Select your preferred payment method',
@@ -456,21 +407,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         width: double.infinity,
-        margin: EdgeInsets.only(
-          bottom: AppTextStyles.fig(10),
-        ),
-        padding: EdgeInsets.all(
-          AppTextStyles.fig(14),
-        ),
+        margin: EdgeInsets.only(bottom: AppTextStyles.fig(10)),
+        padding: EdgeInsets.all(AppTextStyles.fig(14)),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.bgCardPurple
-              : AppColors.surface,
+          color: isSelected ? AppColors.bgCardPurple : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? AppColors.purple
-                : AppColors.divider,
+            color: isSelected ? AppColors.purple : AppColors.divider,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -484,16 +427,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 color: AppColors.bgCardPurple,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.purple,
-                size: 25,
-              ),
+              child: Icon(icon, color: AppColors.purple, size: 25),
             ),
 
-            SizedBox(
-              width: AppTextStyles.fig(12),
-            ),
+            SizedBox(width: AppTextStyles.fig(12)),
 
             // TEXT
             Expanded(
@@ -509,9 +446,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ),
 
-                  SizedBox(
-                    height: AppTextStyles.fig(3),
-                  ),
+                  SizedBox(height: AppTextStyles.fig(3)),
 
                   Text(
                     subtitle,
@@ -525,18 +460,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
 
-            SizedBox(
-              width: AppTextStyles.fig(8),
-            ),
+            SizedBox(width: AppTextStyles.fig(8)),
 
             // RADIO
             Icon(
-              isSelected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_off,
-              color: isSelected
-                  ? AppColors.purple
-                  : AppColors.textGrayMed,
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? AppColors.purple : AppColors.textGrayMed,
               size: 23,
             ),
           ],
@@ -554,15 +483,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        AppTextStyles.fig(16),
-      ),
+      padding: EdgeInsets.all(AppTextStyles.fig(16)),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -576,23 +501,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
           // ======================================================
           // COMBO
           // ======================================================
-
           if (product.isCombo) ...[
-            _priceRow(
-              'Monthly Rent',
-              product.monthlyRent,
-            ),
+            _priceRow('Monthly Rent', product.monthlyRent),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
             _priceRow(
               'Combo Discount',
@@ -600,59 +517,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
               valueColor: Colors.green,
             ),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow(
-              'Monthly Rent After Discount',
-              product.afterDiscount,
-            ),
+            _priceRow('Monthly Rent After Discount', product.afterDiscount),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow(
-              'GST (18%)',
-              product.gst,
-            ),
+            _priceRow('GST (18%)', product.gst),
           ]
-
           // ======================================================
           // INDIVIDUAL PRODUCT
           // ======================================================
-
           else ...[
-            _priceRow(
-              'Monthly Rent',
-              product.monthlyRent,
-            ),
+            _priceRow('Monthly Rent', product.monthlyRent),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow(
-              'GST (18%)',
-              product.gst,
-            ),
+            _priceRow('GST (18%)', product.gst),
           ],
 
           Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: AppTextStyles.fig(14),
-            ),
-            child: Container(
-              height: 1,
-              color: AppColors.divider,
-            ),
+            padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(14)),
+            child: Container(height: 1, color: AppColors.divider),
           ),
 
           // ======================================================
           // TOTAL
           // ======================================================
-
           _priceRow(
             'Total',
             product.total,
@@ -683,9 +574,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             title,
             style: AppTextStyles.of(
               figmaSize: bold ? 15 : 13,
-              weight: bold
-                  ? FontWeight.w700
-                  : FontWeight.w400,
+              weight: bold ? FontWeight.w700 : FontWeight.w400,
               color: AppColors.navy,
             ),
           ),
@@ -695,9 +584,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _money(amount),
           style: AppTextStyles.of(
             figmaSize: valueSize,
-            weight: bold
-                ? FontWeight.w700
-                : FontWeight.w600,
+            weight: bold ? FontWeight.w700 : FontWeight.w600,
             color: valueColor ?? AppColors.navy,
           ),
         ),
@@ -723,15 +610,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.lock_outline,
-            color: AppColors.purple,
-            size: 22,
-          ),
+          const Icon(Icons.lock_outline, color: AppColors.purple, size: 22),
 
-          SizedBox(
-            width: AppTextStyles.fig(10),
-          ),
+          SizedBox(width: AppTextStyles.fig(10)),
 
           Expanded(
             child: Text(
@@ -766,9 +647,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       decoration: const BoxDecoration(
         color: AppColors.bgCardPurple,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(12),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         children: [
@@ -790,9 +669,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
 
-                SizedBox(
-                  height: AppTextStyles.fig(2),
-                ),
+                SizedBox(height: AppTextStyles.fig(2)),
 
                 Text(
                   _money(widget.product.total),
@@ -809,21 +686,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
           // ======================================================
           // DIVIDER
           // ======================================================
-
           Container(
             width: 1,
             height: AppTextStyles.fig(48),
             color: AppColors.divider,
           ),
 
-          SizedBox(
-            width: AppTextStyles.fig(16),
-          ),
+          SizedBox(width: AppTextStyles.fig(16)),
 
           // ======================================================
           // PAY BUTTON
           // ======================================================
-
           Expanded(
             child: SizedBox(
               height: AppTextStyles.fig(54),
@@ -861,9 +734,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ),
 
-                          SizedBox(
-                            width: AppTextStyles.fig(10),
-                          ),
+                          SizedBox(width: AppTextStyles.fig(10)),
 
                           const Icon(
                             Icons.arrow_forward,
@@ -899,8 +770,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     if (_selectedPaymentMethod.trim().isEmpty) {
       setState(() {
-        _topErrorMessage =
-            'Please select a payment method before proceeding.';
+        _topErrorMessage = 'Please select a payment method before proceeding.';
       });
 
       return;

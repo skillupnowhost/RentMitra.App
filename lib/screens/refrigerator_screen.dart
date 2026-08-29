@@ -17,10 +17,9 @@ class RefrigeratorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProductListingScreen(
       title: 'Refrigerator',
-      description:
-          'Keep your food fresh for longer with reliable performance and efficient cooling.',
+      description: 'Keep your food fresh for longer with reliable performance and efficient cooling.',
 
-      heroArt: const FridgeProductImage(width: 70),
+      heroArt: const FridgeDoubleDoorHeaderImage(width: 95),
 
       badgeFeatures: const [
         (Icons.eco_outlined, 'Energy\nEfficient'),
@@ -32,6 +31,7 @@ class RefrigeratorScreen extends StatelessWidget {
       sectionTitle: 'Choose Your Refrigerator',
 
       footerText: _refrigeratorFooterText,
+      footerImage: 'assets/images/Fridge install.png',
 
       options: [
         // ============================================================
@@ -48,7 +48,8 @@ class RefrigeratorScreen extends StatelessWidget {
             'Sturdy & durable design',
           ],
 
-          art: const FridgeProductImage(width: 70),
+          art: const FridgeSingleDoorProductImage(width: 82),
+          artColumnWidth: 150,
 
           price: '₹499',
 
@@ -58,17 +59,28 @@ class RefrigeratorScreen extends StatelessWidget {
             extra: const Product(
               badge: 'Single Door',
               title: 'Single Door Refrigerator',
-              description:
-                  'Keep your food fresh for longer with reliable performance and efficient cooling.',
+              description: 'Keep your food fresh for longer with reliable performance and efficient cooling.',
               checklist: [
                 'Efficient cooling',
                 'Spacious storage',
                 'Low power consumption',
                 'Sturdy & durable design',
               ],
-              art: FridgeProductImage(width: 110),
+              art: FridgeSingleDoorProductImage(width: 110),
               price: '₹499',
               checkoutProduct: CheckoutProduct.refrigeratorSingleDoor,
+              specs: [
+                ProductSpec(
+                  icon: Icons.kitchen_outlined,
+                  label: 'Capacity',
+                  value: '190 L',
+                ),
+                ProductSpec(
+                  icon: Icons.star_outline,
+                  label: 'Star Rating',
+                  value: '3 Star',
+                ),
+              ],
               footerText: _refrigeratorFooterText,
             ),
           ),
@@ -88,7 +100,8 @@ class RefrigeratorScreen extends StatelessWidget {
             'Sturdy & durable design',
           ],
 
-          art: const FridgeProductImage(width: 70),
+          art: const FridgeDoubleDoorProductImage(width: 82),
+          artColumnWidth: 150,
 
           price: '₹749',
 
@@ -98,17 +111,28 @@ class RefrigeratorScreen extends StatelessWidget {
             extra: const Product(
               badge: 'Double Door',
               title: 'Double Door Refrigerator',
-              description:
-                  'Keep your food fresh for longer with reliable performance and efficient cooling.',
+              description: 'Keep your food fresh for longer with reliable performance and efficient cooling.',
               checklist: [
                 'Powerful cooling',
                 'Large storage capacity',
                 'Low power consumption',
                 'Sturdy & durable design',
               ],
-              art: FridgeProductImage(width: 110),
+              art: FridgeDoubleDoorProductImage(width: 110),
               price: '₹749',
               checkoutProduct: CheckoutProduct.refrigeratorDoubleDoor,
+              specs: [
+                ProductSpec(
+                  icon: Icons.kitchen_outlined,
+                  label: 'Capacity',
+                  value: '265 L',
+                ),
+                ProductSpec(
+                  icon: Icons.star_outline,
+                  label: 'Star Rating',
+                  value: '4 Star',
+                ),
+              ],
               footerText: _refrigeratorFooterText,
             ),
           ),

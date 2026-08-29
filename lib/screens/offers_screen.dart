@@ -40,9 +40,7 @@ class OffersScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        PromoBanner(
-                          onViewCombos: () => context.push('/combo'),
-                        ),
+                        PromoBanner(onViewCombos: () => context.push('/combo')),
                         SizedBox(height: AppTextStyles.fig(20)),
                         Text(
                           'More offers coming soon',

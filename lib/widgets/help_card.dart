@@ -16,6 +16,13 @@ class HelpCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.helpCardBg,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navy.withValues(alpha: 0.10),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -96,6 +103,12 @@ class HelpCard extends StatelessWidget {
                       weight: FontWeight.w500,
                       color: Colors.white,
                     ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.arrow_forward,
+                    size: 13,
+                    color: Colors.white,
                   ),
                 ],
               ),

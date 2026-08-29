@@ -6,7 +6,9 @@ import '../models/order.dart';
 import '../providers/order_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/whatsapp_launcher.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/help_card.dart';
 
 /// The "My Rentals" bottom-nav tab — one of Home's hub destinations. Lists
 /// orders placed via the Checkout → Payment flow ([OrderProvider]), which
@@ -50,9 +52,7 @@ class MyRentalsScreen extends StatelessWidget {
                 ),
                 Expanded(
                   child: orders.isEmpty
-                      ? _EmptyState(
-                          onBrowse: () => context.push('/catalog'),
-                        )
+                      ? _EmptyState(onBrowse: () => context.push('/catalog'))
                       : ListView.separated(
                           padding: EdgeInsets.symmetric(
                             horizontal: AppTextStyles.fig(16),
@@ -63,6 +63,15 @@ class MyRentalsScreen extends StatelessWidget {
                           itemBuilder: (context, i) =>
                               _OrderTile(order: orders[i]),
                         ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppTextStyles.fig(16),
+                    AppTextStyles.fig(10),
+                    AppTextStyles.fig(16),
+                    AppTextStyles.fig(10),
+                  ),
+                  child: HelpCard(onWhatsApp: launchSupportWhatsAppChat),
                 ),
                 AppBottomNavBar(
                   currentIndex: 1,

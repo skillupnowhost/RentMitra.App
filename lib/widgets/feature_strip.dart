@@ -20,7 +20,10 @@ class FeatureStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(9)),
+      padding: EdgeInsets.symmetric(
+        vertical: AppTextStyles.fig(14),
+        horizontal: AppTextStyles.fig(10),
+      ),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -31,7 +34,14 @@ class FeatureStrip extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var i = 0; i < _items.length; i++) ...[
-              if (i != 0) Container(width: 1, color: AppColors.divider),
+              if (i != 0)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppTextStyles.fig(6),
+                    vertical: AppTextStyles.fig(4),
+                  ),
+                  child: Container(width: 1, color: AppColors.divider),
+                ),
               Expanded(
                 child: _FeatureItem(icon: _items[i].$1, label: _items[i].$2),
               ),
@@ -51,18 +61,20 @@ class _FeatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: AppColors.purple),
-        SizedBox(height: AppTextStyles.fig(4)),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.of(
-            figmaSize: 9,
-            weight: FontWeight.w600,
-            color: AppColors.textGrayMed,
+        Icon(icon, size: 18, color: AppColors.purple),
+        SizedBox(width: AppTextStyles.fig(10)),
+        Flexible(
+          child: Text(
+            label,
+            style: AppTextStyles.of(
+              figmaSize: 10,
+              weight: FontWeight.w700,
+              color: AppColors.navy,
+              height: 1.25,
+            ),
           ),
         ),
       ],
