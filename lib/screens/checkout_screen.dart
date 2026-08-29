@@ -538,6 +538,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               'Combo Discount (10%)',
               -product.discount,
               valueColor: Colors.green,
+              titleColor: Colors.green,
+             
             ),
 
             Padding(
@@ -603,7 +605,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // PRICE ROW
   // ============================================================
 
-  Widget _priceRow(String title, int amount, {Color? valueColor}) {
+  Widget _priceRow(String title, int amount, {Color? valueColor, Color? titleColor}) {
     return Row(
       children: [
         Expanded(
@@ -612,7 +614,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: AppTextStyles.of(
               figmaSize: 14,
               weight: FontWeight.w400,
-              color: AppColors.navy,
+              color: titleColor ?? AppColors.navy,
             ),
           ),
         ),
