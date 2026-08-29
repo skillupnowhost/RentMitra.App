@@ -1,27 +1,68 @@
-/// Result of a payment attempt. [transactionId] is only set on success.
-class PaymentResult {
-  const PaymentResult.success(this.transactionId) : success = true;
-  const PaymentResult.failure()
-      : success = false,
-        transactionId = null;
+import 'dart:convert';
 
-  final bool success;
-  final String? transactionId;
-}
+import 'package:http/http.dart' as http;
 
-/// Stand-in for a real payment gateway (Razorpay) call. [PaymentScreen]'s
-/// "Pay Now" awaits this and reacts to the result exactly as it would to a
-/// real gateway response — swapping this method's body for a real
-/// razorpay_flutter checkout call (backed by a server order-create/verify
-/// step) is the entire scope of wiring up real payments later; no call
-/// site outside this file needs to change.
 class PaymentService {
-  static Future<PaymentResult> simulate({
-    required String method,
-    required int amount,
+  // static const String baseUrl = 'http://localhost:3000';
+ static const String baseUrl = 'http://10.177.34.45:3000';
+
+  static Future<Map<String, dynamic>> createCheckout({
+    required int variantId,
+    required int quantity,
+    required String fullName,
+    required String mobile,
+    required String email,
+    required String houseFlatNumber,
+    required String apartmentName,
+    required String streetArea,
+    String? landmark,
+    required String city,
+    required String pincode,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 900));
-    final transactionId = 'SIM${DateTime.now().millisecondsSinceEpoch}';
-    return PaymentResult.success(transactionId);
+    final url = Uri.parse('$baseUrl/checkout');
+
+    final body = {
+      'variant_id': variantId,
+      'quantity': quantity,
+      'full_name': fullName,
+      'mobile': mobile,
+      'email': email,
+      'house_flat_number': houseFlatNumber,
+      'apartment_name': apartmentName,
+      'street_area': streetArea,
+      'landmark': landmark ?? '',
+      'city': city,
+      'pincode': pincode,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'data': responseData,
+        };
+      }
+
+      return {
+        'success': false,
+        'message': responseData['message'] ??
+            'Checkout creation failed',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Unable to connect to the backend: $e',
+      };
+    }
   }
 }

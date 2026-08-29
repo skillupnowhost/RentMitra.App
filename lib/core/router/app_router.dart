@@ -75,12 +75,8 @@ final List<RouteBase> appRoutes = [
   ),
   GoRoute(
     path: '/payment',
-    builder: (context, state) {
-      final extra = state.extra;
-      return extra is CheckoutProduct
-          ? PaymentScreen(product: extra)
-          : const PaymentScreen(product: CheckoutProduct.starterHomeCombo);
-    },
+    builder: (context, state) =>
+        PaymentScreen(args: state.extra as PaymentScreenArgs),
   ),
   GoRoute(
     path: '/order-success',

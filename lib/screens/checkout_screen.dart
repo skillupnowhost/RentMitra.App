@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../services/api_service.dart';
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -8,11 +9,12 @@ import '../utils/whatsapp_launcher.dart';
 import '../widgets/help_card.dart';
 import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
+import 'payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({
     super.key,
-    this.product = CheckoutProduct.starterHomeCombo,
+    this.product = CheckoutProduct.acOnePointFiveTon,
   });
 
   final CheckoutProduct product;
@@ -22,31 +24,125 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  final _formKey = GlobalKey<FormState>();
+  // ============================================================
+  // SCROLL CONTROLLER
+  // ============================================================
+
   final _scrollController = ScrollController();
+
+  // ============================================================
+  // TEXT CONTROLLERS
+  // ============================================================
+
+  final _fullNameController = TextEditingController();
 
   final _houseController = TextEditingController();
   final _buildingController = TextEditingController();
   final _streetController = TextEditingController();
   final _landmarkController = TextEditingController();
+
   final _cityController = TextEditingController(text: 'Chennai');
+
   final _pincodeController = TextEditingController();
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
 
+  // ============================================================
+  // FOCUS NODES
+  // ============================================================
+
+  final _fullNameFocus = FocusNode();
+
+  final _houseFocus = FocusNode();
+  final _buildingFocus = FocusNode();
+  final _streetFocus = FocusNode();
+  final _landmarkFocus = FocusNode();
+  final _cityFocus = FocusNode();
+  final _pincodeFocus = FocusNode();
+  final _mobileFocus = FocusNode();
+  final _emailFocus = FocusNode();
+
+  // ============================================================
+  // STATE
+  // ============================================================
+
   bool _emailUpdates = true;
 
+  bool _isCreatingCheckout = false;
+
   String? _topErrorMessage;
+
+  // ============================================================
+  // INIT STATE
+  // ============================================================
 
   @override
   void initState() {
     super.initState();
 
-    // Keep the checkout city synchronized with the selected location.
-    _cityController.text = LocationController.instance.city.value;
+    final selectedCity = LocationController.instance.city.value.trim();
+
+    if (selectedCity.isNotEmpty) {
+      _cityController.text = selectedCity;
+    }
 
     LocationController.instance.city.addListener(_onCityChanged);
+
+    _addFocusListener(_fullNameFocus);
+    _addFocusListener(_houseFocus);
+    _addFocusListener(_buildingFocus);
+    _addFocusListener(_streetFocus);
+    _addFocusListener(_landmarkFocus);
+    _addFocusListener(_cityFocus);
+    _addFocusListener(_pincodeFocus);
+    _addFocusListener(_mobileFocus);
+    _addFocusListener(_emailFocus);
   }
+
+  // ============================================================
+  // FOCUS LISTENER
+  // ============================================================
+
+  void _addFocusListener(FocusNode focusNode) {
+    focusNode.addListener(() {
+      if (focusNode.hasFocus) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollFocusedFieldIntoView(focusNode);
+        });
+      }
+    });
+  }
+
+  // ============================================================
+  // SCROLL FOCUSED FIELD INTO VIEW
+  // ============================================================
+
+  void _scrollFocusedFieldIntoView(FocusNode focusNode) {
+    if (!mounted) {
+      return;
+    }
+
+    if (!focusNode.hasFocus) {
+      return;
+    }
+
+    final context = focusNode.context;
+
+    if (context == null) {
+      return;
+    }
+
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOut,
+      alignment: 0.18,
+    );
+  }
+
+  // ============================================================
+  // CITY CHANGE
+  // ============================================================
 
   void _onCityChanged() {
     final selectedCity = LocationController.instance.city.value.trim();
@@ -60,27 +156,50 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  // ============================================================
+  // DISPOSE
+  // ============================================================
+
   @override
   void dispose() {
     LocationController.instance.city.removeListener(_onCityChanged);
 
     _scrollController.dispose();
 
+    _fullNameController.dispose();
+
     _houseController.dispose();
     _buildingController.dispose();
     _streetController.dispose();
     _landmarkController.dispose();
+
     _cityController.dispose();
     _pincodeController.dispose();
     _mobileController.dispose();
     _emailController.dispose();
 
+    _fullNameFocus.dispose();
+
+    _houseFocus.dispose();
+    _buildingFocus.dispose();
+    _streetFocus.dispose();
+    _landmarkFocus.dispose();
+    _cityFocus.dispose();
+    _pincodeFocus.dispose();
+    _mobileFocus.dispose();
+    _emailFocus.dispose();
+
     super.dispose();
   }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+
     final contentWidth = width > 520 ? 520.0 : width;
 
     return Scaffold(
@@ -107,126 +226,129 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           AppTextStyles.fig(16),
                           AppTextStyles.fig(190),
                         ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // TOP ERROR MESSAGE
-                              if (_topErrorMessage != null) ...[
-                                _buildTopErrorMessage(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_topErrorMessage != null) ...[
+                              _buildTopErrorMessage(),
 
-                                SizedBox(height: AppTextStyles.fig(12)),
-                              ],
-
-                              _buildProductCard(),
-
-                              SizedBox(height: AppTextStyles.fig(14)),
-
-                              _buildGstInfo(),
-
-                              SizedBox(height: AppTextStyles.fig(26)),
-
-                              _buildDeliveryHeader(),
-
-                              SizedBox(height: AppTextStyles.fig(16)),
-
-                              // HOUSE / FLAT NUMBER
-                              _buildAddressField(
-                                icon: Icons.home_outlined,
-                                title: 'House / Flat Number',
-                                hint: 'Enter house / flat number',
-                                controller: _houseController,
-                                requiredField: true,
-                              ),
-
-                              // APARTMENT / BUILDING
-                              _buildAddressField(
-                                icon: Icons.apartment_outlined,
-                                title: 'Apartment / Building Name',
-                                hint:
-                                    'Enter apartment / building / society name',
-                                controller: _buildingController,
-                                requiredField: true,
-                              ),
-
-                              // STREET / AREA
-                              _buildAddressField(
-                                icon: Icons.alt_route_outlined,
-                                title: 'Street / Area',
-                                hint: 'Enter street / area / locality',
-                                controller: _streetController,
-                                requiredField: true,
-                              ),
-
-                              // LANDMARK
-                              _buildAddressField(
-                                icon: Icons.location_on_outlined,
-                                title: 'Landmark',
-                                hint: 'Enter nearby landmark',
-                                controller: _landmarkController,
-                                requiredField: false,
-                              ),
-
-                              // CITY + PINCODE
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: _buildAddressField(
-                                      icon: Icons.location_city_outlined,
-                                      title: 'City',
-                                      hint: 'Enter city',
-                                      controller: _cityController,
-                                      requiredField: true,
-                                      compact: true,
-                                    ),
-                                  ),
-
-                                  SizedBox(width: AppTextStyles.fig(10)),
-
-                                  Expanded(
-                                    child: _buildAddressField(
-                                      icon: Icons.pin_drop_outlined,
-                                      title: 'Pincode',
-                                      hint: 'Enter pincode',
-                                      controller: _pincodeController,
-                                      requiredField: true,
-                                      compact: true,
-                                      keyboardType: TextInputType.number,
-                                      maxLength: 6,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              // MOBILE NUMBER
-                              _buildMobileField(),
-
-                              // EMAIL ADDRESS
-                              _buildAddressField(
-                                icon: Icons.mail_outline,
-                                title: 'Email Address',
-                                hint: 'Enter your email address',
-                                controller: _emailController,
-                                requiredField: true,
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-
-                              // EMAIL NOTICE
-                              _buildEmailNotice(),
-
-                              SizedBox(height: AppTextStyles.fig(20)),
-
-                              HelpCard(onWhatsApp: launchSupportWhatsAppChat),
-
-                              SizedBox(height: AppTextStyles.fig(30)),
+                              SizedBox(height: AppTextStyles.fig(12)),
                             ],
-                          ),
+
+                            _buildProductCard(),
+
+                            SizedBox(height: AppTextStyles.fig(14)),
+
+                            _buildGstInfo(),
+
+                            SizedBox(height: AppTextStyles.fig(26)),
+
+                            _buildFullNameField(),
+
+                            SizedBox(height: AppTextStyles.fig(16)),
+
+                            _buildDeliveryHeader(),
+
+                            SizedBox(height: AppTextStyles.fig(16)),
+
+                            _buildAddressField(
+                              icon: Icons.home_outlined,
+                              title: 'House / Flat Number',
+                              hint: 'Enter house / flat number',
+                              controller: _houseController,
+                              focusNode: _houseFocus,
+                              requiredField: true,
+                              nextFocus: _buildingFocus,
+                            ),
+
+                            _buildAddressField(
+                              icon: Icons.apartment_outlined,
+                              title: 'Apartment / Building Name',
+                              hint: 'Enter apartment / building / society name',
+                              controller: _buildingController,
+                              focusNode: _buildingFocus,
+                              requiredField: true,
+                              nextFocus: _streetFocus,
+                            ),
+
+                            _buildAddressField(
+                              icon: Icons.alt_route_outlined,
+                              title: 'Street / Area',
+                              hint: 'Enter street / area / locality',
+                              controller: _streetController,
+                              focusNode: _streetFocus,
+                              requiredField: true,
+                              nextFocus: _landmarkFocus,
+                            ),
+
+                            _buildAddressField(
+                              icon: Icons.location_on_outlined,
+                              title: 'Landmark',
+                              hint: 'Enter nearby landmark',
+                              controller: _landmarkController,
+                              focusNode: _landmarkFocus,
+                              requiredField: false,
+                              nextFocus: _cityFocus,
+                            ),
+
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _buildAddressField(
+                                    icon: Icons.location_city_outlined,
+                                    title: 'City',
+                                    hint: 'Enter city',
+                                    controller: _cityController,
+                                    focusNode: _cityFocus,
+                                    requiredField: true,
+                                    compact: true,
+                                    nextFocus: _pincodeFocus,
+                                  ),
+                                ),
+
+                                SizedBox(width: AppTextStyles.fig(10)),
+
+                                Expanded(
+                                  child: _buildAddressField(
+                                    icon: Icons.pin_drop_outlined,
+                                    title: 'Pincode',
+                                    hint: 'Enter pincode',
+                                    controller: _pincodeController,
+                                    focusNode: _pincodeFocus,
+                                    requiredField: true,
+                                    compact: true,
+                                    keyboardType: TextInputType.number,
+                                    maxLength: 6,
+                                    nextFocus: _mobileFocus,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            _buildMobileField(),
+
+                            _buildAddressField(
+                              icon: Icons.mail_outline,
+                              title: 'Email Address',
+                              hint: 'Enter your email address',
+                              controller: _emailController,
+                              focusNode: _emailFocus,
+                              requiredField: true,
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+
+                            _buildEmailNotice(),
+
+                            SizedBox(height: AppTextStyles.fig(20)),
+
+                            HelpCard(onWhatsApp: launchSupportWhatsAppChat),
+
+                            SizedBox(height: AppTextStyles.fig(30)),
+                          ],
                         ),
                       ),
 
-                      // FIXED PAYMENT BAR
                       Positioned(
                         left: 0,
                         right: 0,
@@ -245,7 +367,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   // ============================================================
-  // TOP ERROR MESSAGE
+  // TOP ERROR
   // ============================================================
 
   Widget _buildTopErrorMessage() {
@@ -423,6 +545,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               'Combo Discount (10%)',
               -product.discount,
               valueColor: Colors.green,
+              titleColor: Colors.green,
             ),
 
             Padding(
@@ -434,13 +557,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             SizedBox(height: AppTextStyles.fig(10)),
 
-            _priceRow('GST (18%)', product.gst),
+            _priceRow('CGST (9%)', product.cgst),
+
+            SizedBox(height: AppTextStyles.fig(10)),
+
+            _priceRow('SGST (9%)', product.sgst),
           ] else ...[
             _priceRow('Monthly Rent', product.monthlyRent),
 
             SizedBox(height: AppTextStyles.fig(10)),
 
-            _priceRow('GST (18%)', product.gst),
+            _priceRow('CGST (9%)', product.cgst),
+
+            SizedBox(height: AppTextStyles.fig(10)),
+
+            _priceRow('SGST (9%)', product.sgst),
           ],
 
           Padding(
@@ -480,7 +611,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // PRICE ROW
   // ============================================================
 
-  Widget _priceRow(String title, int amount, {Color? valueColor}) {
+  Widget _priceRow(String title, int amount, {Color? valueColor, Color? titleColor}) {
     return Row(
       children: [
         Expanded(
@@ -489,7 +620,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: AppTextStyles.of(
               figmaSize: 14,
               weight: FontWeight.w400,
-              color: AppColors.navy,
+              color: titleColor ?? AppColors.navy,
             ),
           ),
         ),
@@ -566,12 +697,105 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           Expanded(
             child: Text(
-              'GST (18%) is charged as per applicable regulations.',
+              'GST 18% is split into CGST 9% and SGST 9% as per applicable regulations.',
               style: AppTextStyles.of(
                 figmaSize: 12,
                 weight: FontWeight.w400,
                 color: AppColors.navy,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // FULL NAME
+  // ============================================================
+
+  Widget _buildFullNameField() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: AppTextStyles.fig(10)),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTextStyles.fig(12),
+        vertical: AppTextStyles.fig(9),
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: AppTextStyles.fig(40),
+            child: Padding(
+              padding: EdgeInsets.only(top: AppTextStyles.fig(5)),
+              child: const Icon(
+                Icons.person_outline,
+                color: AppColors.textGrayMed,
+                size: 22,
+              ),
+            ),
+          ),
+
+          SizedBox(width: AppTextStyles.fig(8)),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    text: 'Full Name',
+                    style: AppTextStyles.of(
+                      figmaSize: 12,
+                      weight: FontWeight.w700,
+                      color: AppColors.navy,
+                    ),
+                    children: const [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: AppTextStyles.fig(2)),
+
+                TextFormField(
+                  controller: _fullNameController,
+                  focusNode: _fullNameFocus,
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) {
+                    _moveToNextField(_houseFocus);
+                  },
+                  style: AppTextStyles.of(
+                    figmaSize: 15,
+                    weight: FontWeight.w400,
+                    color: AppColors.navy,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Enter your full name',
+                    hintStyle: AppTextStyles.of(
+                      figmaSize: 15,
+                      weight: FontWeight.w400,
+                      color: AppColors.textGray,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -641,7 +865,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String title,
     required String hint,
     required TextEditingController controller,
+    required FocusNode focusNode,
     required bool requiredField,
+    FocusNode? nextFocus,
     bool compact = false,
     TextInputType? keyboardType,
     int? maxLength,
@@ -663,8 +889,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(
             width: AppTextStyles.fig(40),
             child: Padding(
-              padding: EdgeInsets.only(top: AppTextStyles.fig(4)),
-              child: Icon(icon, color: AppColors.textGrayMed, size: 26),
+              padding: EdgeInsets.only(top: AppTextStyles.fig(5)),
+              child: Icon(icon, color: AppColors.textGrayMed, size: 22),
             ),
           ),
 
@@ -697,35 +923,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                 TextFormField(
                   controller: controller,
+                  focusNode: focusNode,
                   keyboardType: keyboardType,
                   maxLength: maxLength,
                   textInputAction: TextInputAction.next,
-
-                  // IMPORTANT:
-                  // No validator here.
-                  // All validation is handled at the top.
+                  onFieldSubmitted: (_) {
+                    if (nextFocus != null) {
+                      _moveToNextField(nextFocus);
+                    } else {
+                      FocusScope.of(context).unfocus();
+                    }
+                  },
                   style: AppTextStyles.of(
-                    figmaSize: 13,
+                    figmaSize: 15,
                     weight: FontWeight.w400,
                     color: AppColors.navy,
                   ),
-
                   decoration: InputDecoration(
                     hintText: hint,
-
                     hintStyle: AppTextStyles.of(
-                      figmaSize: 14,
+                      figmaSize: 15,
                       weight: FontWeight.w400,
                       color: AppColors.textGray,
                     ),
-
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
-
                     counterText: '',
                   ),
                 ),
@@ -738,7 +963,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   // ============================================================
-  // MOBILE FIELD
+  // MOVE TO NEXT FIELD
+  // ============================================================
+
+  void _moveToNextField(FocusNode nextFocus) {
+    FocusScope.of(context).requestFocus(nextFocus);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollFocusedFieldIntoView(nextFocus);
+    });
+  }
+
+  // ============================================================
+  // MOBILE
   // ============================================================
 
   Widget _buildMobileField() {
@@ -759,11 +996,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(
             width: AppTextStyles.fig(40),
             child: Padding(
-              padding: EdgeInsets.only(top: AppTextStyles.fig(4)),
+              padding: EdgeInsets.only(top: AppTextStyles.fig(5)),
               child: const Icon(
                 Icons.phone_android_outlined,
                 color: AppColors.textGrayMed,
-                size: 26,
+                size: 22,
               ),
             ),
           ),
@@ -794,11 +1031,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 SizedBox(height: AppTextStyles.fig(4)),
 
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // ==================================================
+                    // SMALL INDIAN FLAG
+                    // ==================================================
+
                     Container(
-                      width: 25,
-                      height: 16,
+                      width: 20,
+                      height: 13,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
@@ -817,7 +1058,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Text(
                       '+91',
                       style: AppTextStyles.of(
-                        figmaSize: 12,
+                        figmaSize: 13,
                         weight: FontWeight.w600,
                         color: AppColors.navy,
                       ),
@@ -834,31 +1075,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _mobileController,
+                        focusNode: _mobileFocus,
                         keyboardType: TextInputType.phone,
                         maxLength: 10,
                         textInputAction: TextInputAction.next,
-
-                        // No validator here.
-                        // Validation is handled at the top.
+                        onFieldSubmitted: (_) {
+                          _moveToNextField(_emailFocus);
+                        },
                         style: AppTextStyles.of(
-                          figmaSize: 13,
+                          figmaSize: 15,
                           weight: FontWeight.w400,
                           color: AppColors.navy,
                         ),
-
                         decoration: InputDecoration(
                           hintText: 'Enter 10 digit mobile number',
-
                           hintStyle: AppTextStyles.of(
-                            figmaSize: 14,
+                            figmaSize: 15,
                             weight: FontWeight.w400,
                             color: AppColors.textGray,
                           ),
-
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
-
                           isDense: true,
                           counterText: '',
                           contentPadding: EdgeInsets.zero,
@@ -886,7 +1124,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         bottom: AppTextStyles.fig(8),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
             onTap: () {
@@ -912,6 +1150,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 figmaSize: 11,
                 weight: FontWeight.w400,
                 color: AppColors.textGray,
+                height: 1.35,
               ),
             ),
           ),
@@ -979,39 +1218,51 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: SizedBox(
               height: AppTextStyles.fig(54),
               child: ElevatedButton(
-                onPressed: _proceedToPayment,
+                onPressed: _isCreatingCheckout ? null : _proceedToPayment,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.purple,
+                  disabledBackgroundColor: AppColors.purple.withValues(
+                    alpha: 0.6,
+                  ),
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        'Proceed to Payment',
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.of(
-                          figmaSize: 15,
-                          weight: FontWeight.w700,
+                child: _isCreatingCheckout
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
                           color: Colors.white,
                         ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Proceed to Payment',
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.of(
+                                figmaSize: 15,
+                                weight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(width: AppTextStyles.fig(10)),
+
+                          const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 27,
+                          ),
+                        ],
                       ),
-                    ),
-
-                    SizedBox(width: AppTextStyles.fig(10)),
-
-                    const Icon(
-                      Icons.arrow_forward,
-                      color: Colors.white,
-                      size: 27,
-                    ),
-                  ],
-                ),
               ),
             ),
           ),
@@ -1021,44 +1272,77 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   // ============================================================
-  // VALIDATION
+  // PROCEED TO PAYMENT
   // ============================================================
 
-  void _proceedToPayment() {
+  Future<void> _proceedToPayment() async {
     FocusScope.of(context).unfocus();
 
     setState(() {
       _topErrorMessage = null;
     });
 
-    // ------------------------------------------------------------
-    // FIRST: CHECK ALL REQUIRED FIELDS
-    // ------------------------------------------------------------
+    // ============================================================
+    // GET VALUES
+    // ============================================================
 
-    final requiredFieldsEmpty =
-        _houseController.text.trim().isEmpty ||
-        _buildingController.text.trim().isEmpty ||
-        _streetController.text.trim().isEmpty ||
-        _cityController.text.trim().isEmpty ||
-        _pincodeController.text.trim().isEmpty ||
-        _mobileController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty;
+    final fullName = _fullNameController.text.trim();
 
-    if (requiredFieldsEmpty) {
+    final house = _houseController.text.trim();
+
+    final building = _buildingController.text.trim();
+
+    final street = _streetController.text.trim();
+
+    final landmark = _landmarkController.text.trim();
+
+    final city = _cityController.text.trim();
+
+    final pincode = _pincodeController.text.trim();
+
+    final mobile = _mobileController.text.trim();
+
+    final email = _emailController.text.trim();
+
+    // ============================================================
+    // REQUIRED FIELDS
+    // ============================================================
+
+    if (fullName.isEmpty ||
+        house.isEmpty ||
+        building.isEmpty ||
+        street.isEmpty ||
+        city.isEmpty ||
+        pincode.isEmpty ||
+        mobile.isEmpty ||
+        email.isEmpty) {
       setState(() {
         _topErrorMessage =
             'Please fill all the required fields before proceeding to payment.';
       });
 
       _scrollToTop();
+
       return;
     }
 
-    // ------------------------------------------------------------
-    // SECOND: CHECK PINCODE
-    // ------------------------------------------------------------
+    // ============================================================
+    // FULL NAME
+    // ============================================================
 
-    final pincode = _pincodeController.text.trim();
+    if (fullName.length < 2) {
+      setState(() {
+        _topErrorMessage = 'Please enter a valid full name.';
+      });
+
+      _scrollToTop();
+
+      return;
+    }
+
+    // ============================================================
+    // PINCODE
+    // ============================================================
 
     if (!RegExp(r'^\d{6}$').hasMatch(pincode)) {
       setState(() {
@@ -1066,14 +1350,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
 
       _scrollToTop();
+
       return;
     }
 
-    // ------------------------------------------------------------
-    // THIRD: CHECK MOBILE NUMBER
-    // ------------------------------------------------------------
-
-    final mobile = _mobileController.text.trim();
+    // ============================================================
+    // MOBILE
+    // ============================================================
 
     if (!RegExp(r'^\d{10}$').hasMatch(mobile)) {
       setState(() {
@@ -1081,14 +1364,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
 
       _scrollToTop();
+
       return;
     }
 
-    // ------------------------------------------------------------
-    // FOURTH: CHECK EMAIL
-    // ------------------------------------------------------------
-
-    final email = _emailController.text.trim();
+    // ============================================================
+    // EMAIL
+    // ============================================================
 
     if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
         .hasMatch(email)) {
@@ -1097,15 +1379,107 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
 
       _scrollToTop();
+
       return;
     }
 
-    // ------------------------------------------------------------
-    // EVERYTHING IS VALID
-    // ------------------------------------------------------------
+    // ============================================================
+    // VARIANT VALIDATION
+    // ============================================================
 
-    context.push('/payment', extra: widget.product);
+    final variantId = widget.product.variantId;
+
+    if (variantId <= 0) {
+      setState(() {
+        _topErrorMessage =
+            'This product is not yet connected to a backend product variant.';
+      });
+
+      _scrollToTop();
+
+      return;
+    }
+
+    // ============================================================
+    // CREATE CHECKOUT IN BACKEND
+    // ============================================================
+
+    setState(() {
+      _isCreatingCheckout = true;
+    });
+
+    try {
+      final checkoutResponse = await ApiService.createCheckout(
+        variantId: variantId,
+        quantity: 1,
+        fullName: fullName,
+        mobile: mobile,
+        email: email,
+        houseFlatNumber: house,
+        apartmentName: building,
+        streetArea: street,
+        landmark: landmark.isEmpty ? null : landmark,
+        city: city,
+        pincode: pincode,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      final checkout = checkoutResponse['checkout'];
+
+      if (checkout is! Map) {
+        throw Exception('Backend did not return valid checkout data.');
+      }
+
+      final checkoutData = Map<String, dynamic>.from(checkout);
+
+      if (!mounted) {
+        return;
+      }
+
+      context.push(
+        '/payment',
+        extra: PaymentScreenArgs(
+          product: widget.product,
+
+          fullName: fullName,
+          mobile: mobile,
+          email: email,
+
+          houseFlatNumber: house,
+          apartmentName: building,
+          streetArea: street,
+          landmark: landmark,
+          city: city,
+          pincode: pincode,
+
+          checkoutData: checkoutData,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _topErrorMessage = error.toString().replaceFirst('Exception: ', '');
+      });
+
+      _scrollToTop();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingCheckout = false;
+        });
+      }
+    }
   }
+
+  // ============================================================
+  // SCROLL TO TOP
+  // ============================================================
 
   void _scrollToTop() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1122,11 +1496,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   // ============================================================
-  // MONEY FORMAT
+  // MONEY
   // ============================================================
 
   String _money(int value) {
     final sign = value < 0 ? '-' : '';
+
     final number = value.abs().toString();
 
     final formatted = number.replaceAllMapped(
@@ -1139,7 +1514,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 }
 
 // ================================================================
-// CHECKOUT PRODUCT DATA
+// CHECKOUT PRODUCT
 // ================================================================
 
 enum CheckoutProduct {
@@ -1160,6 +1535,10 @@ enum CheckoutProduct {
   essentialCombo,
   premiumCombo,
 }
+
+// ================================================================
+// PRODUCT DATA
+// ================================================================
 
 extension CheckoutProductData on CheckoutProduct {
   String get name {
@@ -1242,6 +1621,10 @@ extension CheckoutProductData on CheckoutProduct {
     }
   }
 
+  // ============================================================
+  // IS COMBO
+  // ============================================================
+
   bool get isCombo {
     switch (this) {
       case CheckoutProduct.starterHomeCombo:
@@ -1256,6 +1639,10 @@ extension CheckoutProductData on CheckoutProduct {
         return false;
     }
   }
+
+  // ============================================================
+  // MONTHLY RENT
+  // ============================================================
 
   int get monthlyRent {
     switch (this) {
@@ -1297,6 +1684,10 @@ extension CheckoutProductData on CheckoutProduct {
     }
   }
 
+  // ============================================================
+  // DISCOUNT
+  // ============================================================
+
   int get discount {
     switch (this) {
       case CheckoutProduct.starterHomeCombo:
@@ -1322,9 +1713,17 @@ extension CheckoutProductData on CheckoutProduct {
     }
   }
 
+  // ============================================================
+  // AFTER DISCOUNT
+  // ============================================================
+
   int get afterDiscount {
     return monthlyRent - discount;
   }
+
+  // ============================================================
+  // TOTAL GST
+  // ============================================================
 
   int get gst {
     switch (this) {
@@ -1366,7 +1765,99 @@ extension CheckoutProductData on CheckoutProduct {
     }
   }
 
+  // ============================================================
+  // CGST
+  // ============================================================
+
+  int get cgst {
+    return gst ~/ 2;
+  }
+
+  // ============================================================
+  // SGST
+  // ============================================================
+
+  int get sgst {
+    return gst - cgst;
+  }
+
+  // ============================================================
+  // TOTAL
+  // ============================================================
+
   int get total {
     return afterDiscount + gst;
+  }
+
+  // ============================================================
+  // DATABASE VARIANT ID
+  //
+  // IMPORTANT:
+  // These IDs MUST match the PostgreSQL variants table.
+  //
+  // 1 = 1.5 Ton AC
+  // 2 = 1 Ton AC
+  // 3 = Single Door Refrigerator
+  // 4 = Double Door Refrigerator
+  // 5 = Top Load Washing Machine
+  // 6 = Front Load Washing Machine
+  // 7 = Essential Combo
+  // 8 = Premium Combo
+  // ============================================================
+
+  int get variantId {
+    switch (this) {
+      // ========================================================
+      // AC
+      // ========================================================
+
+      case CheckoutProduct.acOnePointFiveTon:
+        return 1;
+
+      case CheckoutProduct.acOneTon:
+        return 2;
+
+      // ========================================================
+      // REFRIGERATOR
+      // ========================================================
+
+      case CheckoutProduct.refrigeratorSingleDoor:
+        return 3;
+
+      case CheckoutProduct.refrigeratorDoubleDoor:
+        return 4;
+
+      // ========================================================
+      // WASHING MACHINE
+      // ========================================================
+
+      case CheckoutProduct.washingMachineTopLoad:
+        return 5;
+
+      case CheckoutProduct.washingMachineFrontLoad:
+        return 6;
+
+      // ========================================================
+      // COMBO
+      // ========================================================
+
+      case CheckoutProduct.essentialCombo:
+        return 7;
+
+      case CheckoutProduct.premiumCombo:
+        return 8;
+
+      // ========================================================
+      // OLD COMBO ENUM VALUES
+      //
+      // These are not connected to the current ComboScreen.
+      // ========================================================
+
+      case CheckoutProduct.starterHomeCombo:
+      case CheckoutProduct.familyEssential:
+      case CheckoutProduct.premiumFamily:
+      case CheckoutProduct.comfortPlus:
+        return 0;
+    }
   }
 }
