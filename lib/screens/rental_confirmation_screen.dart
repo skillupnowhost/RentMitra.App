@@ -3,8 +3,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../models/order.dart';
+import '../providers/order_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/appliance_art.dart';
@@ -1166,16 +1168,15 @@ class _RentalConfirmationScreenState
           AppTextStyles.fig(56),
       child: OutlinedButton(
         onPressed: () {
-          context.go(
-            '/order-success',
-            extra: Order(
-              id: '${widget.orderId}',
-              productName: widget.product.name,
-              amount: widget.product.total,
-              paymentMethod: 'Razorpay',
-              placedAt: DateTime.now(),
-            ),
+          final order = Order(
+            id: '${widget.orderId}',
+            productName: widget.product.name,
+            amount: widget.product.total,
+            paymentMethod: 'Razorpay',
+            placedAt: DateTime.now(),
           );
+          context.read<OrderProvider>().placeOrder(order);
+          context.go('/order-success', extra: order);
         },
         style:
             OutlinedButton.styleFrom(
