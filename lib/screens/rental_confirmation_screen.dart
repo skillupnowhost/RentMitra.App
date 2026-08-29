@@ -2,7 +2,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../models/order.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/appliance_art.dart';
@@ -166,10 +168,10 @@ class _RentalConfirmationScreenState
                   ),
 
                   // ==================================================
-                  // GO TO HOME
+                  // CONTINUE
                   // ==================================================
 
-                  _buildGoHomeButton(context),
+                  _buildContinueButton(context),
 
                   SizedBox(
                     height: AppTextStyles.fig(6),
@@ -1152,10 +1154,10 @@ class _RentalConfirmationScreenState
   }
 
   // ============================================================
-  // GO TO HOME
+  // CONTINUE TO ORDER SUCCESS
   // ============================================================
 
-  Widget _buildGoHomeButton(
+  Widget _buildContinueButton(
     BuildContext context,
   ) {
     return SizedBox(
@@ -1164,9 +1166,15 @@ class _RentalConfirmationScreenState
           AppTextStyles.fig(56),
       child: OutlinedButton(
         onPressed: () {
-          Navigator.of(context)
-              .popUntil(
-            (route) => route.isFirst,
+          context.go(
+            '/order-success',
+            extra: Order(
+              id: '${widget.orderId}',
+              productName: widget.product.name,
+              amount: widget.product.total,
+              paymentMethod: 'Razorpay',
+              placedAt: DateTime.now(),
+            ),
           );
         },
         style:
@@ -1192,7 +1200,7 @@ class _RentalConfirmationScreenState
               MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.home_outlined,
+              Icons.check_circle_outline,
               color:
                   AppColors.purple,
               size: 27,
@@ -1204,7 +1212,7 @@ class _RentalConfirmationScreenState
             ),
 
             Text(
-              'Go to Home',
+              'Continue',
               style:
                   AppTextStyles.of(
                 figmaSize: 16,
