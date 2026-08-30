@@ -4,6 +4,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/rent_pricing.dart';
 import '../utils/whatsapp_launcher.dart';
 import '../widgets/help_card.dart';
 import 'checkout_screen.dart';
@@ -74,6 +75,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // Prevent Pay Now from being clicked repeatedly.
   bool get _isPaymentProcessing =>
       _isCreatingPaymentOrder || _isRecordingPayment;
+
+  // ============================================================
+  // RENT BREAKDOWN
+  //
+  // Sourced from the backend's checkout response rather than
+  // [PricingProvider] — this is the rent actually locked into the order
+  // that was just created, so it can't drift from a catalog price change
+  // between checkout and payment.
+  // ============================================================
+
+  RentBreakdown get _breakdown {
+    final rent = num.tryParse(
+      widget.args.checkoutData['monthly_rent']?.toString() ?? '',
+    );
+
+    return RentBreakdown.fromRent(
+      rent ?? 0,
+      isCombo: widget.args.product.isCombo,
+    );
+  }
 
   // ============================================================
   // INIT STATE
@@ -382,7 +403,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
 
               Text(
-                _money(product.total),
+                _money(_breakdown.total),
                 style: AppTextStyles.of(
                   figmaSize: 20,
                   weight: FontWeight.w700,
@@ -543,6 +564,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Widget _buildPriceDetails() {
     final product = widget.args.product;
+    final breakdown = _breakdown;
 
     return Container(
       width: double.infinity,
@@ -567,30 +589,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
           SizedBox(height: AppTextStyles.fig(14)),
 
           if (product.isCombo) ...[
-            _priceRow('Monthly Rent', product.monthlyRent),
+            _priceRow('Monthly Rent', breakdown.beforeDiscount),
 
             SizedBox(height: AppTextStyles.fig(9)),
 
             _priceRow(
               'Combo Discount',
-              -product.discount,
+              -breakdown.discount,
               valueColor: Colors.green,
               titleColor: Colors.green,
             ),
 
             SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow('Monthly Rent After Discount', product.afterDiscount),
+            _priceRow('Monthly Rent After Discount', breakdown.afterDiscount),
 
             SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow('GST (18%)', product.gst),
+            _priceRow('GST (18%)', breakdown.gst),
           ] else ...[
-            _priceRow('Monthly Rent', product.monthlyRent),
+            _priceRow('Monthly Rent', breakdown.afterDiscount),
 
             SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow('GST (18%)', product.gst),
+            _priceRow('GST (18%)', breakdown.gst),
           ],
 
           Padding(
@@ -600,7 +622,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           _priceRow(
             'Total',
-            product.total,
+            breakdown.total,
             bold: true,
             valueSize: 20,
             valueColor: AppColors.purple,
@@ -836,7 +858,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   SizedBox(height: AppTextStyles.fig(2)),
 
                   Text(
-                    _money(widget.args.product.total),
+                    _money(_breakdown.total),
                     style: AppTextStyles.of(
                       figmaSize: 22,
                       weight: FontWeight.w700,
@@ -1259,6 +1281,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       MaterialPageRoute(
         builder: (_) => RentalConfirmationScreen(
           product: widget.args.product,
+          monthlyRent: _breakdown.afterDiscount,
           fullName: widget.args.fullName,
           mobile: widget.args.mobile,
           email: widget.args.email,

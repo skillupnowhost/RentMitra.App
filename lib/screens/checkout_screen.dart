@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/pricing_provider.dart';
 import '../services/api_service.dart';
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/rent_pricing.dart';
 import '../utils/whatsapp_launcher.dart';
 import '../widgets/help_card.dart';
 import '../widgets/location_picker_sheet.dart';
@@ -202,6 +205,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final contentWidth = width > 520 ? 520.0 : width;
 
+    final pricing = context.watch<PricingProvider>();
+    final rent = pricing.rentFor(widget.product.variantId);
+    final breakdown = rent == null
+        ? null
+        : RentBreakdown.fromRent(rent, isCombo: widget.product.isCombo);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -235,7 +244,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               SizedBox(height: AppTextStyles.fig(12)),
                             ],
 
-                            _buildProductCard(),
+                            _buildProductCard(breakdown),
 
                             SizedBox(height: AppTextStyles.fig(14)),
 
@@ -351,7 +360,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        child: _buildBottomPaymentBar(),
+                        child: _buildBottomPaymentBar(breakdown),
                       ),
                     ],
                   ),
@@ -473,7 +482,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // PRODUCT CARD
   // ============================================================
 
-  Widget _buildProductCard() {
+  Widget _buildProductCard(RentBreakdown? breakdown) {
     final product = widget.product;
 
     return Container(
@@ -534,42 +543,52 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           SizedBox(height: AppTextStyles.fig(14)),
 
-          if (product.isCombo) ...[
-            _priceRow('Monthly Rent (Before Discount)', product.monthlyRent),
-
-            SizedBox(height: AppTextStyles.fig(10)),
-
-            _priceRow(
-              'Combo Discount (10%)',
-              -product.discount,
-              valueColor: Colors.green,
-              titleColor: Colors.green,
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(12)),
-              child: _dashedDivider(),
-            ),
-
-            _priceRow('Monthly Rent (After Discount)', product.afterDiscount),
-
-            SizedBox(height: AppTextStyles.fig(10)),
-
-            _priceRow('CGST (9%)', product.cgst),
-
-            SizedBox(height: AppTextStyles.fig(10)),
-
-            _priceRow('SGST (9%)', product.sgst),
+          if (breakdown == null) ...[
+            _buildPriceLoadingRow(),
           ] else ...[
-            _priceRow('Monthly Rent', product.monthlyRent),
+            if (product.isCombo) ...[
+              _priceRow(
+                'Monthly Rent (Before Discount)',
+                breakdown.beforeDiscount,
+              ),
 
-            SizedBox(height: AppTextStyles.fig(10)),
+              SizedBox(height: AppTextStyles.fig(10)),
 
-            _priceRow('CGST (9%)', product.cgst),
+              _priceRow(
+                'Combo Discount (10%)',
+                -breakdown.discount,
+                valueColor: Colors.green,
+                titleColor: Colors.green,
+              ),
 
-            SizedBox(height: AppTextStyles.fig(10)),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(12)),
+                child: _dashedDivider(),
+              ),
 
-            _priceRow('SGST (9%)', product.sgst),
+              _priceRow(
+                'Monthly Rent (After Discount)',
+                breakdown.afterDiscount,
+              ),
+
+              SizedBox(height: AppTextStyles.fig(10)),
+
+              _priceRow('CGST (9%)', breakdown.cgst),
+
+              SizedBox(height: AppTextStyles.fig(10)),
+
+              _priceRow('SGST (9%)', breakdown.sgst),
+            ] else ...[
+              _priceRow('Monthly Rent', breakdown.afterDiscount),
+
+              SizedBox(height: AppTextStyles.fig(10)),
+
+              _priceRow('CGST (9%)', breakdown.cgst),
+
+              SizedBox(height: AppTextStyles.fig(10)),
+
+              _priceRow('SGST (9%)', breakdown.sgst),
+            ],
           ],
 
           Padding(
@@ -591,7 +610,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
 
               Text(
-                _money(product.total),
+                breakdown == null ? '₹—' : _money(breakdown.total),
                 style: AppTextStyles.of(
                   figmaSize: 27,
                   weight: FontWeight.w700,
@@ -602,6 +621,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // ============================================================
+  // PRICE LOADING ROW
+  // ============================================================
+
+  Widget _buildPriceLoadingRow() {
+    return Row(
+      children: [
+        const SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+
+        SizedBox(width: AppTextStyles.fig(10)),
+
+        Text(
+          'Fetching current pricing…',
+          style: AppTextStyles.of(
+            figmaSize: 13,
+            weight: FontWeight.w400,
+            color: AppColors.textGrayMed,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1166,7 +1212,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // BOTTOM PAYMENT BAR
   // ============================================================
 
-  Widget _buildBottomPaymentBar() {
+  Widget _buildBottomPaymentBar(RentBreakdown? breakdown) {
     return SafeArea(
       top: false,
       child: Container(
@@ -1200,7 +1246,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   SizedBox(height: AppTextStyles.fig(2)),
 
                   Text(
-                    _money(widget.product.total),
+                    breakdown == null ? '₹—' : _money(breakdown.total),
                     style: AppTextStyles.of(
                       figmaSize: 24,
                       weight: FontWeight.w700,
@@ -1223,7 +1269,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: SizedBox(
                 height: AppTextStyles.fig(54),
                 child: ElevatedButton(
-                  onPressed: _isCreatingCheckout ? null : _proceedToPayment,
+                  onPressed: _isCreatingCheckout || breakdown == null
+                      ? null
+                      : _proceedToPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.purple,
                     disabledBackgroundColor: AppColors.purple.withValues(
@@ -1630,138 +1678,12 @@ extension CheckoutProductData on CheckoutProduct {
   }
 
   // ============================================================
-  // MONTHLY RENT
-  // ============================================================
-
-  int get monthlyRent {
-    switch (this) {
-      case CheckoutProduct.smartLivingCombo:
-        return 2597;
-
-      case CheckoutProduct.familyEssentialsCombo:
-        return 2349;
-
-      case CheckoutProduct.premiumFamilyCombo:
-        return 2647;
-
-      case CheckoutProduct.ultimatePremiumCombo:
-        return 2897;
-
-      case CheckoutProduct.washingMachineTopLoad:
-        return 599;
-
-      case CheckoutProduct.washingMachineFrontLoad:
-        return 899;
-
-      case CheckoutProduct.acOneTon:
-        return 999;
-
-      case CheckoutProduct.acOnePointFiveTon:
-        return 1299;
-
-      case CheckoutProduct.refrigeratorSingleDoor:
-        return 499;
-
-      case CheckoutProduct.refrigeratorDoubleDoor:
-        return 749;
-    }
-  }
-
-  // ============================================================
-  // DISCOUNT
-  // ============================================================
-
-  int get discount {
-    switch (this) {
-      case CheckoutProduct.smartLivingCombo:
-        return 260;
-
-      case CheckoutProduct.familyEssentialsCombo:
-        return 237;
-
-      case CheckoutProduct.premiumFamilyCombo:
-        return 265;
-
-      case CheckoutProduct.ultimatePremiumCombo:
-        return 290;
-
-      default:
-        return 0;
-    }
-  }
-
-  // ============================================================
-  // AFTER DISCOUNT
-  // ============================================================
-
-  int get afterDiscount {
-    return monthlyRent - discount;
-  }
-
-  // ============================================================
-  // TOTAL GST
-  // ============================================================
-
-  int get gst {
-    switch (this) {
-      case CheckoutProduct.smartLivingCombo:
-        return 421;
-
-      case CheckoutProduct.familyEssentialsCombo:
-        return 380;
-
-      case CheckoutProduct.premiumFamilyCombo:
-        return 429;
-
-      case CheckoutProduct.ultimatePremiumCombo:
-        return 469;
-
-      case CheckoutProduct.washingMachineTopLoad:
-        return 108;
-
-      case CheckoutProduct.washingMachineFrontLoad:
-        return 162;
-
-      case CheckoutProduct.acOneTon:
-        return 180;
-
-      case CheckoutProduct.acOnePointFiveTon:
-        return 234;
-
-      case CheckoutProduct.refrigeratorSingleDoor:
-        return 90;
-
-      case CheckoutProduct.refrigeratorDoubleDoor:
-        return 135;
-    }
-  }
-
-  // ============================================================
-  // CGST
-  // ============================================================
-
-  int get cgst {
-    return gst ~/ 2;
-  }
-
-  // ============================================================
-  // SGST
-  // ============================================================
-
-  int get sgst {
-    return gst - cgst;
-  }
-
-  // ============================================================
-  // TOTAL
-  // ============================================================
-
-  int get total {
-    return afterDiscount + gst;
-  }
-
-  // ============================================================
   // DATABASE VARIANT ID
+  //
+  // Pricing (monthly rent, GST, combo discount) is no longer hardcoded
+  // here — it's fetched live from the backend via [PricingProvider],
+  // keyed by this variant ID, and combined with the fixed business rates
+  // in `RentBreakdown` (see lib/utils/rent_pricing.dart).
   //
   // IMPORTANT:
   // These IDs MUST match the PostgreSQL product_variants table

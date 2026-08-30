@@ -246,8 +246,8 @@ class ProductOptionCard extends StatelessWidget {
                           Expanded(
                             child: _PriceBlock(
                               price: price,
-                              priceSize: 16,
-                              monthSize: 10,
+                              priceSize: 18,
+                              monthSize: 11,
                               metaSize: 9,
                               originalPrice: originalPrice,
                               discountBadge: discountBadge,

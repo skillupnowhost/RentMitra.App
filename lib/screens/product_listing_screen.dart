@@ -34,6 +34,9 @@ class ProductListingScreen extends StatelessWidget {
     required this.options,
     required this.footerText,
     required this.footerImage,
+    this.footerImageWidth = 170,
+    this.footerImageHeight = 115,
+    this.footerImageBleedRight = 0,
     this.heroBlobImage,
     this.trailingSection,
   });
@@ -46,6 +49,17 @@ class ProductListingScreen extends StatelessWidget {
   final List<ProductOptionCard> options;
   final String footerText;
   final String footerImage;
+
+  /// Size of [footerImage] in the service-coverage banner. Defaults match
+  /// the AC/Washer/Combo art; Fridge passes smaller values.
+  final double footerImageWidth;
+  final double footerImageHeight;
+
+  /// Extra rightward push (in figma px) for [footerImage], shifting it past
+  /// the banner's normal right inset so it sits flush against — or slightly
+  /// over — the card's right edge instead of matching the AC/Fridge/Combo
+  /// inset. Defaults to 0 (no change); Washer passes a positive value.
+  final double footerImageBleedRight;
   /// Optional Figma "background shape" blob to draw behind [heroArt]
   /// instead of the default pair of plain translucent circles. Opt-in per
   /// screen so existing pages keep their current look unless they pass this.
@@ -138,7 +152,13 @@ class ProductListingScreen extends StatelessWidget {
                           ),
                         ],
                         SizedBox(height: AppTextStyles.fig(8)),
-                        _ServiceBanner(text: footerText, image: footerImage)
+                        _ServiceBanner(
+                              text: footerText,
+                              image: footerImage,
+                              imageWidth: footerImageWidth,
+                              imageHeight: footerImageHeight,
+                              imageBleedRight: footerImageBleedRight,
+                            )
                             .animate()
                             .fadeIn(delay: 380.ms, duration: 380.ms),
                         SizedBox(height: AppTextStyles.fig(20)),
@@ -539,9 +559,18 @@ class _SectionHeading extends StatelessWidget {
 }
 
 class _ServiceBanner extends StatelessWidget {
-  const _ServiceBanner({required this.text, required this.image});
+  const _ServiceBanner({
+    required this.text,
+    required this.image,
+    required this.imageWidth,
+    required this.imageHeight,
+    required this.imageBleedRight,
+  });
   final String text;
   final String image;
+  final double imageWidth;
+  final double imageHeight;
+  final double imageBleedRight;
 
   @override
   Widget build(BuildContext context) {
@@ -592,11 +621,14 @@ class _ServiceBanner extends StatelessWidget {
               ),
             ),
             SizedBox(width: AppTextStyles.fig(8)),
-            Image.asset(
-              image,
-              width: AppTextStyles.fig(170),
-              height: AppTextStyles.fig(115),
-              fit: BoxFit.contain,
+            Transform.translate(
+              offset: Offset(AppTextStyles.fig(imageBleedRight), 0),
+              child: Image.asset(
+                image,
+                width: AppTextStyles.fig(imageWidth),
+                height: AppTextStyles.fig(imageHeight),
+                fit: BoxFit.contain,
+              ),
             ),
           ],
         ),

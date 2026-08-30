@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'core/router/app_router.dart';
 import 'providers/order_provider.dart';
+import 'providers/pricing_provider.dart';
 import 'services/location_controller.dart';
 import 'theme/app_colors.dart';
 
@@ -21,6 +22,7 @@ class RentMitraApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => PricingProvider()..load()),
       ],
       child: MaterialApp.router(
         title: 'RentMitra',

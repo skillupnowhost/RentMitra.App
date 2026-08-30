@@ -4,9 +4,14 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
 class PromoBanner extends StatelessWidget {
-  const PromoBanner({super.key, this.onViewCombos});
+  const PromoBanner({super.key, this.onViewCombos, this.startingPrice});
 
   final VoidCallback? onViewCombos;
+
+  /// Formatted "starting at" combo price (e.g. "₹2,112"), computed by the
+  /// caller from live pricing — null shows a loading placeholder instead of
+  /// a stale hardcoded figure.
+  final String? startingPrice;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +49,9 @@ class PromoBanner extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      'Starting at ₹1,887/month',
+                      startingPrice == null
+                          ? 'Starting at ₹—/month'
+                          : 'Starting at $startingPrice/month',
                       style: AppTextStyles.of(
                         figmaSize: 11,
                         weight: FontWeight.w400,

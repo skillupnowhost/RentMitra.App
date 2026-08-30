@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../models/product.dart';
+import '../providers/pricing_provider.dart';
+import '../utils/rent_pricing.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/product_option_card.dart';
 import 'checkout_screen.dart';
@@ -15,6 +18,22 @@ class RefrigeratorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pricing = context.watch<PricingProvider>();
+
+    final singleDoorRent = pricing.rentFor(
+      CheckoutProduct.refrigeratorSingleDoor.variantId,
+    );
+    final doubleDoorRent = pricing.rentFor(
+      CheckoutProduct.refrigeratorDoubleDoor.variantId,
+    );
+
+    final singleDoorPrice = singleDoorRent == null
+        ? '₹—'
+        : formatRupees(singleDoorRent);
+    final doubleDoorPrice = doubleDoorRent == null
+        ? '₹—'
+        : formatRupees(doubleDoorRent);
+
     return ProductListingScreen(
       title: 'Refrigerator',
       description: 'Keep your food fresh for longer with reliable performance and efficient cooling.',
@@ -32,6 +51,8 @@ class RefrigeratorScreen extends StatelessWidget {
 
       footerText: _refrigeratorFooterText,
       footerImage: 'assets/images/Fridge install.png',
+      footerImageWidth: 110,
+      footerImageHeight: 73,
 
       options: [
         // ============================================================
@@ -51,23 +72,23 @@ class RefrigeratorScreen extends StatelessWidget {
           art: const FridgeSingleDoorProductImage(width: 82),
           artColumnWidth: 150,
 
-          price: '₹499',
+          price: singleDoorPrice,
 
           // SINGLE DOOR → PRODUCT DETAILS
           onContinue: () => context.push(
             '/product-details',
-            extra: const Product(
+            extra: Product(
               badge: 'Single Door',
               title: 'Single Door Refrigerator',
               description: 'Keep your food fresh for longer with reliable performance and efficient cooling.',
-              checklist: [
+              checklist: const [
                 'Efficient cooling',
                 'Spacious storage',
                 'Low power consumption',
                 'Sturdy & durable design',
               ],
-              art: FridgeSingleDoorProductImage(width: 110),
-              price: '₹499',
+              art: const FridgeSingleDoorProductImage(width: 110),
+              price: singleDoorPrice,
               checkoutProduct: CheckoutProduct.refrigeratorSingleDoor,
               specs: [
                 ProductSpec(
@@ -103,23 +124,23 @@ class RefrigeratorScreen extends StatelessWidget {
           art: const FridgeDoubleDoorProductImage(width: 82),
           artColumnWidth: 150,
 
-          price: '₹749',
+          price: doubleDoorPrice,
 
           // DOUBLE DOOR → PRODUCT DETAILS
           onContinue: () => context.push(
             '/product-details',
-            extra: const Product(
+            extra: Product(
               badge: 'Double Door',
               title: 'Double Door Refrigerator',
               description: 'Keep your food fresh for longer with reliable performance and efficient cooling.',
-              checklist: [
+              checklist: const [
                 'Powerful cooling',
                 'Large storage capacity',
                 'Low power consumption',
                 'Sturdy & durable design',
               ],
-              art: FridgeDoubleDoorProductImage(width: 110),
-              price: '₹749',
+              art: const FridgeDoubleDoorProductImage(width: 110),
+              price: doubleDoorPrice,
               checkoutProduct: CheckoutProduct.refrigeratorDoubleDoor,
               specs: [
                 ProductSpec(

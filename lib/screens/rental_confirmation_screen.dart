@@ -9,6 +9,7 @@ import '../models/order.dart';
 import '../providers/order_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/rent_pricing.dart';
 import '../widgets/appliance_art.dart';
 import 'checkout_screen.dart';
 
@@ -16,6 +17,7 @@ class RentalConfirmationScreen extends StatefulWidget {
   const RentalConfirmationScreen({
     super.key,
     required this.product,
+    required this.monthlyRent,
     required this.fullName,
     required this.mobile,
     required this.email,
@@ -30,6 +32,11 @@ class RentalConfirmationScreen extends StatefulWidget {
   });
 
   final CheckoutProduct product;
+
+  /// The rent actually locked into this order — carried from the backend's
+  /// checkout response via [PaymentScreen], not re-derived here, so it
+  /// can't drift from what the customer was actually charged.
+  final num monthlyRent;
 
   final String fullName;
   final String mobile;
@@ -58,6 +65,11 @@ class _RentalConfirmationScreenState
 
   late final Animation<double> _tickScale;
   late final Animation<double> _tickGlow;
+
+  RentBreakdown get _breakdown => RentBreakdown.fromRent(
+    widget.monthlyRent,
+    isCombo: widget.product.isCombo,
+  );
 
   @override
   void initState() {
@@ -542,6 +554,7 @@ class _RentalConfirmationScreenState
 
   Widget _buildOrderSummary() {
     final product = widget.product;
+    final breakdown = _breakdown;
 
     return _card(
       child: Column(
@@ -638,14 +651,14 @@ class _RentalConfirmationScreenState
           if (product.isCombo) ...[
             _priceRow(
               'Monthly Rental',
-              product.monthlyRent,
+              breakdown.beforeDiscount,
             ),
 
             _dashedDivider(),
 
             _priceRow(
               'Combo Discount',
-              -product.discount,
+              -breakdown.discount,
               valueColor:
                   Colors.green.shade700,
                   titleColor: Colors.green.shade700,
@@ -655,26 +668,26 @@ class _RentalConfirmationScreenState
 
             _priceRow(
               'Monthly Rent After Discount',
-              product.afterDiscount,
+              breakdown.afterDiscount,
             ),
 
             _dashedDivider(),
 
             _priceRow(
               'GST (18%)',
-              product.gst,
+              breakdown.gst,
             ),
           ] else ...[
             _priceRow(
               'Monthly Rental',
-              product.monthlyRent,
+              breakdown.afterDiscount,
             ),
 
             _dashedDivider(),
 
             _priceRow(
               'GST (18%)',
-              product.gst,
+              breakdown.gst,
             ),
           ],
 
@@ -702,7 +715,7 @@ class _RentalConfirmationScreenState
               ),
 
               Text(
-                _money(product.total),
+                _money(breakdown.total),
                 style: AppTextStyles.of(
                   figmaSize: 22,
                   weight: FontWeight.w800,
@@ -1171,7 +1184,7 @@ class _RentalConfirmationScreenState
           final order = Order(
             id: '${widget.orderId}',
             productName: widget.product.name,
-            amount: widget.product.total,
+            amount: _breakdown.total,
             paymentMethod: 'Razorpay',
             placedAt: DateTime.now(),
           );

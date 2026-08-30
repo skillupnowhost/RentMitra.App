@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/pricing_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/rent_pricing.dart';
 import '../utils/whatsapp_launcher.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/appliance_showcase_card.dart';
 import '../widgets/category_card.dart';
 import '../widgets/help_card.dart';
+import 'checkout_screen.dart';
+import 'combo_screen.dart' show lowestComboRent;
 
 /// The full product catalog opened from the hamburger menu's "Products"
 /// item — the same category grid and appliance showcase cards shown on the
@@ -91,6 +96,22 @@ class ProductsCatalogScreen extends StatelessWidget {
   }
 
   Widget _categoryGrid(BuildContext context) {
+    final pricing = context.watch<PricingProvider>();
+
+    final acPrice = pricing.lowestRentAmong([
+      CheckoutProduct.acOneTon.variantId,
+      CheckoutProduct.acOnePointFiveTon.variantId,
+    ]);
+    final fridgePrice = pricing.lowestRentAmong([
+      CheckoutProduct.refrigeratorSingleDoor.variantId,
+      CheckoutProduct.refrigeratorDoubleDoor.variantId,
+    ]);
+    final washerPrice = pricing.lowestRentAmong([
+      CheckoutProduct.washingMachineTopLoad.variantId,
+      CheckoutProduct.washingMachineFrontLoad.variantId,
+    ]);
+    final comboPrice = lowestComboRent(pricing);
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -99,7 +120,7 @@ class ProductsCatalogScreen extends StatelessWidget {
             child: CategoryCard(
               iconAsset: 'assets/images/air-conditioner icon.png',
               title: 'Smart Inverter Split AC',
-              price: '₹999',
+              price: acPrice == null ? '₹—' : formatRupees(acPrice),
               iconColor: AppColors.categoryBlue,
               priceColor: AppColors.categoryBlue,
               bgColor: AppColors.bgCardPurple,
@@ -112,7 +133,7 @@ class ProductsCatalogScreen extends StatelessWidget {
             child: CategoryCard(
               iconAsset: 'assets/images/fridge icon.png',
               title: 'Refrigerator',
-              price: '₹499',
+              price: fridgePrice == null ? '₹—' : formatRupees(fridgePrice),
               iconColor: AppColors.categoryGreen,
               priceColor: AppColors.categoryGreen,
               bgColor: AppColors.bgCardNeutral,
@@ -125,7 +146,7 @@ class ProductsCatalogScreen extends StatelessWidget {
             child: CategoryCard(
               iconAsset: 'assets/images/washing-machine icon.png',
               title: 'Washing Machine',
-              price: '₹599',
+              price: washerPrice == null ? '₹—' : formatRupees(washerPrice),
               iconColor: AppColors.categoryOrange,
               priceColor: AppColors.categoryOrange,
               bgColor: AppColors.bgCardPeach,
@@ -138,7 +159,7 @@ class ProductsCatalogScreen extends StatelessWidget {
             child: CategoryCard(
               iconWidget: const ComboIconRow(color: Colors.white),
               title: 'Combo Plans',
-              price: '₹1,887',
+              price: comboPrice == null ? '₹—' : formatRupees(comboPrice),
               iconColor: AppColors.pricePurple,
               priceColor: AppColors.pricePurple,
               bgColor: AppColors.bgCardLavender,

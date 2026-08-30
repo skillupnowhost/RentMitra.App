@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../models/product.dart';
+import '../providers/pricing_provider.dart';
+import '../utils/rent_pricing.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/product_option_card.dart';
 import 'checkout_screen.dart';
@@ -17,6 +20,18 @@ class AcScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pricing = context.watch<PricingProvider>();
+
+    final oneTonRent = pricing.rentFor(CheckoutProduct.acOneTon.variantId);
+    final onePointFiveTonRent = pricing.rentFor(
+      CheckoutProduct.acOnePointFiveTon.variantId,
+    );
+
+    final oneTonPrice = oneTonRent == null ? '₹—' : formatRupees(oneTonRent);
+    final onePointFiveTonPrice = onePointFiveTonRent == null
+        ? '₹—'
+        : formatRupees(onePointFiveTonRent);
+
     return ProductListingScreen(
       title: 'Smart Inverter Split AC',
       description: _acDescription,
@@ -52,7 +67,7 @@ class AcScreen extends StatelessWidget {
           art: const AcProductImage(width: 155),
           artColumnWidth: 195,
 
-          price: '₹999',
+          price: oneTonPrice,
 
           specs: const [
             ProductSpec(
@@ -70,18 +85,18 @@ class AcScreen extends StatelessWidget {
           // 1 TON AC → PRODUCT DETAILS
           onContinue: () => context.push(
             '/product-details',
-            extra: const Product(
+            extra: Product(
               badge: '1 Ton',
               title: 'Smart Inverter Split AC',
               description: _acDescription,
-              checklist: [
+              checklist: const [
                 'Powerful cooling',
                 'Low power consumption',
                 'Smart performance',
                 'Smart Plug included',
               ],
-              art: AcProductImage(width: 155),
-              price: '₹999',
+              art: const AcProductImage(width: 155),
+              price: oneTonPrice,
               checkoutProduct: CheckoutProduct.acOneTon,
               specs: [
                 ProductSpec(
@@ -117,7 +132,7 @@ class AcScreen extends StatelessWidget {
           art: const AcProductImage(width: 155),
           artColumnWidth: 195,
 
-          price: '₹1,299',
+          price: onePointFiveTonPrice,
 
           specs: const [
             ProductSpec(
@@ -135,18 +150,18 @@ class AcScreen extends StatelessWidget {
           // 1.5 TON AC → PRODUCT DETAILS
           onContinue: () => context.push(
             '/product-details',
-            extra: const Product(
+            extra: Product(
               badge: '1.5 Ton',
               title: 'Smart Inverter Split AC',
               description: _acDescription,
-              checklist: [
+              checklist: const [
                 'Powerful cooling',
                 'Low power consumption',
                 'Smart performance',
                 'Smart Plug included',
               ],
-              art: AcProductImage(width: 155),
-              price: '₹1,299',
+              art: const AcProductImage(width: 155),
+              price: onePointFiveTonPrice,
               checkoutProduct: CheckoutProduct.acOnePointFiveTon,
               specs: [
                 ProductSpec(

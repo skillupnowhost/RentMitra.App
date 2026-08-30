@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../models/product.dart';
+import '../providers/pricing_provider.dart';
+import '../utils/rent_pricing.dart';
 import '../widgets/appliance_art.dart';
 import '../widgets/product_option_card.dart';
 import 'checkout_screen.dart';
@@ -15,6 +18,20 @@ class WashingMachineScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pricing = context.watch<PricingProvider>();
+
+    final topLoadRent = pricing.rentFor(
+      CheckoutProduct.washingMachineTopLoad.variantId,
+    );
+    final frontLoadRent = pricing.rentFor(
+      CheckoutProduct.washingMachineFrontLoad.variantId,
+    );
+
+    final topLoadPrice = topLoadRent == null ? '₹—' : formatRupees(topLoadRent);
+    final frontLoadPrice = frontLoadRent == null
+        ? '₹—'
+        : formatRupees(frontLoadRent);
+
     return ProductListingScreen(
       title: 'Washing Machine',
       description: 'Powerful cleaning, better care and energy efficiency.',
@@ -32,6 +49,7 @@ class WashingMachineScreen extends StatelessWidget {
 
       footerText: _washerFooterText,
       footerImage: 'assets/images/Washing machine install.png',
+      footerImageBleedRight: 20,
 
       options: [
         // ==========================================================
@@ -52,22 +70,22 @@ class WashingMachineScreen extends StatelessWidget {
           art: const WasherTopLoadImage(width: 110),
           artColumnWidth: 145,
 
-          price: '₹599',
+          price: topLoadPrice,
 
           onContinue: () => context.push(
             '/product-details',
-            extra: const Product(
+            extra: Product(
               badge: 'Top Load',
               title: 'Top Load Washing Machine',
               description: 'Powerful cleaning, better care and energy efficiency.',
-              checklist: [
+              checklist: const [
                 'Powerful cleaning',
                 'Large capacity',
                 'Low water consumption',
                 'Sturdy & durable design',
               ],
-              art: WasherTopLoadImage(width: 110),
-              price: '₹599',
+              art: const WasherTopLoadImage(width: 110),
+              price: topLoadPrice,
               checkoutProduct: CheckoutProduct.washingMachineTopLoad,
               specs: [
                 ProductSpec(
@@ -103,22 +121,22 @@ class WashingMachineScreen extends StatelessWidget {
           art: const WasherFrontLoadImage(width: 110),
           artColumnWidth: 145,
 
-          price: '₹849',
+          price: frontLoadPrice,
 
           onContinue: () => context.push(
             '/product-details',
-            extra: const Product(
+            extra: Product(
               badge: 'Front Load',
               title: 'Front Load Washing Machine',
               description: 'Powerful cleaning, better care and energy efficiency.',
-              checklist: [
+              checklist: const [
                 'Advanced fabric care',
                 'High energy efficiency',
                 'Low water consumption',
                 'Sturdy & durable design',
               ],
-              art: WasherFrontLoadImage(width: 110),
-              price: '₹849',
+              art: const WasherFrontLoadImage(width: 110),
+              price: frontLoadPrice,
               checkoutProduct: CheckoutProduct.washingMachineFrontLoad,
               specs: [
                 ProductSpec(

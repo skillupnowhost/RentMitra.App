@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/rent_pricing.dart';
 import 'checkout_screen.dart';
 
 class PaymentFailureScreen extends StatelessWidget {
@@ -38,6 +39,16 @@ class PaymentFailureScreen extends StatelessWidget {
   final Map<String, dynamic> checkoutData;
 
   final String? errorMessage;
+
+  // Sourced from the backend's checkout response — the rent actually
+  // locked into the order that failed to pay, not re-derived here.
+  RentBreakdown get _breakdown {
+    final rent = num.tryParse(
+      checkoutData['monthly_rent']?.toString() ?? '',
+    );
+
+    return RentBreakdown.fromRent(rent ?? 0, isCombo: product.isCombo);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -324,7 +335,7 @@ class PaymentFailureScreen extends StatelessWidget {
                                       ),
                                     ),
                                     Text(
-                                      _money(product.total),
+                                      _money(_breakdown.total),
                                       style:
                                           AppTextStyles.of(
                                         figmaSize: 18,

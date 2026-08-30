@@ -3,10 +3,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/pricing_provider.dart';
 import '../services/location_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/rent_pricing.dart';
 import '../utils/whatsapp_launcher.dart';
 import '../widgets/animated_service_icons.dart';
 import '../widgets/appliance_art.dart';
@@ -21,6 +24,8 @@ import '../widgets/location_picker_sheet.dart';
 import '../widgets/location_selector.dart';
 import '../widgets/logo_mark.dart';
 import '../widgets/promo_banner.dart';
+import 'checkout_screen.dart';
+import 'combo_screen.dart' show lowestComboRent;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -121,7 +126,10 @@ class _HomeScreenState extends State<HomeScreen>
                             const SizedBox(height: 20),
                             _sectionCategoryGrid(),
                             SizedBox(height: AppTextStyles.fig(20)),
-                            PromoBanner(onViewCombos: _openCombos),
+                            PromoBanner(
+                              onViewCombos: _openCombos,
+                              startingPrice: _comboStartingPrice(context),
+                            ),
                             SizedBox(height: AppTextStyles.fig(14)),
                             _sectionShowcaseCards(),
                             SizedBox(height: AppTextStyles.fig(20)),
@@ -292,7 +300,29 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  String? _comboStartingPrice(BuildContext context) {
+    final pricing = context.watch<PricingProvider>();
+    final rent = lowestComboRent(pricing);
+    return rent == null ? null : formatRupees(rent);
+  }
+
   Widget _sectionCategoryGrid() {
+    final pricing = context.watch<PricingProvider>();
+
+    final acPrice = pricing.lowestRentAmong([
+      CheckoutProduct.acOneTon.variantId,
+      CheckoutProduct.acOnePointFiveTon.variantId,
+    ]);
+    final fridgePrice = pricing.lowestRentAmong([
+      CheckoutProduct.refrigeratorSingleDoor.variantId,
+      CheckoutProduct.refrigeratorDoubleDoor.variantId,
+    ]);
+    final washerPrice = pricing.lowestRentAmong([
+      CheckoutProduct.washingMachineTopLoad.variantId,
+      CheckoutProduct.washingMachineFrontLoad.variantId,
+    ]);
+    final comboPrice = lowestComboRent(pricing);
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -301,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: CategoryCard(
               iconAsset: 'assets/images/air-conditioner icon.png',
               title: 'Smart Inverter Split AC',
-              price: '₹999',
+              price: acPrice == null ? '₹—' : formatRupees(acPrice),
               iconColor: AppColors.categoryBlue,
               priceColor: AppColors.categoryBlue,
               bgColor: AppColors.bgCardPurple,
@@ -314,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: CategoryCard(
               iconAsset: 'assets/images/fridge icon.png',
               title: 'Refrigerator',
-              price: '₹499',
+              price: fridgePrice == null ? '₹—' : formatRupees(fridgePrice),
               iconColor: AppColors.categoryGreen,
               priceColor: AppColors.categoryGreen,
               bgColor: AppColors.bgCardNeutral,
@@ -327,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: CategoryCard(
               iconAsset: 'assets/images/washing-machine icon.png',
               title: 'Washing Machine',
-              price: '₹599',
+              price: washerPrice == null ? '₹—' : formatRupees(washerPrice),
               iconColor: AppColors.categoryOrange,
               priceColor: AppColors.categoryOrange,
               bgColor: AppColors.bgCardPeach,
@@ -340,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: CategoryCard(
               iconWidget: const ComboIconRow(color: Colors.white),
               title: 'Combo Plans',
-              price: '₹1,887',
+              price: comboPrice == null ? '₹—' : formatRupees(comboPrice),
               iconColor: AppColors.pricePurple,
               priceColor: AppColors.pricePurple,
               bgColor: AppColors.bgCardLavender,

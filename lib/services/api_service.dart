@@ -68,6 +68,42 @@ class ApiService {
   }
 
   // ============================================================
+  // FETCH PRODUCT VARIANTS (LIVE PRICING)
+  // ============================================================
+
+  static Future<List<Map<String, dynamic>>> fetchProductVariants() async {
+    final url = Uri.parse('$baseUrl/product-variants');
+
+    try {
+      final response = await http.get(url).timeout(const Duration(seconds: 15));
+
+      final decoded = jsonDecode(response.body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (decoded is List) {
+          return decoded.cast<Map<String, dynamic>>();
+        }
+
+        throw Exception('Invalid response format received from backend.');
+      }
+
+      final message = decoded is Map ? decoded['message']?.toString() : null;
+
+      throw Exception(
+        message != null && message.isNotEmpty
+            ? message
+            : 'Request failed with status code ${response.statusCode}.',
+      );
+    } catch (error) {
+      if (error is Exception) {
+        rethrow;
+      }
+
+      throw Exception('Unable to connect to the backend server.');
+    }
+  }
+
+  // ============================================================
   // CREATE RAZORPAY ORDER
   // ============================================================
 
