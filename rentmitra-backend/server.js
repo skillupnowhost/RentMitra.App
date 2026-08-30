@@ -3967,9 +3967,11 @@ app.post('/payments/create-order', async (req, res) => {
         res.status(201).json({
             message: 'Razorpay order created successfully',
             order_id: order.order_id,
-            razorpay_order_id: razorpayOrder.id,
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency
+            razorpay: {
+                razorpay_order_id: razorpayOrder.id,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency
+            }
         });
 
     } catch (error) {
@@ -4396,6 +4398,9 @@ app.post('/payments/verify', async (req, res) => {
 
             message:
                 'Payment verified successfully',
+
+            verification_status:
+                'Verified',
 
             payment:
                 paymentResult.rows[0],

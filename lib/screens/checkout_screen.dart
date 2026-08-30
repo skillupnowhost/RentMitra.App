@@ -224,7 +224,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           AppTextStyles.fig(16),
                           AppTextStyles.fig(8),
                           AppTextStyles.fig(16),
-                          AppTextStyles.fig(190),
+                          AppTextStyles.fig(150),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,8 +343,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             SizedBox(height: AppTextStyles.fig(20)),
 
                             HelpCard(onWhatsApp: launchSupportWhatsAppChat),
-
-                            SizedBox(height: AppTextStyles.fig(30)),
                           ],
                         ),
                       ),
@@ -611,7 +609,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // PRICE ROW
   // ============================================================
 
-  Widget _priceRow(String title, int amount, {Color? valueColor, Color? titleColor}) {
+  Widget _priceRow(
+    String title,
+    int amount, {
+    Color? valueColor,
+    Color? titleColor,
+  }) {
     return Row(
       children: [
         Expanded(
@@ -1164,109 +1167,112 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // ============================================================
 
   Widget _buildBottomPaymentBar() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        AppTextStyles.fig(18),
-        AppTextStyles.fig(12),
-        AppTextStyles.fig(18),
-        AppTextStyles.fig(16),
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.bgCardPurple,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: AppTextStyles.fig(125),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Monthly Amount',
-                  style: AppTextStyles.of(
-                    figmaSize: 11,
-                    weight: FontWeight.w500,
-                    color: AppColors.navy,
+    return SafeArea(
+      top: false,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(
+          AppTextStyles.fig(18),
+          AppTextStyles.fig(12),
+          AppTextStyles.fig(18),
+          AppTextStyles.fig(16),
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.bgCardPurple,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: AppTextStyles.fig(125),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total Monthly Amount',
+                    style: AppTextStyles.of(
+                      figmaSize: 11,
+                      weight: FontWeight.w500,
+                      color: AppColors.navy,
+                    ),
                   ),
-                ),
 
-                SizedBox(height: AppTextStyles.fig(2)),
+                  SizedBox(height: AppTextStyles.fig(2)),
 
-                Text(
-                  _money(widget.product.total),
-                  style: AppTextStyles.of(
-                    figmaSize: 24,
-                    weight: FontWeight.w700,
-                    color: AppColors.purple,
+                  Text(
+                    _money(widget.product.total),
+                    style: AppTextStyles.of(
+                      figmaSize: 24,
+                      weight: FontWeight.w700,
+                      color: AppColors.purple,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          Container(
-            width: 1,
-            height: AppTextStyles.fig(48),
-            color: AppColors.divider,
-          ),
-
-          SizedBox(width: AppTextStyles.fig(16)),
-
-          Expanded(
-            child: SizedBox(
-              height: AppTextStyles.fig(54),
-              child: ElevatedButton(
-                onPressed: _isCreatingCheckout ? null : _proceedToPayment,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.purple,
-                  disabledBackgroundColor: AppColors.purple.withValues(
-                    alpha: 0.6,
-                  ),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: _isCreatingCheckout
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'Proceed to Payment',
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.of(
-                                figmaSize: 15,
-                                weight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(width: AppTextStyles.fig(10)),
-
-                          const Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 27,
-                          ),
-                        ],
-                      ),
+                ],
               ),
             ),
-          ),
-        ],
+
+            Container(
+              width: 1,
+              height: AppTextStyles.fig(48),
+              color: AppColors.divider,
+            ),
+
+            SizedBox(width: AppTextStyles.fig(16)),
+
+            Expanded(
+              child: SizedBox(
+                height: AppTextStyles.fig(54),
+                child: ElevatedButton(
+                  onPressed: _isCreatingCheckout ? null : _proceedToPayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.purple,
+                    disabledBackgroundColor: AppColors.purple.withValues(
+                      alpha: 0.6,
+                    ),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _isCreatingCheckout
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Proceed to Payment',
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.of(
+                                  figmaSize: 15,
+                                  weight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(width: AppTextStyles.fig(10)),
+
+                            const Icon(
+                              Icons.arrow_forward,
+                              color: Colors.white,
+                              size: 27,
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

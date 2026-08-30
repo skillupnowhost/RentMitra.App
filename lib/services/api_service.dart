@@ -7,7 +7,7 @@ class ApiService {
   // BASE URL
   // ============================================================
 
-  static const String baseUrl = 'http://10.177.34.45:3000';
+  static const String baseUrl = 'http://192.168.31.206:3000';
 
   // ============================================================
   // CREATE CHECKOUT
