@@ -59,7 +59,7 @@ class CategoryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 92),
+        constraints: const BoxConstraints(minHeight: 110),
         padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
         decoration: BoxDecoration(
           color: _highlighted ? null : bgColor,

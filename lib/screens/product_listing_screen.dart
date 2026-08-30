@@ -35,6 +35,7 @@ class ProductListingScreen extends StatelessWidget {
     required this.footerText,
     required this.footerImage,
     this.heroBlobImage,
+    this.trailingSection,
   });
 
   final String title;
@@ -49,6 +50,12 @@ class ProductListingScreen extends StatelessWidget {
   /// instead of the default pair of plain translucent circles. Opt-in per
   /// screen so existing pages keep their current look unless they pass this.
   final String? heroBlobImage;
+
+  /// Optional extra content rendered after the option cards and before the
+  /// service-coverage banner — e.g. Combo's "Compare Combo Plans" table.
+  /// Null (the default) renders nothing extra, so AC/Fridge/Washer are
+  /// unaffected.
+  final Widget? trailingSection;
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +129,13 @@ class ProductListingScreen extends StatelessWidget {
                               ),
                           if (i != options.length - 1)
                             SizedBox(height: AppTextStyles.fig(16)),
+                        ],
+                        if (trailingSection != null) ...[
+                          SizedBox(height: AppTextStyles.fig(20)),
+                          trailingSection!.animate().fadeIn(
+                            delay: 340.ms,
+                            duration: 380.ms,
+                          ),
                         ],
                         SizedBox(height: AppTextStyles.fig(8)),
                         _ServiceBanner(text: footerText, image: footerImage)
@@ -580,8 +594,8 @@ class _ServiceBanner extends StatelessWidget {
             SizedBox(width: AppTextStyles.fig(8)),
             Image.asset(
               image,
-              width: AppTextStyles.fig(120),
-              height: AppTextStyles.fig(51),
+              width: AppTextStyles.fig(170),
+              height: AppTextStyles.fig(115),
               fit: BoxFit.contain,
             ),
           ],

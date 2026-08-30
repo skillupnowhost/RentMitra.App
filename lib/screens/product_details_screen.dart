@@ -58,34 +58,43 @@ class ProductDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(height: AppTextStyles.fig(10)),
-                        ...product.checklist.map(
-                          (item) => Padding(
-                            padding: EdgeInsets.only(
-                              bottom: AppTextStyles.fig(9),
+                        if (product.applianceBreakdown.isNotEmpty)
+                          ...product.applianceBreakdown.map(
+                            (appliance) => _ApplianceBreakdownCard(
+                              title: appliance.$1,
+                              art: appliance.$2,
+                              specs: appliance.$3,
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(
-                                  Icons.check_circle,
-                                  size: 15,
-                                  color: AppColors.check,
-                                ),
-                                SizedBox(width: AppTextStyles.fig(8)),
-                                Expanded(
-                                  child: Text(
-                                    item,
-                                    style: AppTextStyles.of(
-                                      figmaSize: 13,
-                                      weight: FontWeight.w400,
-                                      color: AppColors.textGrayMed,
+                          )
+                        else
+                          ...product.checklist.map(
+                            (item) => Padding(
+                              padding: EdgeInsets.only(
+                                bottom: AppTextStyles.fig(9),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle,
+                                    size: 15,
+                                    color: AppColors.check,
+                                  ),
+                                  SizedBox(width: AppTextStyles.fig(8)),
+                                  Expanded(
+                                    child: Text(
+                                      item,
+                                      style: AppTextStyles.of(
+                                        figmaSize: 13,
+                                        weight: FontWeight.w400,
+                                        color: AppColors.textGrayMed,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
                         if (product.specs.isNotEmpty) ...[
                           SizedBox(height: AppTextStyles.fig(6)),
                           Container(
@@ -368,14 +377,40 @@ class _RentNowBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Starting at',
-                  style: AppTextStyles.of(
-                    figmaSize: 11,
-                    weight: FontWeight.w300,
-                    color: AppColors.textGraySoft,
+                if (product.originalPrice != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        product.originalPrice!,
+                        style: AppTextStyles.of(
+                          figmaSize: 12,
+                          weight: FontWeight.w500,
+                          color: AppColors.textGraySoft,
+                        ).copyWith(decoration: TextDecoration.lineThrough),
+                      ),
+                      if (product.discountBadge != null) ...[
+                        SizedBox(width: AppTextStyles.fig(6)),
+                        Text(
+                          product.discountBadge!,
+                          style: AppTextStyles.of(
+                            figmaSize: 11,
+                            weight: FontWeight.w700,
+                            color: AppColors.checkGreen,
+                          ),
+                        ),
+                      ],
+                    ],
+                  )
+                else
+                  Text(
+                    'Starting at',
+                    style: AppTextStyles.of(
+                      figmaSize: 11,
+                      weight: FontWeight.w300,
+                      color: AppColors.textGraySoft,
+                    ),
                   ),
-                ),
                 RichText(
                   text: TextSpan(
                     children: [
@@ -417,7 +452,7 @@ class _RentNowBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Rent Now',
+                    product.ctaLabel,
                     style: AppTextStyles.of(
                       figmaSize: 15,
                       weight: FontWeight.w700,
@@ -432,6 +467,92 @@ class _RentNowBar extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One appliance's showcase within a combo's "What's included" section —
+/// its product photo alongside a short spec checklist, e.g. "Air
+/// Conditioner" + 1 Ton/1.5 Ton AC image + Energy Efficient/Fast Cooling/
+/// Smart Temperature Control bullets. See [Product.applianceBreakdown].
+class _ApplianceBreakdownCard extends StatelessWidget {
+  const _ApplianceBreakdownCard({
+    required this.title,
+    required this.art,
+    required this.specs,
+  });
+
+  final String title;
+  final Widget art;
+  final List<String> specs;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: AppTextStyles.fig(12)),
+      padding: EdgeInsets.all(AppTextStyles.fig(14)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Fixed box (not just width) so every appliance — regardless of
+          // its source photo's native aspect ratio, or which combo it's
+          // in — renders at the exact same visual size here.
+          SizedBox(
+            width: AppTextStyles.fig(112),
+            height: AppTextStyles.fig(132),
+            child: Center(child: art),
+          ),
+          SizedBox(width: AppTextStyles.fig(14)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.of(
+                    figmaSize: 14,
+                    weight: FontWeight.w700,
+                    color: AppColors.navy,
+                  ),
+                ),
+                SizedBox(height: AppTextStyles.fig(6)),
+                ...specs.map(
+                  (spec) => Padding(
+                    padding: EdgeInsets.only(bottom: AppTextStyles.fig(4)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.check_circle,
+                          size: 13,
+                          color: AppColors.check,
+                        ),
+                        SizedBox(width: AppTextStyles.fig(6)),
+                        Expanded(
+                          child: Text(
+                            spec,
+                            style: AppTextStyles.of(
+                              figmaSize: 12,
+                              weight: FontWeight.w400,
+                              color: AppColors.textGrayMed,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

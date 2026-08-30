@@ -64,7 +64,15 @@ class _FeatureItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: AppColors.purple),
+        Container(
+          width: AppTextStyles.fig(32),
+          height: AppTextStyles.fig(32),
+          decoration: const BoxDecoration(
+            color: AppColors.purple,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 16, color: Colors.white),
+        ),
         SizedBox(width: AppTextStyles.fig(10)),
         Flexible(
           child: Text(

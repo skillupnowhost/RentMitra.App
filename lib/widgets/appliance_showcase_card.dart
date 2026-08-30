@@ -232,7 +232,7 @@ class _ApplianceShowcaseCardState extends State<ApplianceShowcaseCard>
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: AppTextStyles.fig(14),
-          vertical: AppTextStyles.fig(14),
+          vertical: AppTextStyles.fig(12.6),
         ),
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -277,7 +277,7 @@ class _ApplianceShowcaseCardState extends State<ApplianceShowcaseCard>
             SizedBox(height: AppTextStyles.fig(6)),
             for (final item in widget.checklist)
               SizedBox(
-                height: AppTextStyles.fig(28),
+                height: AppTextStyles.fig(38),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -171,6 +171,41 @@ void main() {
     },
   );
 
+  testWidgets(
+    'Combo: tapping a card opens Product Details with the appliance '
+    'breakdown, discount price and combo CTA',
+    (tester) async {
+      await tester.pumpWidget(pumpableFor('/combo', null));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Choose Your Perfect Home Combo'), findsWidgets);
+      expect(find.text('Smart Living Combo'), findsOneWidget);
+      expect(find.text('Family Essentials Combo'), findsOneWidget);
+      expect(find.text('Premium Family Combo'), findsOneWidget);
+      expect(find.text('Ultimate Premium Combo'), findsOneWidget);
+      expect(find.text('Compare Combo Plans'), findsOneWidget);
+
+      await tester.tap(find.text('Rent This Combo').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Air Conditioner'), findsOneWidget);
+      expect(find.text('Refrigerator'), findsOneWidget);
+      expect(find.text('Washing Machine'), findsOneWidget);
+      expect(find.text('₹2,597'), findsOneWidget);
+      expect(find.text('10% OFF'), findsOneWidget);
+      // The final price renders inside a RichText (price + "/month + GST"
+      // as separate TextSpans), so find.text (Text widgets only) can't see
+      // it — match on the RichText's flattened plain text instead.
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is RichText && w.text.toPlainText().contains('₹2,337'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Rent This Combo'), findsOneWidget);
+    },
+  );
+
   testWidgets('Home: tapping the location chip opens the picker sheet', (
     tester,
   ) async {

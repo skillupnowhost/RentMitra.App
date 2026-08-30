@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -34,6 +35,9 @@ class ProductOptionCard extends StatelessWidget {
     this.artColumnWidth = 120,
     this.badgeColor = AppColors.purple,
     this.onContinue,
+    this.originalPrice,
+    this.discountBadge,
+    this.ctaLabel = 'Continue',
   });
 
   final String badge;
@@ -46,12 +50,24 @@ class ProductOptionCard extends StatelessWidget {
   final Color badgeColor;
   final VoidCallback? onContinue;
 
+  /// Pre-discount price shown struck through next to [price], e.g.
+  /// "₹2,597". Null (the default) hides the strikethrough/discount pill —
+  /// every existing caller (AC/Fridge/Washer) is unaffected.
+  final String? originalPrice;
+
+  /// Discount pill text next to [originalPrice], e.g. "10% OFF".
+  final String? discountBadge;
+
+  /// Continue-button label. Defaults to "Continue"; combos pass "Rent
+  /// This Combo".
+  final String ctaLabel;
+
   @override
   Widget build(BuildContext context) {
     // The "Background shape.png" backdrop behind the product art, per the
     // Figma reference — shown at its native shape (no clipping), large
     // enough to peek out past the art on all sides.
-    final blobSize = artColumnWidth * 1.4;
+    final blobSize = artColumnWidth * 1.15;
 
     // Section 1: badge + product art — shared by both layouts below.
     final artSection = SizedBox(
@@ -78,7 +94,7 @@ class ProductOptionCard extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: AppTextStyles.fig(12)),
+          SizedBox(height: AppTextStyles.fig(10)),
           Center(
             child: Stack(
               alignment: Alignment.center,
@@ -93,24 +109,43 @@ class ProductOptionCard extends StatelessWidget {
                     height: AppTextStyles.fig(blobSize),
                     fit: BoxFit.contain,
                   ),
-                // Soft grounding shadow under the product photo, per the
-                // Figma reference.
-                if (specs.isEmpty)
-                  Positioned(
-                    bottom: AppTextStyles.fig(artColumnWidth * 0.02),
-                    child: ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 3),
-                      child: Container(
-                        width: AppTextStyles.fig(artColumnWidth * 0.5),
-                        height: AppTextStyles.fig(artColumnWidth * 0.11),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(999),
+                // The product photo, with a soft grounding shadow tucked
+                // just beneath it. The shadow is positioned relative to the
+                // art's own box (an inner Stack) rather than the larger
+                // backdrop shape above — the art's rendered size varies
+                // with each photo's aspect ratio, so anchoring to it
+                // directly keeps the shadow close to the product for every
+                // variant instead of drifting based on backdrop size.
+                Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    art
+                        .animate()
+                        .fadeIn(duration: 380.ms, curve: Curves.easeOut)
+                        .scale(
+                          begin: const Offset(0.88, 0.88),
+                          end: const Offset(1, 1),
+                          duration: 380.ms,
+                          curve: Curves.easeOut,
+                        ),
+                    if (specs.isEmpty)
+                      Positioned(
+                        bottom: -AppTextStyles.fig(8),
+                        child: ImageFiltered(
+                          imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 2),
+                          child: Container(
+                            width: AppTextStyles.fig(artColumnWidth * 0.34),
+                            height: AppTextStyles.fig(artColumnWidth * 0.07),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                art,
+                  ],
+                ),
               ],
             ),
           ),
@@ -131,10 +166,10 @@ class ProductOptionCard extends StatelessWidget {
             color: AppColors.navy,
           ),
         ),
-        SizedBox(height: AppTextStyles.fig(10)),
+        SizedBox(height: AppTextStyles.fig(8)),
         ...checklist.map(
           (item) => Padding(
-            padding: EdgeInsets.only(bottom: AppTextStyles.fig(7)),
+            padding: EdgeInsets.only(bottom: AppTextStyles.fig(6)),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -214,9 +249,15 @@ class ProductOptionCard extends StatelessWidget {
                               priceSize: 16,
                               monthSize: 10,
                               metaSize: 9,
+                              originalPrice: originalPrice,
+                              discountBadge: discountBadge,
                             ),
                           ),
-                          _ContinueButton(onTap: onContinue, compact: true),
+                          _ContinueButton(
+                            onTap: onContinue,
+                            label: ctaLabel,
+                            compact: true,
+                          ),
                         ],
                       ),
                     ),
@@ -238,14 +279,20 @@ class ProductOptionCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       titleAndChecklist,
-                      SizedBox(height: AppTextStyles.fig(9)),
+                      SizedBox(height: AppTextStyles.fig(8)),
                       Divider(height: 1, color: AppColors.divider),
-                      SizedBox(height: AppTextStyles.fig(14)),
+                      SizedBox(height: AppTextStyles.fig(12)),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Expanded(child: _PriceBlock(price: price)),
-                          _ContinueButton(onTap: onContinue),
+                          Expanded(
+                            child: _PriceBlock(
+                              price: price,
+                              originalPrice: originalPrice,
+                              discountBadge: discountBadge,
+                            ),
+                          ),
+                          _ContinueButton(onTap: onContinue, label: ctaLabel),
                         ],
                       ),
                     ],
@@ -316,12 +363,16 @@ class _PriceBlock extends StatelessWidget {
     this.priceSize = 22,
     this.monthSize = 13,
     this.metaSize = 11,
+    this.originalPrice,
+    this.discountBadge,
   });
 
   final String price;
   final double priceSize;
   final double monthSize;
   final double metaSize;
+  final String? originalPrice;
+  final String? discountBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -329,17 +380,55 @@ class _PriceBlock extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          'Starting at',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.of(
-            figmaSize: metaSize,
-            weight: FontWeight.w300,
-            color: AppColors.textGraySoft,
+        if (originalPrice != null) ...[
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                originalPrice!,
+                style: AppTextStyles.of(
+                  figmaSize: metaSize + 2,
+                  weight: FontWeight.w500,
+                  color: AppColors.textGraySoft,
+                ).copyWith(decoration: TextDecoration.lineThrough),
+              ),
+              if (discountBadge != null) ...[
+                SizedBox(width: AppTextStyles.fig(6)),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppTextStyles.fig(6),
+                    vertical: AppTextStyles.fig(2),
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.checkGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    discountBadge!,
+                    style: AppTextStyles.of(
+                      figmaSize: metaSize,
+                      weight: FontWeight.w700,
+                      color: AppColors.checkGreen,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-        ),
-        SizedBox(height: AppTextStyles.fig(2)),
+          SizedBox(height: AppTextStyles.fig(2)),
+        ] else ...[
+          Text(
+            'Starting at',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.of(
+              figmaSize: metaSize,
+              weight: FontWeight.w300,
+              color: AppColors.textGraySoft,
+            ),
+          ),
+          SizedBox(height: AppTextStyles.fig(2)),
+        ],
         RichText(
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -380,10 +469,15 @@ class _PriceBlock extends StatelessWidget {
 }
 
 class _ContinueButton extends StatelessWidget {
-  const _ContinueButton({required this.onTap, this.compact = false});
+  const _ContinueButton({
+    required this.onTap,
+    this.compact = false,
+    this.label = 'Continue',
+  });
 
   final VoidCallback? onTap;
   final bool compact;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -402,7 +496,7 @@ class _ContinueButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Continue',
+              label,
               style: AppTextStyles.of(
                 figmaSize: compact ? 12 : 14,
                 weight: FontWeight.w600,

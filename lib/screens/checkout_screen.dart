@@ -1524,10 +1524,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 // ================================================================
 
 enum CheckoutProduct {
-  starterHomeCombo,
-  familyEssential,
-  premiumFamily,
-  comfortPlus,
+  smartLivingCombo,
+  familyEssentialsCombo,
+  premiumFamilyCombo,
+  ultimatePremiumCombo,
 
   washingMachineTopLoad,
   washingMachineFrontLoad,
@@ -1537,9 +1537,6 @@ enum CheckoutProduct {
 
   refrigeratorSingleDoor,
   refrigeratorDoubleDoor,
-
-  essentialCombo,
-  premiumCombo,
 }
 
 // ================================================================
@@ -1549,17 +1546,17 @@ enum CheckoutProduct {
 extension CheckoutProductData on CheckoutProduct {
   String get name {
     switch (this) {
-      case CheckoutProduct.starterHomeCombo:
-        return 'Starter Home Combo';
+      case CheckoutProduct.smartLivingCombo:
+        return 'Smart Living Combo';
 
-      case CheckoutProduct.familyEssential:
-        return 'Family Essential';
+      case CheckoutProduct.familyEssentialsCombo:
+        return 'Family Essentials Combo';
 
-      case CheckoutProduct.premiumFamily:
-        return 'Premium Family';
+      case CheckoutProduct.premiumFamilyCombo:
+        return 'Premium Family Combo';
 
-      case CheckoutProduct.comfortPlus:
-        return 'Comfort Plus';
+      case CheckoutProduct.ultimatePremiumCombo:
+        return 'Ultimate Premium Combo';
 
       case CheckoutProduct.washingMachineTopLoad:
         return 'Top Load Washing Machine';
@@ -1578,28 +1575,22 @@ extension CheckoutProductData on CheckoutProduct {
 
       case CheckoutProduct.refrigeratorDoubleDoor:
         return 'Double Door Refrigerator';
-
-      case CheckoutProduct.essentialCombo:
-        return 'Essential Combo';
-
-      case CheckoutProduct.premiumCombo:
-        return 'Premium Combo';
     }
   }
 
   String? get description {
     switch (this) {
-      case CheckoutProduct.starterHomeCombo:
-        return '(1 Ton AC + Single Door Refrigerator + Top Load Washing Machine)';
+      case CheckoutProduct.smartLivingCombo:
+        return '(1 Ton AC + Double Door Refrigerator + Front Load Washing Machine)';
 
-      case CheckoutProduct.familyEssential:
+      case CheckoutProduct.familyEssentialsCombo:
         return '(1 Ton AC + Double Door Refrigerator + Top Load Washing Machine)';
 
-      case CheckoutProduct.premiumFamily:
+      case CheckoutProduct.premiumFamilyCombo:
         return '(1.5 Ton AC + Double Door Refrigerator + Top Load Washing Machine)';
 
-      case CheckoutProduct.comfortPlus:
-        return '(1.5 Ton AC + Single Door Refrigerator + Top Load Washing Machine)';
+      case CheckoutProduct.ultimatePremiumCombo:
+        return '(1.5 Ton AC + Double Door Refrigerator + Front Load Washing Machine)';
 
       case CheckoutProduct.washingMachineTopLoad:
         return 'Powerful cleaning with multiple wash programs.';
@@ -1618,12 +1609,6 @@ extension CheckoutProductData on CheckoutProduct {
 
       case CheckoutProduct.refrigeratorDoubleDoor:
         return 'Powerful cooling with large storage capacity.';
-
-      case CheckoutProduct.essentialCombo:
-        return '(1 Ton AC + Single Door Refrigerator + Top Load Washing Machine)';
-
-      case CheckoutProduct.premiumCombo:
-        return '(1.5 Ton AC + Double Door Refrigerator + Front Load Washing Machine)';
     }
   }
 
@@ -1633,12 +1618,10 @@ extension CheckoutProductData on CheckoutProduct {
 
   bool get isCombo {
     switch (this) {
-      case CheckoutProduct.starterHomeCombo:
-      case CheckoutProduct.familyEssential:
-      case CheckoutProduct.premiumFamily:
-      case CheckoutProduct.comfortPlus:
-      case CheckoutProduct.essentialCombo:
-      case CheckoutProduct.premiumCombo:
+      case CheckoutProduct.smartLivingCombo:
+      case CheckoutProduct.familyEssentialsCombo:
+      case CheckoutProduct.premiumFamilyCombo:
+      case CheckoutProduct.ultimatePremiumCombo:
         return true;
 
       default:
@@ -1652,17 +1635,17 @@ extension CheckoutProductData on CheckoutProduct {
 
   int get monthlyRent {
     switch (this) {
-      case CheckoutProduct.starterHomeCombo:
-        return 2097;
+      case CheckoutProduct.smartLivingCombo:
+        return 2597;
 
-      case CheckoutProduct.familyEssential:
+      case CheckoutProduct.familyEssentialsCombo:
         return 2349;
 
-      case CheckoutProduct.premiumFamily:
+      case CheckoutProduct.premiumFamilyCombo:
         return 2647;
 
-      case CheckoutProduct.comfortPlus:
-        return 2397;
+      case CheckoutProduct.ultimatePremiumCombo:
+        return 2897;
 
       case CheckoutProduct.washingMachineTopLoad:
         return 599;
@@ -1681,12 +1664,6 @@ extension CheckoutProductData on CheckoutProduct {
 
       case CheckoutProduct.refrigeratorDoubleDoor:
         return 749;
-
-      case CheckoutProduct.essentialCombo:
-        return 2097;
-
-      case CheckoutProduct.premiumCombo:
-        return 2652;
     }
   }
 
@@ -1696,23 +1673,17 @@ extension CheckoutProductData on CheckoutProduct {
 
   int get discount {
     switch (this) {
-      case CheckoutProduct.starterHomeCombo:
-        return 210;
+      case CheckoutProduct.smartLivingCombo:
+        return 260;
 
-      case CheckoutProduct.familyEssential:
+      case CheckoutProduct.familyEssentialsCombo:
         return 237;
 
-      case CheckoutProduct.premiumFamily:
+      case CheckoutProduct.premiumFamilyCombo:
         return 265;
 
-      case CheckoutProduct.comfortPlus:
-        return 240;
-
-      case CheckoutProduct.essentialCombo:
-        return 210;
-
-      case CheckoutProduct.premiumCombo:
-        return 265;
+      case CheckoutProduct.ultimatePremiumCombo:
+        return 290;
 
       default:
         return 0;
@@ -1733,17 +1704,17 @@ extension CheckoutProductData on CheckoutProduct {
 
   int get gst {
     switch (this) {
-      case CheckoutProduct.starterHomeCombo:
-        return 340;
+      case CheckoutProduct.smartLivingCombo:
+        return 421;
 
-      case CheckoutProduct.familyEssential:
+      case CheckoutProduct.familyEssentialsCombo:
         return 380;
 
-      case CheckoutProduct.premiumFamily:
+      case CheckoutProduct.premiumFamilyCombo:
         return 429;
 
-      case CheckoutProduct.comfortPlus:
-        return 388;
+      case CheckoutProduct.ultimatePremiumCombo:
+        return 469;
 
       case CheckoutProduct.washingMachineTopLoad:
         return 108;
@@ -1762,12 +1733,6 @@ extension CheckoutProductData on CheckoutProduct {
 
       case CheckoutProduct.refrigeratorDoubleDoor:
         return 135;
-
-      case CheckoutProduct.essentialCombo:
-        return 340;
-
-      case CheckoutProduct.premiumCombo:
-        return 430;
     }
   }
 
@@ -1799,16 +1764,21 @@ extension CheckoutProductData on CheckoutProduct {
   // DATABASE VARIANT ID
   //
   // IMPORTANT:
-  // These IDs MUST match the PostgreSQL variants table.
+  // These IDs MUST match the PostgreSQL product_variants table
+  // (product_id 4, "Combo Plan", for the combo rows).
   //
-  // 1 = 1.5 Ton AC
-  // 2 = 1 Ton AC
-  // 3 = Single Door Refrigerator
-  // 4 = Double Door Refrigerator
-  // 5 = Top Load Washing Machine
-  // 6 = Front Load Washing Machine
-  // 7 = Essential Combo
-  // 8 = Premium Combo
+  // 1  = 1.5 Ton AC
+  // 2  = 1 Ton AC
+  // 3  = Single Door Refrigerator
+  // 4  = Double Door Refrigerator
+  // 5  = Top Load Washing Machine
+  // 6  = Front Load Washing Machine
+  // 7  = Essential Combo (retired — no longer offered, kept for order history)
+  // 8  = Premium Combo (retired — no longer offered, kept for order history)
+  // 9  = Smart Living Combo
+  // 10 = Family Essentials Combo
+  // 11 = Premium Family Combo
+  // 12 = Ultimate Premium Combo
   // ============================================================
 
   int get variantId {
@@ -1847,23 +1817,17 @@ extension CheckoutProductData on CheckoutProduct {
       // COMBO
       // ========================================================
 
-      case CheckoutProduct.essentialCombo:
-        return 7;
+      case CheckoutProduct.smartLivingCombo:
+        return 9;
 
-      case CheckoutProduct.premiumCombo:
-        return 8;
+      case CheckoutProduct.familyEssentialsCombo:
+        return 10;
 
-      // ========================================================
-      // OLD COMBO ENUM VALUES
-      //
-      // These are not connected to the current ComboScreen.
-      // ========================================================
+      case CheckoutProduct.premiumFamilyCombo:
+        return 11;
 
-      case CheckoutProduct.starterHomeCombo:
-      case CheckoutProduct.familyEssential:
-      case CheckoutProduct.premiumFamily:
-      case CheckoutProduct.comfortPlus:
-        return 0;
+      case CheckoutProduct.ultimatePremiumCombo:
+        return 12;
     }
   }
 }

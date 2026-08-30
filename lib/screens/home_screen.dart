@@ -683,12 +683,13 @@ class _HeroBannerState extends State<_HeroBanner> {
 /// now living inside the hero's own text column (below the CTA) instead of
 /// as a separate section — this is what fills the vertical space that used
 /// to sit empty under the CTA once the text column stopped short of the
-/// image column's height. Icon-above-label, matching the compact treatment
-/// used elsewhere in the app ([FeatureItem]) rather than the wider
-/// icon-beside-label row that only fit at full card width. Each icon plays
-/// its own purpose-built animation — a truck driving, a wrench tightening, a
-/// gear + wrench servicing — via [DeliveryTruckIcon], [InstallationIcon] and
-/// [MaintenanceIcon], sized down to fit a ~50%-width column.
+/// image column's height. Icon-beside-label (badge left, two-line text
+/// right) to match the Figma reference, sized well below [FeatureStrip]'s
+/// full-width treatment since this only has ~1/6 of the screen per item
+/// inside the shared 50%-width hero column. Each icon plays its own
+/// purpose-built animation — a truck driving, a wrench tightening, a gear +
+/// wrench servicing — via [DeliveryTruckIcon], [InstallationIcon] and
+/// [MaintenanceIcon].
 class _HeroBenefitsRow extends StatelessWidget {
   const _HeroBenefitsRow();
 
@@ -699,23 +700,32 @@ class _HeroBenefitsRow extends StatelessWidget {
         Expanded(
           child: _HeroBenefitItem(
             label: 'Free\nDelivery',
-            iconBuilder: (delay) =>
-                DeliveryTruckIcon(size: 10, startDelay: delay),
+            iconBuilder: (delay) => DeliveryTruckIcon(
+              size: 8,
+              color: AppColors.purple,
+              startDelay: delay,
+            ),
           ),
         ),
         Expanded(
           child: _HeroBenefitItem(
             label: 'Free\nInstallation',
-            iconBuilder: (delay) =>
-                InstallationIcon(size: 10, startDelay: delay),
+            iconBuilder: (delay) => InstallationIcon(
+              size: 7,
+              color: AppColors.purple,
+              startDelay: delay,
+            ),
             startDelay: const Duration(milliseconds: 150),
           ),
         ),
         Expanded(
           child: _HeroBenefitItem(
             label: 'Service &\nMaintenance',
-            iconBuilder: (delay) =>
-                MaintenanceIcon(size: 10, startDelay: delay),
+            iconBuilder: (delay) => MaintenanceIcon(
+              size: 7,
+              color: AppColors.purple,
+              startDelay: delay,
+            ),
             startDelay: const Duration(milliseconds: 300),
           ),
         ),
@@ -737,28 +747,30 @@ class _HeroBenefitItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: 16,
+          height: 16,
           decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
           ),
           child: Center(child: iconBuilder(startDelay)),
         ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.of(
-            figmaSize: 8,
-            weight: FontWeight.w600,
-            color: AppColors.textGrayMed,
+        const SizedBox(width: 4.6),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.of(
+              figmaSize: 7,
+              weight: FontWeight.w600,
+              color: AppColors.textGrayMed,
+              height: 1.15,
+            ),
           ),
         ),
       ],
