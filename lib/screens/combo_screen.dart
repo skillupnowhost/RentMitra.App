@@ -61,6 +61,7 @@ class ComboOffer {
     required this.checklist,
     required this.checkoutProduct,
     required this.applianceBreakdown,
+    required this.art,
   });
 
   final String badge;
@@ -69,6 +70,10 @@ class ComboOffer {
   final List<String> checklist;
   final CheckoutProduct checkoutProduct;
   final List<ApplianceBreakdown> applianceBreakdown;
+
+  /// Card/hero art for this combo, sized by the caller (90 on the option
+  /// card, 140 on the product detail page).
+  final Widget Function(double width) art;
 }
 
 final List<ComboOffer> comboOffers = [
@@ -83,6 +88,7 @@ final List<ComboOffer> comboOffers = [
       'Free installation for all 3 appliances',
     ],
     checkoutProduct: CheckoutProduct.smartLivingCombo,
+    art: (width) => SmartLivingComboImage(width: width),
     applianceBreakdown: [
       ('Air Conditioner', const AcProductImage(width: 130), _acSpecs1Ton),
       (
@@ -108,6 +114,7 @@ final List<ComboOffer> comboOffers = [
       'Free installation for all 3 appliances',
     ],
     checkoutProduct: CheckoutProduct.familyEssentialsCombo,
+    art: (width) => FamilyEssentialsComboImage(width: width),
     applianceBreakdown: [
       ('Air Conditioner', const AcProductImage(width: 130), _acSpecs1Ton),
       (
@@ -132,6 +139,7 @@ final List<ComboOffer> comboOffers = [
       'Free installation for all 3 appliances',
     ],
     checkoutProduct: CheckoutProduct.premiumFamilyCombo,
+    art: (width) => SmartLivingComboImage(width: width),
     applianceBreakdown: [
       ('Air Conditioner', const AcProductImage(width: 130), _acSpecs1p5Ton),
       (
@@ -157,6 +165,7 @@ final List<ComboOffer> comboOffers = [
       'Free installation for all 3 appliances',
     ],
     checkoutProduct: CheckoutProduct.ultimatePremiumCombo,
+    art: (width) => FamilyEssentialsComboImage(width: width),
     applianceBreakdown: [
       ('Air Conditioner', const AcProductImage(width: 130), _acSpecs1p5Ton),
       (
@@ -216,7 +225,8 @@ List<ProductOptionCard> buildComboOptionCards(BuildContext context) {
             badgeColor: offer.badgeColor,
             title: offer.title,
             checklist: offer.checklist,
-            art: const ApplianceClusterImage(width: 90),
+            art: offer.art(105),
+            showShadow: false,
             originalPrice: originalPrice,
             discountBadge: discountBadge,
             price: price,
@@ -228,7 +238,7 @@ List<ProductOptionCard> buildComboOptionCards(BuildContext context) {
                 title: offer.title,
                 description: _comboDescription,
                 checklist: offer.checklist,
-                art: const ApplianceClusterImage(width: 140),
+                art: offer.art(160),
                 originalPrice: originalPrice,
                 discountBadge: discountBadge,
                 price: price,

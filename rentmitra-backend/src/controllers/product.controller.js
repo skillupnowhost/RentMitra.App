@@ -1,29 +1,23 @@
 // ==========================================
-// PRODUCT & PRODUCT VARIANT PRICING ROUTES
+// PRODUCT & PRODUCT VARIANT PRICING CONTROLLERS
 //
-// This is the "amount editable" backend connection: every route here reads
-// or writes `products` / `product_variants`, and `product_variants.
+// This is the "amount editable" backend connection: every handler here
+// reads or writes `products` / `product_variants`, and `product_variants.
 // monthly_rent` is the single number an admin edits to change what the
 // RentMitra app charges/displays for a plan. The Flutter app's
 // PricingProvider (lib/providers/pricing_provider.dart) reads the public
-// GET routes below as its live source of truth, replacing prices that used
-// to be hardcoded per screen.
-//
-// Extracted out of server.js so pricing/catalog logic lives in its own
-// module, the same way Razorpay's client lives in razorpay.js.
+// GET routes as its live source of truth, replacing prices that used to be
+// hardcoded per screen.
 // ==========================================
 
-const express = require('express');
-const pool = require('./database');
-
-const router = express.Router();
+const pool = require('../database');
 
 // ==========================================
 // PUBLIC — PRODUCTS
 // ==========================================
 
 // GET ALL PRODUCTS
-router.get('/products', async (req, res) => {
+const getAllProducts = async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT *
@@ -42,10 +36,10 @@ router.get('/products', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // CREATE PRODUCT
-router.post('/products', async (req, res) => {
+const createProduct = async (req, res) => {
     try {
         const { product_name, category } = req.body;
 
@@ -76,10 +70,10 @@ router.post('/products', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // SEARCH PRODUCTS
-router.get('/products/search', async (req, res) => {
+const searchProducts = async (req, res) => {
     try {
         const { name, category } = req.query;
 
@@ -115,10 +109,10 @@ router.get('/products/search', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // GET PRODUCT BY ID
-router.get('/products/:id', async (req, res) => {
+const getProductById = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -146,10 +140,10 @@ router.get('/products/:id', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // UPDATE PRODUCT
-router.put('/products/:id', async (req, res) => {
+const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const { product_name, category } = req.body;
@@ -190,10 +184,10 @@ router.put('/products/:id', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // DEACTIVATE PRODUCT
-router.delete('/products/:id', async (req, res) => {
+const deactivateProduct = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -226,10 +220,10 @@ router.delete('/products/:id', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // REACTIVATE PRODUCT
-router.patch('/products/:id/reactivate', async (req, res) => {
+const reactivateProduct = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -262,14 +256,14 @@ router.patch('/products/:id/reactivate', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // ==========================================
 // PUBLIC — PRODUCT VARIANTS (RENT AMOUNTS)
 // ==========================================
 
 // GET ALL PRODUCT VARIANTS
-router.get('/product-variants', async (req, res) => {
+const getAllProductVariants = async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT *
@@ -288,10 +282,10 @@ router.get('/product-variants', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // CREATE PRODUCT VARIANT
-router.post('/product-variants', async (req, res) => {
+const createProductVariant = async (req, res) => {
     try {
         const { product_id, variant_name, monthly_rent } = req.body;
 
@@ -342,10 +336,10 @@ router.post('/product-variants', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // GET PRODUCT VARIANT BY ID
-router.get('/product-variants/:id', async (req, res) => {
+const getProductVariantById = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -373,10 +367,10 @@ router.get('/product-variants/:id', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // UPDATE PRODUCT VARIANT
-router.put('/product-variants/:id', async (req, res) => {
+const updateProductVariant = async (req, res) => {
     try {
         const { id } = req.params;
         const { variant_name, monthly_rent } = req.body;
@@ -417,10 +411,10 @@ router.put('/product-variants/:id', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // DEACTIVATE PRODUCT VARIANT
-router.delete('/product-variants/:id', async (req, res) => {
+const deactivateProductVariant = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -453,10 +447,10 @@ router.delete('/product-variants/:id', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // REACTIVATE PRODUCT VARIANT
-router.patch('/product-variants/:id/reactivate', async (req, res) => {
+const reactivateProductVariant = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -489,10 +483,10 @@ router.patch('/product-variants/:id/reactivate', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // GET ACTIVE VARIANTS FOR A PRODUCT
-router.get('/products/:productId/variants', async (req, res) => {
+const getVariantsByProductId = async (req, res) => {
     try {
         const { productId } = req.params;
 
@@ -529,13 +523,13 @@ router.get('/products/:productId/variants', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // ==========================================
 // ADMIN — PRODUCTS
 // ==========================================
 
-router.get('/admin/products', async (req, res) => {
+const adminGetAllProducts = async (req, res) => {
     try {
 
         const result = await pool.query(`
@@ -590,10 +584,9 @@ router.get('/admin/products', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
-
-router.post('/admin/products', async (req, res) => {
+const adminCreateProduct = async (req, res) => {
     try {
         const {
             product_name,
@@ -626,8 +619,9 @@ router.post('/admin/products', async (req, res) => {
             message: error.message
         });
     }
-});
-router.put('/admin/products/:id', async (req, res) => {
+};
+
+const adminUpdateProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -670,8 +664,9 @@ router.put('/admin/products/:id', async (req, res) => {
             message: error.message
         });
     }
-});
-router.put('/admin/products/:id/deactivate', async (req, res) => {
+};
+
+const adminDeactivateProduct = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -703,13 +698,13 @@ router.put('/admin/products/:id/deactivate', async (req, res) => {
             message: 'Failed to deactivate product'
         });
     }
-});
+};
 
 // ==========================================
 // ADMIN — PRODUCT VARIANTS (EDIT RENT HERE)
 // ==========================================
 
-router.get('/admin/product-variants', async (req, res) => {
+const adminGetAllProductVariants = async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT
@@ -735,8 +730,9 @@ router.get('/admin/product-variants', async (req, res) => {
             message: 'Failed to fetch product variants'
         });
     }
-});
-router.get('/admin/product-variants/:id', async (req, res) => {
+};
+
+const adminGetProductVariantById = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -765,9 +761,9 @@ router.get('/admin/product-variants/:id', async (req, res) => {
             message: error.message
         });
     }
-});
+};
 
-router.post('/admin/product-variants', async (req, res) => {
+const adminCreateProductVariant = async (req, res) => {
     try {
         const {
             product_id,
@@ -801,8 +797,9 @@ router.post('/admin/product-variants', async (req, res) => {
             message: error.message
         });
     }
-});
-router.put('/admin/product-variants/:id', async (req, res) => {
+};
+
+const adminUpdateProductVariant = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -853,8 +850,9 @@ router.put('/admin/product-variants/:id', async (req, res) => {
             message: 'Failed to update product variant'
         });
     }
-});
-router.put('/admin/product-variants/:id/deactivate', async (req, res) => {
+};
+
+const adminDeactivateProductVariant = async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -886,6 +884,30 @@ router.put('/admin/product-variants/:id/deactivate', async (req, res) => {
             message: 'Failed to deactivate product variant'
         });
     }
-});
+};
 
-module.exports = router;
+module.exports = {
+    getAllProducts,
+    createProduct,
+    searchProducts,
+    getProductById,
+    updateProduct,
+    deactivateProduct,
+    reactivateProduct,
+    getAllProductVariants,
+    createProductVariant,
+    getProductVariantById,
+    updateProductVariant,
+    deactivateProductVariant,
+    reactivateProductVariant,
+    getVariantsByProductId,
+    adminGetAllProducts,
+    adminCreateProduct,
+    adminUpdateProduct,
+    adminDeactivateProduct,
+    adminGetAllProductVariants,
+    adminGetProductVariantById,
+    adminCreateProductVariant,
+    adminUpdateProductVariant,
+    adminDeactivateProductVariant
+};

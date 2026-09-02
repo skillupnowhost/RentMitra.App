@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/product_variant.dart';
 import '../services/api_service.dart';
@@ -9,7 +13,15 @@ import '../services/api_service.dart';
 /// rent to via `PUT /admin/product-variants/:id`. Every screen that used to
 /// hardcode a price reads it from here instead, so an admin's edit shows up
 /// across the app without a release.
+///
+/// The last successful fetch is also cached on-device (see
+/// [_cachedVariantsPrefsKey]), so a cold start with no connectivity still
+/// shows real, previously-fetched prices instead of a blank "₹—" — never a
+/// hardcoded number. The moment the network call succeeds, the cache and
+/// the UI both refresh to whatever the backend/admin currently has set.
 class PricingProvider extends ChangeNotifier {
+  static const _cachedVariantsPrefsKey = 'rentmitra.cached_product_variants';
+
   Map<int, ProductVariant> _variantsById = {};
   bool _isLoading = false;
   bool _hasLoaded = false;
@@ -75,6 +87,14 @@ class PricingProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    // Show the last cached prices immediately — e.g. a cold start with no
+    // connectivity — so screens never sit blank while the live call below
+    // is still in flight (or times out). Skipped once something is already
+    // in memory (a previous successful load this session beats disk cache).
+    if (_variantsById.isEmpty && await _loadFromCache()) {
+      notifyListeners();
+    }
+
     try {
       final rows = await ApiService.fetchProductVariants();
       final variants = rows.map(ProductVariant.fromJson);
@@ -84,8 +104,16 @@ class PricingProvider extends ChangeNotifier {
       };
 
       _hasLoaded = true;
+      unawaited(_saveToCache(rows));
     } catch (error) {
       _error = error.toString().replaceFirst('Exception: ', '');
+
+      // Offline/unreachable backend: whatever cache (or prior in-memory
+      // load) is already sitting in [_variantsById] stays on screen rather
+      // than being cleared out from under the user.
+      if (_variantsById.isNotEmpty) {
+        _hasLoaded = true;
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -93,4 +121,42 @@ class PricingProvider extends ChangeNotifier {
   }
 
   Future<void> reload() => load();
+
+  /// Restores [_variantsById] from the on-device cache written by the last
+  /// successful [load]. Returns whether it found anything usable.
+  Future<bool> _loadFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(_cachedVariantsPrefsKey);
+
+      if (cached == null) {
+        return false;
+      }
+
+      final rows = (jsonDecode(cached) as List).cast<Map<String, dynamic>>();
+      final variants = rows.map(ProductVariant.fromJson);
+
+      _variantsById = {
+        for (final variant in variants) variant.variantId: variant,
+      };
+
+      return _variantsById.isNotEmpty;
+    } catch (_) {
+      // Corrupt or unreadable cache — the live fetch below is still tried
+      // as normal, so this just means no offline fallback this time.
+      return false;
+    }
+  }
+
+  /// Persists the raw rows from a successful [load] so [_loadFromCache] has
+  /// real, backend-sourced prices to fall back to next time there's no
+  /// connectivity.
+  Future<void> _saveToCache(List<Map<String, dynamic>> rows) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_cachedVariantsPrefsKey, jsonEncode(rows));
+    } catch (_) {
+      // Best-effort — a failed cache write shouldn't break live pricing.
+    }
+  }
 }

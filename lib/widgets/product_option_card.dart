@@ -38,6 +38,7 @@ class ProductOptionCard extends StatelessWidget {
     this.originalPrice,
     this.discountBadge,
     this.ctaLabel = 'Continue',
+    this.showShadow = true,
   });
 
   final String badge;
@@ -49,6 +50,12 @@ class ProductOptionCard extends StatelessWidget {
   final double artColumnWidth;
   final Color badgeColor;
   final VoidCallback? onContinue;
+
+  /// Whether to render the soft grounding shadow beneath [art] (only ever
+  /// shown when [specs] is empty in the first place). Combos opt out of it
+  /// since their art is a full appliance-cluster photo, not a single
+  /// product shot sitting on a surface.
+  final bool showShadow;
 
   /// Pre-discount price shown struck through next to [price], e.g.
   /// "₹2,597". Null (the default) hides the strikethrough/discount pill —
@@ -129,7 +136,7 @@ class ProductOptionCard extends StatelessWidget {
                           duration: 380.ms,
                           curve: Curves.easeOut,
                         ),
-                    if (specs.isEmpty)
+                    if (specs.isEmpty && showShadow)
                       Positioned(
                         bottom: -AppTextStyles.fig(8),
                         child: ImageFiltered(

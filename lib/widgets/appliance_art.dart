@@ -27,6 +27,42 @@ class ApplianceClusterImage extends StatelessWidget {
   }
 }
 
+class SmartLivingComboImage extends StatelessWidget {
+  const SmartLivingComboImage({super.key, this.width = 220, double? height})
+    : height = height ?? width * 1.3;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
+      child: Image.asset(
+        'assets/images/Smart living image.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
+class FamilyEssentialsComboImage extends StatelessWidget {
+  const FamilyEssentialsComboImage({super.key, this.width = 220, double? height})
+    : height = height ?? width * 1.3;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width, maxHeight: height),
+      child: Image.asset(
+        'assets/images/family essentials combo.png',
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}
+
 class AcProductImage extends StatelessWidget {
   const AcProductImage({super.key, this.width = 100, double? height})
     : height = height ?? width * 1.3;

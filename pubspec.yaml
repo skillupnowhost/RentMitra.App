@@ -81,7 +81,6 @@ flutter:
     - assets/images/washing_machine_splash.png
     - assets/images/fridge_splash.png
     - assets/images/main_splash.png
-    - assets/images/hero_appliances.png
     - "assets/images/air-conditioner icon.png"
     - "assets/images/fridge icon.png"
     - "assets/images/washing-machine icon.png"
@@ -96,6 +95,8 @@ flutter:
     - "assets/images/Washing machine (header).png"
     - "assets/images/Washing machine install.png"
     - "assets/images/Background shape.png"
+    - "assets/images/Smart living image.png"
+    - "assets/images/family essentials combo.png"
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
