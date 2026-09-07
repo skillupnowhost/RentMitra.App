@@ -4,7 +4,12 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
 class PromoBanner extends StatelessWidget {
-  const PromoBanner({super.key, this.onViewCombos, this.startingPrice});
+  const PromoBanner({
+    super.key,
+    this.onViewCombos,
+    this.startingPrice,
+    this.stretchToFill = false,
+  });
 
   final VoidCallback? onViewCombos;
 
@@ -13,126 +18,92 @@ class PromoBanner extends StatelessWidget {
   /// a stale hardcoded figure.
   final String? startingPrice;
 
+  /// True only on the Home screen, where this card sits inside an
+  /// IntrinsicHeight + CrossAxisAlignment.stretch row (to line its button up
+  /// with HelpCard's) and so gets a genuinely bounded height — safe for a
+  /// [Spacer] to push the button flush to the bottom. Every other call site
+  /// (e.g. OffersScreen) places this in a plain scrolling Column, which hands
+  /// down an unbounded height; a Spacer there throws "RenderFlex... incoming
+  /// height constraints are unbounded", so those use a fixed gap instead.
+  final bool stretchToFill;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 58),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      constraints: const BoxConstraints(minHeight: 215),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.promoCardBg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: stretchToFill ? MainAxisSize.max : MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const _AnimatedDiscountBadge(),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Save 10% on Appliance Combos',
-                  style: AppTextStyles.of(
-                    figmaSize: 13,
-                    weight: FontWeight.w600,
-                    color: AppColors.textGray,
-                  ),
+              const SizedBox(height: 12),
+              Text(
+                'Save 10% on Appliance Combos',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.of(
+                  figmaSize: 15,
+                  weight: FontWeight.w700,
+                  color: AppColors.textGray,
                 ),
-                const SizedBox(height: 2),
-                // Price and the AC+fridge+washer glyph trio read as one
-                // line — wrapped in [Wrap] rather than [Row] so they stay
-                // together on narrower screens instead of overflowing.
-                Wrap(
-                  spacing: 5,
-                  runSpacing: 2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      startingPrice == null
-                          ? 'Starting at ₹—/month'
-                          : 'Starting at $startingPrice/month',
-                      style: AppTextStyles.of(
-                        figmaSize: 11,
-                        weight: FontWeight.w400,
-                        color: AppColors.textGrayMed,
-                      ),
-                    ),
-                    const _MiniApplianceIcons(),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: onViewCombos,
-            child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.purple, AppColors.ctaPurple],
-                ),
-                borderRadius: BorderRadius.circular(10),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'View Combos',
-                    style: AppTextStyles.of(
-                      figmaSize: 11,
-                      weight: FontWeight.w500,
-                      color: Colors.white,
+              const SizedBox(height: 5),
+              Text(
+                startingPrice == null
+                    ? 'Starting at ₹—/months'
+                    : 'Starting at $startingPrice/months',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.of(
+                  figmaSize: 13,
+                  weight: FontWeight.w600,
+                  color: AppColors.textGrayMed,
+                ),
+              ),
+              stretchToFill
+                  ? const Spacer()
+                  : const SizedBox(height: 16),
+              GestureDetector(
+                onTap: onViewCombos,
+                child: Container(
+                  width: double.infinity,
+                  height: 38,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.purple, AppColors.ctaPurple],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'View Combos',
+                          style: AppTextStyles.of(
+                            figmaSize: 12,
+                            weight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 13,
+                          color: Colors.white,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 3),
-                  const Icon(
-                    Icons.arrow_forward,
-                    size: 12,
-                    color: Colors.white,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
       ),
-    );
-  }
-}
-
-/// The plain AC / fridge / washer glyph trio next to the promo price — no
-/// "+" joiners or label, unlike [ComboIconRow] used on the category card,
-/// so it reads as a quiet visual footnote rather than another headline.
-class _MiniApplianceIcons extends StatelessWidget {
-  const _MiniApplianceIcons();
-
-  static const _icons = [
-    'assets/images/air-conditioner icon.png',
-    'assets/images/fridge icon.png',
-    'assets/images/washing-machine icon.png',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 0; i < _icons.length; i++)
-          Padding(
-            padding: EdgeInsets.only(left: i == 0 ? 0 : 4),
-            child: ColorFiltered(
-              colorFilter: const ColorFilter.mode(
-                AppColors.purple,
-                BlendMode.srcIn,
-              ),
-              child: Image.asset(_icons[i], width: 11, height: 11),
-            ),
-          ),
-      ],
     );
   }
 }
@@ -165,8 +136,8 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 42,
-      height: 42,
+      width: 46,
+      height: 46,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -192,7 +163,7 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
               Text(
                 '10%',
                 style: AppTextStyles.of(
-                  figmaSize: 15,
+                  figmaSize: 16,
                   weight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -200,7 +171,7 @@ class _AnimatedDiscountBadgeState extends State<_AnimatedDiscountBadge>
               Text(
                 'OFF',
                 style: AppTextStyles.of(
-                  figmaSize: 11,
+                  figmaSize: 12,
                   weight: FontWeight.w700,
                   color: Colors.white,
                 ),

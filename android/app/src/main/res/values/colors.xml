@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#ffffff</color>
+    <!-- Matches AppColors.splashBackground.first (lib/theme/app_colors.dart)
+         so the native cold-start background and the Dart SplashScreen's own
+         background are the same color — no flash/seam between them. -->
+    <color name="splash_background">#FCFBFF</color>
+</resources>

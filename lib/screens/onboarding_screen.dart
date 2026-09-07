@@ -207,11 +207,7 @@ class _SlideOne extends StatelessWidget {
           SizedBox(height: AppTextStyles.fig(16)),
           const FittedBox(
             fit: BoxFit.scaleDown,
-            child: BrandWordmark(
-              figmaWordmarkSize: 44,
-              figmaLogoWidth: 110,
-              showTagline: false,
-            ),
+            child: BrandWordmark(figmaWidth: 700),
           ),
           SizedBox(height: AppTextStyles.fig(40)),
           FeatureRow(

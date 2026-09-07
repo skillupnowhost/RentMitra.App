@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ shows its own mandatory system splash screen (the app's
+         launcher icon on a background color) before the Flutter engine ever
+         gets to draw — this happens regardless of launch_background.xml.
+         Overriding it here with a transparent icon + the same background
+         color as the Dart SplashScreen (see lib/screens/splash_screen.dart)
+         means that system splash reads as a plain, seamless continuation
+         into the app's own full-logo splash instead of a separate
+         icon flash beforehand. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/transparent_icon</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+    </style>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Same override as values-v31/styles.xml, duplicated here because
+         Android's resource qualifier resolution prioritizes UI-mode (night)
+         over platform-version — without this file, a dark-mode API 31+
+         device would fall through to values-night/styles.xml and miss the
+         splash-screen customization entirely. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/transparent_icon</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+    </style>
+</resources>

@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import 'logo_mark.dart';
 
 /// The hamburger side menu panel: My Rentals, Products, Profile, Settings.
 ///
@@ -143,71 +142,15 @@ class AppDrawer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
       child: SizedBox(
-        height: 30,
+        height: 40,
         child: Stack(
           alignment: Alignment.center,
           children: [
             Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const LogoMark(width: 21),
-                    const SizedBox(width: 6),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Rent',
-                          style: AppTextStyles.of(
-                            figmaSize: 20,
-                            weight: FontWeight.w700,
-                            color: AppColors.navyDeep,
-                          ),
-                        ),
-                        Text(
-                          'Mitra',
-                          style: AppTextStyles.of(
-                            figmaSize: 20,
-                            weight: FontWeight.w700,
-                            color: AppColors.purple,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            left: 1,
-                            bottom: 0.5,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 3.5,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.purple,
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              '.app',
-                              style: AppTextStyles.of(
-                                figmaSize: 7.5,
-                                weight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              child: Image.asset(
+                'assets/images/logo_full.png',
+                height: 34,
+                fit: BoxFit.contain,
               ),
             ),
             Positioned(

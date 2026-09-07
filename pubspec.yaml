@@ -55,6 +55,29 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# Regenerates the Android/iOS/macOS/Windows launcher icons and the web
+# favicon/manifest icons from the brand mark — run
+# `dart run flutter_launcher_icons` after swapping assets/icon/*.png.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  macos:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+  web:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+    background_color: "#ffffff"
+    theme_color: "#3E02D1"
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -70,6 +93,8 @@ flutter:
   assets:
     - assets/images/logo_mark.png
     - assets/images/logo_full.png
+    - assets/icon/app_icon.png
+    - assets/icon/app_icon_foreground.png
     - assets/images/appliance_cluster.png
     - assets/images/ac_product.png
     - assets/images/washer_product.png

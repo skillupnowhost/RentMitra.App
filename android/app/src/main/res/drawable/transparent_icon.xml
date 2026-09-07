@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fully transparent placeholder used as the Android 12+ system splash
+     screen's "icon" (see values-v31/styles.xml) so that mandatory OS splash
+     shows only the matching background color and no launcher-icon flash
+     before the Dart SplashScreen's full logo fades in. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+</shape>

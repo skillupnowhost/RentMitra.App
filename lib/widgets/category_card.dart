@@ -59,8 +59,8 @@ class CategoryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 110),
-        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+        constraints: const BoxConstraints(minHeight: 148),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: _highlighted ? null : bgColor,
           gradient: _highlighted
@@ -96,9 +96,9 @@ class CategoryCard extends StatelessWidget {
                 // negative-top [Positioned] below instead of reserving
                 // space in this Column, so it no longer forces empty
                 // headroom onto the other three cards.
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 SizedBox(
-                  height: 26,
+                  height: 30,
                   width: double.infinity,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
@@ -113,20 +113,20 @@ class CategoryCard extends StatelessWidget {
                             ),
                             child: Image.asset(
                               iconAsset!,
-                              width: 26,
-                              height: 26,
+                              width: 30,
+                              height: 30,
                               fit: BoxFit.contain,
                             ),
                           ),
                     ),
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(4)),
+                SizedBox(height: AppTextStyles.fig(7)),
                 // Fixed to a 2-line height so "Starting at" / price / +GST
                 // land on the same row across every card regardless of
                 // whether this card's title wraps to 1 or 2 lines.
                 SizedBox(
-                  height: AppTextStyles.fig(30),
+                  height: AppTextStyles.fig(40),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Text(
@@ -135,32 +135,32 @@ class CategoryCard extends StatelessWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.of(
-                        figmaSize: 11,
+                        figmaSize: 12,
                         weight: FontWeight.w700,
                         color: onGradientColor ?? AppColors.navy,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(5)),
+                SizedBox(height: AppTextStyles.fig(8)),
                 Container(
-                  width: AppTextStyles.fig(22),
+                  width: AppTextStyles.fig(24),
                   height: 2,
                   color: onGradientColor ?? iconColor,
                 ),
-                SizedBox(height: AppTextStyles.fig(6)),
+                SizedBox(height: AppTextStyles.fig(9)),
                 Text(
                   'Starting at',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.of(
-                    figmaSize: 9,
+                    figmaSize: 10,
                     weight: FontWeight.w300,
                     color:
                         onGradientColor?.withValues(alpha: 0.7) ??
                         AppColors.textGraySoft,
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(4)),
+                SizedBox(height: AppTextStyles.fig(6)),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Row(
@@ -171,7 +171,7 @@ class CategoryCard extends StatelessWidget {
                       Text(
                         price,
                         style: AppTextStyles.of(
-                          figmaSize: 16,
+                          figmaSize: 18,
                           weight: FontWeight.w700,
                           color: onGradientColor ?? priceColor,
                         ),
@@ -180,7 +180,7 @@ class CategoryCard extends StatelessWidget {
                       Text(
                         '/month',
                         style: AppTextStyles.of(
-                          figmaSize: 10,
+                          figmaSize: 11,
                           weight: FontWeight.w400,
                           color: (onGradientColor ?? priceColor).withValues(
                             alpha: 0.75,
@@ -190,12 +190,12 @@ class CategoryCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: AppTextStyles.fig(2)),
+                SizedBox(height: AppTextStyles.fig(3)),
                 Text(
                   '+ GST',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.of(
-                    figmaSize: 11,
+                    figmaSize: 12,
                     weight: FontWeight.w400,
                     color:
                         onGradientColor?.withValues(alpha: 0.7) ??

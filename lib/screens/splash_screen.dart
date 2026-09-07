@@ -21,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _reveal = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
+    duration: const Duration(milliseconds: 450),
   );
   late final AnimationController _bg = AnimationController(
     vsync: this,
@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _reveal.forward();
-    _navTimer = Timer(const Duration(milliseconds: 2400), () {
+    _navTimer = Timer(const Duration(milliseconds: 1000), () {
       if (!mounted) return;
       context.go('/splash-slider');
     });

@@ -13,6 +13,12 @@ class AppColors {
   static const Color purpleSoft = Color(0xFF8B76C9);
   static const Color ctaPurple = Color(0xFF4205F7);
 
+  /// Sampled from the current brand logo (`logo_mark.png` / `logo_full.png`):
+  /// the indigo of the mark + "rentmitra" wordmark, and the orange arc /
+  /// ".app" suffix.
+  static const Color brandIndigo = Color(0xFF3E02D1);
+  static const Color brandOrange = Color(0xFFFD8D00);
+
   static const Color textGray = Color(0xFF65657F);
   static const Color textGrayMed = Color(0xFF7C7C90);
   static const Color textGraySoft = Color(0xFF9A9AA8);
@@ -50,7 +56,12 @@ class AppColors {
   static const Color background = Color(0xFFF7F6FC);
   static const Color surface = Colors.white;
   static const Color promoCardBg = Color(0xFFF7F6FB);
-  static const Color helpCardBg = Color(0xFFF4F4FB);
+  static const Color helpCardBg = Color(0xFFEFFAF1);
+
+  /// WhatsApp-brand green — the Help card's icon circle and CTA button,
+  /// deliberately outside the purple family so it reads as "chat support"
+  /// rather than another purple action alongside View Combos.
+  static const Color helpAccent = Color(0xFF25D366);
   static const Color featureStripBg = Color(0xFFFDFDFC);
   static const Color divider = Color(0xFFEDEDF5);
   static const Color check = purple;
