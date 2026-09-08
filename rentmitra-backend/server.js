@@ -1,13 +1,80 @@
+
 require('dotenv').config();
 const express = require('express');
-
+const { getMessaging } = require("firebase-admin/messaging");
+const admin = require("./firebase/firebaseAdmin");
+const verifyFirebaseToken = require("./middleware/firebaseAuth");
 const crypto = require('crypto');
+const PDFDocument = require('pdfkit');
 
 const pool = require('./src/database');
 
 const razorpay = require('./src/razorpay');
+const sendSMS = require('./src/sms');
+const sendWhatsApp = require('./src/whatsapp');
+const { sendRentalConfirmationEmail } = require('./src/email');
 
 const app = express();
+// ==========================================
+// TEST SMS
+// ==========================================
+
+app.get('/test-sms', async (req, res) => {
+    try {
+
+        const result = await sendSMS(
+            '9876543210',
+            'RentMitra SMS test successful.'
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'SMS test completed',
+            result: result
+        });
+
+    } catch (error) {
+
+        console.error('Test SMS error:', error);
+
+        res.status(500).json({
+            success: false,
+            message: 'SMS test failed',
+            error: error.message
+        });
+
+    }
+});
+// ==========================================
+// TEST WHATSAPP NOTIFICATION
+// ==========================================
+
+app.get('/test-whatsapp', async (req, res) => {
+    try {
+
+        const result = await sendWhatsApp(
+            '9876543210',
+            'RentMitra WhatsApp notification test successful.'
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'WhatsApp notification test completed',
+            result: result
+        });
+
+    } catch (error) {
+
+        console.error('Test WhatsApp error:', error);
+
+        res.status(500).json({
+            success: false,
+            message: 'WhatsApp notification test failed',
+            error: error.message
+        });
+
+    }
+});
 
 const PORT = 3000;
 
@@ -3709,83 +3776,110 @@ try {
 
 app.put('/rentals/:id/status', async (req, res) => {
 
-try {
+    try {
 
-    const { id } = req.params;
+        const { id } = req.params;
+        const { rental_status } = req.body;
 
-    const { rental_status } = req.body;
+        if (!rental_status) {
+            return res.status(400).json({
+                message: 'rental_status is required'
+            });
+        }
+
+        const result = await pool.query(
+            `UPDATE rentals
+             SET rental_status = $1,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE rental_id = $2
+             RETURNING *`,
+            [rental_status, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Rental not found'
+            });
+        }
+
+        const rental = result.rows[0];
+        console.log('RENTAL STATUS UPDATED:', rental);
+
+        // ==========================================
+        // SEND FCM NOTIFICATION
+        // ==========================================
+
+        try {
+
+            const tokenResult = await pool.query(
+                `SELECT fcm_token
+                 FROM customer_fcm_tokens
+                 WHERE customer_id = $1
+                 AND is_active = true`,
+                [rental.customer_id]
+            );
+            console.log(
+    'FCM TOKENS FOUND:',
+    tokenResult.rows.length
+);
+
+            if (tokenResult.rows.length > 0) {
 
 
+                const messages = tokenResult.rows.map(row => ({
+                    token: row.fcm_token,
 
-    if (!rental_status) {
+                    notification: {
+                        title: 'RentMitra Rental Update',
+                        body: `Your rental status is now ${rental.rental_status}`
+                    },
 
-        return res.status(400).json({
+                    data: {
+                        type: 'rental_status',
+                        rental_id: String(rental.rental_id),
+                        rental_status: String(rental.rental_status)
+                    }
+                }));
 
-            message: 'rental_status is required'
+                const notificationResult =
+                    await getMessaging().sendEach(messages);
 
+                console.log(
+                    'Rental notification:',
+                    notificationResult.successCount,
+                    'success,',
+                    notificationResult.failureCount,
+                    'failed'
+                );
+            }
+
+        } catch (notificationError) {
+
+            // Notification failure should NOT break rental update
+            console.error(
+                'Rental notification failed:',
+                notificationError.message
+            );
+
+        }
+
+        return res.status(200).json({
+            message: 'Rental status updated successfully',
+            rental: rental
+        });
+
+    } catch (error) {
+
+        console.error('Error updating rental status:', error);
+
+        return res.status(500).json({
+            message: 'Failed to update rental status',
+            error: error.message
         });
 
     }
-
-
-
-    const result = await pool.query(
-
-        `UPDATE rentals
-
-         SET rental_status = $1,
-
-             updated_at = CURRENT_TIMESTAMP
-
-         WHERE rental_id = $2
-  RETURNING *`,
-
-        [rental_status, id]
-
-    );
-
-
-
-    if (result.rows.length === 0) {
-
-        return res.status(404).json({
-
-            message: 'Rental not found'
-
-        });
-
-    }
-
-
-
-    return res.status(200).json({
-
-        message: 'Rental status updated successfully',
-
-        rental: result.rows[0]
-
-    });
-
-
-
-} catch (error) {
-
-    console.error('Error updating rental status:', error);
-
-
-
-    return res.status(500).json({
-
-        message: 'Failed to update rental status',
-
-        error: error.message
-
-    });
-
-}
 
 });
-
 // UPDATE RENTAL
 
 app.put('/rentals/:id', async (req, res) => {
@@ -3904,7 +3998,7 @@ try {
 
 });
 
-// ==========================================
+//==========================================
 // CREATE RAZORPAY ORDER
 // ==========================================
 
@@ -4009,7 +4103,7 @@ app.post('/payments/verify', async (req, res) => {
         ) {
 
             return res.status(400).json({
-                message: 'Razorpay payment details are required'
+                message: 'Razorpay payment details are required'// 
             });
 
         }
@@ -4082,6 +4176,28 @@ app.post('/payments/verify', async (req, res) => {
 
 
         const payment = paymentResult.rows[0];
+        // Send Payment Success SMS
+try {
+    const customerResult = await pool.query(
+        `SELECT c.mobile
+         FROM customers c
+         JOIN orders o
+           ON o.customer_id = c.customer_id
+         WHERE o.order_id = $1`,
+        [payment.order_id]
+    );
+
+    if (customerResult.rows.length > 0) {
+        const mobile = customerResult.rows[0].mobile;
+
+        await sendSMS(
+            mobile,
+            'RentMitra payment successful. Your payment has been verified.'
+        );
+    }
+} catch (smsError) {
+    console.error('Payment success SMS error:', smsError);
+}
 
 
         // ==========================================
@@ -4297,17 +4413,23 @@ app.post('/payments/verify', async (req, res) => {
 
         const orderItems = await client.query(
 
-            `SELECT
-                order_item_id,
-                order_id,
-                quantity,
-                monthly_rent
-             FROM order_items
-             WHERE order_id = $1`,
+    `SELECT
+        oi.order_item_id,
+        oi.order_id,
+        oi.quantity,
+        oi.monthly_rent,
+        pv.variant_name,
+        p.product_name
+     FROM order_items oi
+     JOIN product_variants pv
+       ON pv.variant_id = oi.variant_id
+     JOIN products p
+       ON p.product_id = pv.product_id
+     WHERE oi.order_id = $1`,
 
-            [payment.order_id]
+    [payment.order_id]
 
-        );
+);
 
 
         // ==========================================
@@ -4386,6 +4508,185 @@ app.post('/payments/verify', async (req, res) => {
         // ==========================================
 
         await client.query('COMMIT');
+        // ==========================================
+// SEND PAYMENT SUCCESS FCM NOTIFICATION
+// ==========================================
+
+try {
+
+    const tokenResult = await pool.query(
+        `SELECT fcm_token
+         FROM customer_fcm_tokens
+         WHERE customer_id = $1
+         AND is_active = true`,
+        [customerId]
+    );
+
+    if (tokenResult.rows.length > 0) {
+
+        const messages = tokenResult.rows.map(row => ({
+            token: row.fcm_token,
+
+            notification: {
+                title: 'RentMitra Payment Successful',
+                body: 'Your payment has been verified successfully.'
+            },
+
+            data: {
+                type: 'payment_success',
+                order_id: String(payment.order_id),
+                payment_status: 'Verified'
+            }
+        }));
+
+        const notificationResult =
+            await getMessaging().sendEach(messages);
+
+        console.log(
+            'Payment notification:',
+            notificationResult.successCount,
+            'success,',
+            notificationResult.failureCount,
+            'failed'
+        );
+    }
+
+} catch (notificationError) {
+
+    console.error(
+        'Payment notification failed:',
+        notificationError.message
+    );
+
+}
+// ==========================================
+// SEND PAYMENT SUCCESS WHATSAPP NOTIFICATION
+// ==========================================
+
+try {
+
+    const customerResult = await pool.query(
+        `SELECT mobile
+         FROM customers
+         WHERE customer_id = $1`,
+        [customerId]
+    );
+
+    if (customerResult.rows.length > 0) {
+
+        const mobile = customerResult.rows[0].mobile;
+
+        await sendWhatsApp(
+            mobile,
+            'RentMitra payment successful. Your payment has been verified.'
+        );
+
+        console.log(
+            'Payment success WhatsApp notification prepared for:',
+            mobile
+        );
+    }
+
+} catch (whatsappError) {
+
+    console.error(
+        'Payment success WhatsApp error:',
+        whatsappError.message
+    );
+
+}
+ // ==========================================
+// SEND RENTAL CONFIRMATION EMAIL
+// ==========================================
+
+try {
+
+    if (order.checkout_email) {
+
+        const firstItem = orderItems.rows[0];
+
+        const pdfBuffer =
+            await generateRentalReceiptPDF(payment.order_id);
+
+        await sendRentalConfirmationEmail({
+
+            to: order.checkout_email,
+
+            customerName:
+                order.checkout_full_name,
+
+            productName:
+                `${firstItem.product_name} - ${firstItem.variant_name}`,
+
+            monthlyRent:
+                firstItem.monthly_rent,
+
+            gst: 0,
+
+            totalAmount:
+                order.order_amount,
+
+            attachments: [
+                {
+                    filename:
+                        `RentMitra_Receipt_${payment.order_id}.pdf`,
+
+                    content:
+                        pdfBuffer,
+
+                    contentType:
+                        'application/pdf'
+                }
+            ]
+
+        });
+
+        console.log(
+            'Rental confirmation email with PDF sent successfully'
+        );
+
+    }
+
+} catch (emailError) {
+
+    console.error(
+        'Rental confirmation email failed:',
+        emailError.message
+    );
+
+}
+// ==========================================
+// SEND RENTAL CONFIRMATION SMS
+// ==========================================
+
+try {
+
+    const customerResult = await pool.query(
+        `SELECT mobile
+         FROM customers
+         WHERE customer_id = $1`,
+        [customerId]
+    );
+
+    if (customerResult.rows.length > 0) {
+
+        const mobile = customerResult.rows[0].mobile;
+
+        await sendSMS(
+            mobile,
+            'RentMitra rental confirmed successfully. Your rental is now active.'
+        );
+
+    }
+
+} catch (smsError) {
+
+    console.error(
+        'Rental confirmation SMS error:',
+        smsError.message
+    );
+
+}
 
 
         // ==========================================
@@ -4659,6 +4960,131 @@ app.get('/admin/customers', async (req, res) => {
 
         return res.status(500).json({
             message: 'Failed to get admin customers',
+            error: error.message
+        });
+    }
+});
+// ==========================================
+// ADMIN - GET CUSTOMER PROFILE
+// ==========================================
+
+app.get('/admin/customers/:id', async (req, res) => {
+    try {
+
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active,
+                created_at,
+                updated_at
+             FROM customers
+             WHERE customer_id = $1`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Customer not found'
+            });
+        }
+
+        res.status(200).json({
+            message: 'Customer profile retrieved successfully',
+            customer: result.rows[0]
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Admin customer profile error:',
+            error
+        );
+
+        res.status(500).json({
+            message: 'Failed to fetch customer profile',
+            error: error.message
+        });
+    }
+});
+// ==========================================
+// ADMIN - UPDATE CUSTOMER PROFILE
+// ==========================================
+
+app.put('/admin/customers/:id', async (req, res) => {
+    try {
+
+        const { id } = req.params;
+        const {
+            full_name,
+            mobile,
+            email
+        } = req.body;
+
+        // Validate required fields
+        if (!full_name || !mobile || !email) {
+            return res.status(400).json({
+                message: 'full_name, mobile and email are required'
+            });
+        }
+
+        // Check customer exists
+        const customerResult = await pool.query(
+            `SELECT customer_id
+             FROM customers
+             WHERE customer_id = $1`,
+            [id]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Customer not found'
+            });
+        }
+
+        // Update customer profile
+        const result = await pool.query(
+            `UPDATE customers
+             SET
+                full_name = $1,
+                mobile = $2,
+                email = $3,
+                updated_at = CURRENT_TIMESTAMP
+             WHERE customer_id = $4
+             RETURNING
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active,
+                created_at,
+                updated_at`,
+            [
+                full_name.trim(),
+                mobile.trim(),
+                email.trim(),
+                id
+            ]
+        );
+
+        res.status(200).json({
+            message: 'Customer profile updated successfully',
+            customer: result.rows[0]
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Admin customer profile update error:',
+            error
+        );
+
+        res.status(500).json({
+            message: 'Failed to update customer profile',
             error: error.message
         });
     }
@@ -5149,36 +5575,68 @@ app.put('/admin/orders/:id/status', async (req, res) => {
         });
     }
 });
+// ==========================================
+// ADMIN - GET ALL RENTALS
+// ==========================================
+
 app.get('/admin/rentals', async (req, res) => {
     try {
+
         const result = await pool.query(`
             SELECT
                 r.rental_id,
                 r.order_id,
                 r.order_item_id,
                 r.customer_id,
+
                 c.full_name AS customer_name,
                 c.mobile AS customer_mobile,
+                c.email AS customer_email,
+
                 r.monthly_rent,
                 r.start_date,
                 r.rental_status,
+
+                o.order_status,
+
+                p.payment_status,
+                p.verification_status,
+
                 r.created_at,
                 r.updated_at
+
             FROM rentals r
+
             JOIN customers c
                 ON c.customer_id = r.customer_id
+
+            JOIN orders o
+                ON o.order_id = r.order_id
+
+            LEFT JOIN LATERAL (
+    SELECT
+        payment_status,
+        verification_status
+    FROM payments
+    WHERE payments.order_id = r.order_id
+    ORDER BY payments.payment_id DESC
+    LIMIT 1
+) p ON true
             ORDER BY r.rental_id DESC;
         `);
 
         res.status(200).json({
+            message: 'Admin rentals retrieved successfully',
             rentals: result.rows
         });
 
     } catch (error) {
+
         console.error('Admin rentals error:', error);
 
         res.status(500).json({
-            message: 'Failed to fetch rentals'
+            message: 'Failed to fetch admin rentals',
+            error: error.message
         });
     }
 });
@@ -5504,6 +5962,208 @@ app.get('/admin/addresses/:id', async (req, res) => {
         });
     }
 });
+
+// ==========================================
+// ADMIN - SEND COMMUNICATION
+// ==========================================
+
+app.post('/admin/communications/send', async (req, res) => {
+    try {
+
+        const {
+            customer_id,
+            channel,
+            message
+        } = req.body;
+
+        // Validate customer
+        if (!customer_id) {
+            return res.status(400).json({
+                message: 'customer_id is required'
+            });
+        }
+
+        // Validate channel
+        const allowedChannels = [
+            'SMS',
+            'Email',
+            'WhatsApp',
+            'Push'
+        ];
+
+        if (!channel) {
+            return res.status(400).json({
+                message: 'channel is required'
+            });
+        }
+
+        if (!allowedChannels.includes(channel)) {
+            return res.status(400).json({
+                message: 'Invalid communication channel',
+                allowed_channels: allowedChannels
+            });
+        }
+
+        // Validate message
+        if (!message || !message.trim()) {
+            return res.status(400).json({
+                message: 'message is required'
+            });
+        }
+
+        // Check customer
+        const customerResult = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active
+             FROM customers
+             WHERE customer_id = $1`,
+            [customer_id]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Customer not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                message: 'Customer account is inactive'
+            });
+        }
+
+        // Create communication log
+        const communicationResult = await pool.query(
+            `INSERT INTO communication_logs
+            (
+                customer_id,
+                channel,
+                message,
+                status
+            )
+            VALUES ($1, $2, $3, 'Pending')
+            RETURNING *`,
+            [
+                customer_id,
+                channel,
+                message.trim()
+            ]
+        );
+
+        const communication =
+            communicationResult.rows[0];
+
+        // ==========================================
+        // SEND MESSAGE
+        // ==========================================
+
+        let sendResult;
+
+        if (channel === 'SMS') {
+
+            sendResult = await sendSMS(
+                customer.mobile,
+                message.trim()
+            );
+
+        } else if (channel === 'WhatsApp') {
+
+            sendResult = await sendWhatsApp(
+                customer.mobile,
+                message.trim()
+            );
+
+        } else if (channel === 'Email') {
+
+            console.log(
+                'Email communication prepared:',
+                customer.email,
+                message.trim()
+            );
+
+            sendResult = {
+                success: true,
+                message: 'Email communication prepared successfully'
+            };
+
+        } else if (channel === 'Push') {
+
+            const tokenResult = await pool.query(
+                `SELECT fcm_token
+                 FROM customer_fcm_tokens
+                 WHERE customer_id = $1
+                 AND is_active = true`,
+                [customer_id]
+            );
+
+            if (tokenResult.rows.length === 0) {
+                throw new Error(
+                    'No active FCM token found for customer'
+                );
+            }
+
+            const messages = tokenResult.rows.map(row => ({
+                token: row.fcm_token,
+
+                notification: {
+                    title: 'RentMitra Notification',
+                    body: message.trim()
+                },
+
+                data: {
+                    type: 'admin_communication',
+                    communication_id:
+                        String(communication.communication_id)
+                }
+            }));
+
+            sendResult =
+                await getMessaging().sendEach(messages);
+        }
+
+        // ==========================================
+        // UPDATE LOG
+        // ==========================================
+
+        await pool.query(
+            `UPDATE communication_logs
+             SET
+                status = 'Sent',
+                sent_at = CURRENT_TIMESTAMP
+             WHERE communication_id = $1`,
+            [communication.communication_id]
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Communication sent successfully',
+            communication_id:
+                communication.communication_id,
+            channel: channel,
+            customer_id: customer_id,
+            send_result: sendResult
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Admin communication error:',
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to send communication',
+            error: error.message
+        });
+    }
+});
 // ==========================================
 // ASSIGN DELIVERY TO ORDER
 // ==========================================
@@ -5766,6 +6426,44 @@ app.put('/deliveries/:order_id/delivered', async (req, res) => {
              WHERE order_id = $1`,
             [order_id]
         );
+        // ==========================================
+// SEND DELIVERY SUCCESS WHATSAPP NOTIFICATION
+// ==========================================
+
+try {
+
+    const customerResult = await pool.query(
+        `SELECT c.mobile
+         FROM customers c
+         JOIN orders o
+           ON o.customer_id = c.customer_id
+         WHERE o.order_id = $1`,
+        [order_id]
+    );
+
+    if (customerResult.rows.length > 0) {
+
+        const mobile = customerResult.rows[0].mobile;
+
+        await sendWhatsApp(
+            mobile,
+            'RentMitra: Your rental order has been delivered successfully.'
+        );
+
+        console.log(
+            'Delivery WhatsApp notification prepared for:',
+            mobile
+        );
+    }
+
+} catch (whatsappError) {
+
+    console.error(
+        'Delivery WhatsApp notification error:',
+        whatsappError.message
+    );
+
+}
 
         res.json({
             message: 'Order marked as delivered successfully',
@@ -6249,7 +6947,6 @@ app.post('/checkout', async (req, res) => {
 // GENERATE RENTAL PDF RECEIPT
 // ==========================================
 
-const PDFDocument = require('pdfkit');
 
 app.get('/orders/:order_id/receipt', async (req, res) => {
 
@@ -6565,6 +7262,1678 @@ app.get('/orders/:order_id/receipt', async (req, res) => {
 
     }
 
+});
+// ==========================================
+// TEST RENTAL CONFIRMATION EMAIL
+// ==========================================
+
+app.post('/test/email', async (req, res) => {
+    try {
+        const {
+            to,
+            customerName,
+            productName,
+            monthlyRent,
+            gst,
+            totalAmount
+        } = req.body;
+
+        if (!to) {
+            return res.status(400).json({
+                message: 'Email address is required'
+            });
+        }
+
+        await sendRentalConfirmationEmail({
+            to,
+            customerName: customerName || 'Test Customer',
+            productName: productName || '1.5 Ton AC',
+            monthlyRent: monthlyRent || 1299,
+            gst: gst || 234,
+            totalAmount: totalAmount || 1533
+        });
+
+        res.json({
+            message: 'Test email sent successfully'
+        });
+
+    } catch (error) {
+        console.error('Test email error:', error);
+
+        res.status(500).json({
+            message: 'Failed to send test email',
+            error: error.message
+        });
+    }
+});
+// ==========================================
+// GENERATE RENTAL PDF BUFFER FOR EMAIL
+// ==========================================
+
+async function generateRentalReceiptPDF(orderId) {
+
+    const orderResult = await pool.query(
+        `SELECT
+            o.order_id,
+            o.order_amount,
+            o.payment_status,
+            o.order_status,
+            o.created_at,
+            o.checkout_full_name,
+            o.checkout_mobile,
+            o.checkout_email,
+
+            c.full_name AS customer_name,
+            c.mobile AS customer_mobile,
+            c.email AS customer_email,
+
+            a.house_flat_number,
+            a.apartment_name,
+            a.street_area,
+            a.landmark,
+            a.city,
+            a.pincode
+
+         FROM orders o
+
+         LEFT JOIN customers c
+            ON c.customer_id = o.customer_id
+
+         LEFT JOIN addresses a
+            ON a.address_id = o.address_id
+
+         WHERE o.order_id = $1`,
+        [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+        throw new Error('Order not found');
+    }
+
+    const order = orderResult.rows[0];
+
+    const itemsResult = await pool.query(
+        `SELECT
+            oi.order_item_id,
+            oi.variant_id,
+            oi.quantity,
+            oi.monthly_rent,
+            pv.variant_name,
+            p.product_name
+
+         FROM order_items oi
+
+         LEFT JOIN product_variants pv
+            ON pv.variant_id = oi.variant_id
+
+         LEFT JOIN products p
+            ON p.product_id = pv.product_id
+
+         WHERE oi.order_id = $1`,
+        [orderId]
+    );
+
+    return new Promise((resolve, reject) => {
+
+        const doc = new PDFDocument({
+            margin: 50
+        });
+
+        const chunks = [];
+
+        doc.on('data', chunk => {
+            chunks.push(chunk);
+        });
+
+        doc.on('end', () => {
+            resolve(Buffer.concat(chunks));
+        });
+
+        doc.on('error', reject);
+
+        doc
+            .fontSize(22)
+            .text('RentMitra', {
+                align: 'center'
+            });
+
+        doc
+            .moveDown()
+            .fontSize(16)
+            .text('Rental Payment Receipt', {
+                align: 'center'
+            });
+
+        doc.moveDown();
+
+        doc
+            .fontSize(11)
+            .text(`Order ID: ${order.order_id}`)
+            .text(
+                `Order Date: ${new Date(order.created_at).toLocaleString()}`
+            )
+            .text(
+                `Payment Status: ${order.payment_status}`
+            )
+            .text(
+                `Order Status: ${order.order_status}`
+            );
+
+        doc.moveDown();
+
+        const customerName =
+            order.customer_name ||
+            order.checkout_full_name;
+
+        const customerMobile =
+            order.customer_mobile ||
+            order.checkout_mobile;
+
+        const customerEmail =
+            order.customer_email ||
+            order.checkout_email;
+
+        doc
+            .fontSize(14)
+            .text('Customer Details');
+
+        doc
+            .fontSize(11)
+            .text(`Name: ${customerName || '-'}`)
+            .text(`Mobile: ${customerMobile || '-'}`)
+            .text(`Email: ${customerEmail || '-'}`);
+
+        doc.moveDown();
+
+        doc
+            .fontSize(14)
+            .text('Delivery Address');
+
+        doc
+            .fontSize(11)
+            .text(`${order.house_flat_number || ''}`)
+            .text(`${order.apartment_name || ''}`)
+            .text(`${order.street_area || ''}`)
+            .text(`${order.landmark || ''}`)
+            .text(`${order.city || ''} - ${order.pincode || ''}`);
+
+        doc.moveDown();
+
+        doc
+            .fontSize(14)
+            .text('Rental Details');
+
+        doc.moveDown();
+
+        itemsResult.rows.forEach((item, index) => {
+
+            doc
+                .fontSize(11)
+                .text(
+                    `${index + 1}. ${item.product_name || 'Product'} - ${item.variant_name || 'Variant'}`
+                )
+                .text(
+                    `Quantity: ${item.quantity}`
+                )
+                .text(
+                    `Monthly Rent: Rs. ${Number(item.monthly_rent).toFixed(2)}`
+                )
+                .moveDown(0.5);
+
+        });
+
+        doc
+            .moveDown()
+            .fontSize(14)
+            .text(
+                `Total Monthly Rent: Rs. ${Number(order.order_amount).toFixed(2)}`
+            );
+
+        doc
+            .moveDown(2)
+            .fontSize(10)
+            .text(
+                'Thank you for choosing RentMitra.',
+                {
+                    align: 'center'
+                }
+            );
+
+        doc.end();
+    });
+}
+// ==========================================
+// TEST PDF BUFFER
+// ==========================================
+
+app.get('/test/pdf/:order_id', async (req, res) => {
+
+    try {
+
+        const { order_id } = req.params;
+
+        const pdfBuffer =
+            await generateRentalReceiptPDF(order_id);
+
+        res.setHeader(
+            'Content-Type',
+            'application/pdf'
+        );
+
+        res.setHeader(
+            'Content-Disposition',
+            `inline; filename="Test_Receipt_${order_id}.pdf"`
+        );
+
+        res.send(pdfBuffer);
+
+    } catch (error) {
+
+        console.error(
+            'Test PDF error:',
+            error
+        );
+
+        res.status(500).json({
+            message: 'Failed to generate test PDF',
+            error: error.message
+        });
+
+    }
+
+});
+// ==========================================
+// TEST EMAIL + PDF ATTACHMENT
+// ==========================================
+
+// ==========================================
+// TEST EMAIL + PDF ATTACHMENT
+// ==========================================
+
+app.get('/test/email-pdf/:order_id', async (req, res) => {
+
+    try {
+
+        const { order_id } = req.params;
+
+        // Get order + customer email
+        const orderResult = await pool.query(
+            `SELECT
+                o.checkout_full_name,
+                COALESCE(o.checkout_email, c.email) AS email
+             FROM orders o
+             LEFT JOIN customers c
+                ON c.customer_id = o.customer_id
+             WHERE o.order_id = $1`,
+            [order_id]
+        );
+
+        if (orderResult.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Order not found'
+            });
+        }
+
+        const order = orderResult.rows[0];
+
+        if (!order.email) {
+            return res.status(400).json({
+                message: 'Order email not found'
+            });
+        }
+
+        // Generate actual PDF
+        const pdfBuffer =
+            await generateRentalReceiptPDF(order_id);
+
+        // Send email with PDF attachment
+        await sendRentalConfirmationEmail({
+
+            to: order.email,
+
+            customerName:
+                order.checkout_full_name || 'Customer',
+
+            productName:
+                'RentMitra Rental',
+
+            monthlyRent: 0,
+
+            gst: 0,
+
+            totalAmount: 0,
+
+            attachments: [
+                {
+                    filename:
+                        `RentMitra_Receipt_${order_id}.pdf`,
+
+                    content:
+                        pdfBuffer,
+
+                    contentType:
+                        'application/pdf'
+                }
+            ]
+
+        });
+
+        console.log(
+            `Test email with PDF sent for Order ${order_id}`
+        );
+
+        res.json({
+            message:
+                'Test email with PDF sent successfully',
+
+            order_id:
+                order_id,
+
+            email:
+                order.email,
+
+            attachment:
+                `RentMitra_Receipt_${order_id}.pdf`
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Test email PDF error:',
+            error
+        );
+
+        res.status(500).json({
+            message:
+                'Failed to send test email with PDF',
+
+            error:
+                error.message
+        });
+
+    }
+
+});
+// ==========================================
+// WHATSAPP SUPPORT
+// ==========================================
+
+app.get('/support/whatsapp', (req, res) => {
+    try {
+        const phoneNumber = process.env.WHATSAPP_SUPPORT_NUMBER;
+
+        if (!phoneNumber) {
+            return res.status(500).json({
+                message: 'WhatsApp support number is not configured'
+            });
+        }
+
+        const message =
+            req.query.message ||
+            'Hello RentMitra, I need support.';
+
+        const whatsappUrl =
+            `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+        res.json({
+            message: 'WhatsApp support link generated successfully',
+            whatsapp_url: whatsappUrl
+        });
+
+    } catch (error) {
+        console.error('WhatsApp support error:', error);
+
+        res.status(500).json({
+            message: 'Failed to generate WhatsApp support link',
+            error: error.message
+        });
+    }
+});
+app.get("/auth/test", verifyFirebaseToken, (req, res) => {
+    res.json({
+        success: true,
+        message: "Firebase authentication successful",
+        user: req.firebaseUser
+    });
+});
+app.post("/auth/firebase-login", verifyFirebaseToken, async (req, res) => {
+    try {
+        const firebaseUser = req.firebaseUser;
+
+        // Get phone number from Firebase
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number not found in Firebase token"
+            });
+        }
+
+        // Firebase gives +91XXXXXXXXXX
+        // Database stores XXXXXXXXXX
+        const mobile = firebaseMobile.replace("+91", "");
+
+        // Find customer using mobile number
+        const result = await pool.query(
+            `SELECT 
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        // Customer not found
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer account not found. Please complete a rental booking first."
+            });
+        }
+
+        const customer = result.rows[0];
+
+        // Customer account inactive
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: "Customer account is inactive"
+            });
+        }
+
+        // Login successful
+        return res.status(200).json({
+            success: true,
+            message: "Firebase login successful",
+            customer: customer
+        });
+
+    } catch (error) {
+        console.error("Firebase login error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to login",
+            error: error.message
+        });
+    }
+});
+// CUSTOMER - GET MY RENTALS
+app.get('/customer/rentals', verifyFirebaseToken, async (req, res) => {
+    try {
+        const firebaseUser = req.firebaseUser;
+
+        // Get phone number from Firebase
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        // Firebase gives +91XXXXXXXXXX
+        // Database stores XXXXXXXXXX
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // Find customer
+        const customerResult = await pool.query(
+            `SELECT customer_id, full_name, mobile, email, is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        // Get customer's rentals
+        const rentalResult = await pool.query(
+            `SELECT
+                r.rental_id,
+                r.order_id,
+                r.order_item_id,
+                r.monthly_rent,
+                r.start_date,
+                r.rental_status,
+
+                p.product_id,
+                p.product_name,
+
+                pv.variant_id,
+                pv.variant_name,
+
+                o.order_amount,
+                o.order_status,
+                o.payment_status
+
+             FROM rentals r
+
+             JOIN orders o
+                ON r.order_id = o.order_id
+
+             JOIN order_items oi
+                ON r.order_item_id = oi.order_item_id
+
+             JOIN product_variants pv
+                ON oi.variant_id = pv.variant_id
+
+             JOIN products p
+                ON pv.product_id = p.product_id
+
+             WHERE r.customer_id = $1
+
+             ORDER BY r.created_at DESC`,
+            [customer.customer_id]
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Customer rentals retrieved successfully',
+
+            customer: {
+                customer_id: customer.customer_id,
+                full_name: customer.full_name,
+                mobile: customer.mobile,
+                email: customer.email
+            },
+
+            rentals: rentalResult.rows
+        });
+
+    } catch (error) {
+        console.error('Error getting customer rentals:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to get customer rentals',
+            error: error.message
+        });
+    }
+});
+// CUSTOMER - GET MY PROFILE
+app.get('/customer/profile', verifyFirebaseToken, async (req, res) => {
+    try {
+        const firebaseUser = req.firebaseUser;
+
+        // Get phone number from Firebase
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        // Firebase gives +91XXXXXXXXXX
+        // Database stores XXXXXXXXXX
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // Find the logged-in customer
+        const result = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                created_at,
+                updated_at,
+                is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        // Customer not found
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found. Please complete a rental booking first.'
+            });
+        }
+
+        const customer = result.rows[0];
+
+        // Customer inactive
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Customer profile retrieved successfully',
+            customer: customer
+        });
+
+    } catch (error) {
+        console.error('Error getting customer profile:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to get customer profile',
+            error: error.message
+        });
+    }
+});
+// ==========================================
+// CUSTOMER - GET RENTAL HISTORY
+// ==========================================
+
+app.get('/customer/rental-history', verifyFirebaseToken, async (req, res) => {
+
+    try {
+
+        const firebaseUser = req.firebaseUser;
+
+        // Get phone number from Firebase
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        // Firebase gives +91XXXXXXXXXX
+        // Database stores XXXXXXXXXX
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // Find customer
+        const customerResult = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        // Get completed / cancelled rentals
+        const rentalResult = await pool.query(
+            `SELECT
+                r.rental_id,
+                r.order_id,
+                r.order_item_id,
+                r.monthly_rent,
+                r.start_date,
+                r.rental_status,
+                r.created_at,
+                r.updated_at,
+
+                p.product_id,
+                p.product_name,
+
+                pv.variant_id,
+                pv.variant_name,
+
+                o.order_amount,
+                o.order_status,
+                o.payment_status
+
+             FROM rentals r
+
+             JOIN orders o
+                ON r.order_id = o.order_id
+
+             JOIN order_items oi
+                ON r.order_item_id = oi.order_item_id
+
+             JOIN product_variants pv
+                ON oi.variant_id = pv.variant_id
+
+             JOIN products p
+                ON pv.product_id = p.product_id
+
+             WHERE r.customer_id = $1
+               AND r.rental_status IN ('Completed', 'Cancelled')
+
+             ORDER BY r.updated_at DESC`,
+            [customer.customer_id]
+        );
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: 'Rental history retrieved successfully',
+
+            customer: {
+                customer_id: customer.customer_id,
+                full_name: customer.full_name,
+                mobile: customer.mobile,
+                email: customer.email
+            },
+
+            rental_history: rentalResult.rows
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Error getting rental history:',
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to get rental history',
+            error: error.message
+        });
+
+    }
+
+});
+// ==========================================
+// CUSTOMER - CREATE SERVICE REQUEST
+// ==========================================
+
+app.post('/customer/service-requests', verifyFirebaseToken, async (req, res) => {
+
+    try {
+
+        const firebaseUser = req.firebaseUser;
+
+        // Get phone number from Firebase
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        // Firebase gives +91XXXXXXXXXX
+        // Database stores XXXXXXXXXX
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // ==========================================
+        // FIND CUSTOMER
+        // ==========================================
+
+        const customerResult = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        // ==========================================
+        // GET REQUEST DETAILS
+        // ==========================================
+
+        const {
+            rental_id,
+            request_type,
+            description
+        } = req.body;
+
+        // ==========================================
+        // VALIDATION
+        // ==========================================
+
+        if (!request_type) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_type is required'
+            });
+        }
+
+        if (!description) {
+            return res.status(400).json({
+                success: false,
+                message: 'description is required'
+            });
+        }
+
+        // ==========================================
+        // CHECK RENTAL
+        // ==========================================
+
+        if (rental_id) {
+
+            const rentalResult = await pool.query(
+                `SELECT rental_id
+                 FROM rentals
+                 WHERE rental_id = $1
+                   AND customer_id = $2`,
+                [rental_id, customer.customer_id]
+            );
+
+            if (rentalResult.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Rental not found for this customer'
+                });
+            }
+        }
+
+        // ==========================================
+        // CREATE SERVICE REQUEST
+        // ==========================================
+
+        const result = await pool.query(
+            `INSERT INTO service_requests
+            (
+                customer_id,
+                rental_id,
+                request_type,
+                description,
+                request_status
+            )
+            VALUES
+            (
+                $1,
+                $2,
+                $3,
+                $4,
+                'Pending'
+            )
+            RETURNING *`,
+            [
+                customer.customer_id,
+                rental_id || null,
+                request_type,
+                description
+            ]
+        );
+
+        // ==========================================
+        // SUCCESS RESPONSE
+        // ==========================================
+
+        return res.status(201).json({
+
+            success: true,
+
+            message: 'Service request created successfully',
+
+            service_request: result.rows[0]
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Create service request error:',
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to create service request',
+            error: error.message
+        });
+
+    }
+
+});
+// ==========================================
+// CUSTOMER - GET MY SERVICE REQUESTS
+// ==========================================
+
+app.get('/customer/service-requests', verifyFirebaseToken, async (req, res) => {
+
+    try {
+
+        const firebaseUser = req.firebaseUser;
+
+        // Get phone number from Firebase
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        // Firebase gives +91XXXXXXXXXX
+        // Database stores XXXXXXXXXX
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // ==========================================
+        // FIND CUSTOMER
+        // ==========================================
+
+        const customerResult = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        // ==========================================
+        // GET SERVICE REQUESTS
+        // ==========================================
+
+        const result = await pool.query(
+            `SELECT
+                sr.service_request_id,
+                sr.customer_id,
+                sr.rental_id,
+                sr.request_type,
+                sr.description,
+                sr.request_status,
+                sr.created_at,
+                sr.updated_at,
+
+                r.monthly_rent,
+                r.start_date,
+                r.rental_status,
+
+                p.product_name,
+                pv.variant_name
+
+             FROM service_requests sr
+
+             LEFT JOIN rentals r
+                ON sr.rental_id = r.rental_id
+
+             LEFT JOIN order_items oi
+                ON r.order_item_id = oi.order_item_id
+
+             LEFT JOIN product_variants pv
+                ON oi.variant_id = pv.variant_id
+
+             LEFT JOIN products p
+                ON pv.product_id = p.product_id
+
+             WHERE sr.customer_id = $1
+
+             ORDER BY sr.created_at DESC`,
+            [customer.customer_id]
+        );
+
+        // ==========================================
+        // SUCCESS RESPONSE
+        // ==========================================
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: 'Service requests retrieved successfully',
+
+            service_requests: result.rows
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Get service requests error:',
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to get service requests',
+            error: error.message
+        });
+
+    }
+
+});
+// ==========================================
+// CUSTOMER - CREATE SERVICE REQUEST
+// ==========================================
+
+app.post('/customer/service-requests', verifyFirebaseToken, async (req, res) => {
+    try {
+        const firebaseUser = req.firebaseUser;
+
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // Find customer
+        const customerResult = await pool.query(
+            `SELECT customer_id, full_name, mobile, email, is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        const {
+            rental_id,
+            request_type,
+            description
+        } = req.body;
+
+        // Validate request type
+        if (!request_type) {
+            return res.status(400).json({
+                success: false,
+                message: 'request_type is required'
+            });
+        }
+
+        // If rental_id is provided, verify it belongs to customer
+        if (rental_id) {
+            const rentalResult = await pool.query(
+                `SELECT rental_id
+                 FROM rentals
+                 WHERE rental_id = $1
+                 AND customer_id = $2`,
+                [rental_id, customer.customer_id]
+            );
+
+            if (rentalResult.rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Rental not found for this customer'
+                });
+            }
+        }
+
+        // Create service request
+        const result = await pool.query(
+            `INSERT INTO service_requests
+            (
+                customer_id,
+                rental_id,
+                request_type,
+                description,
+                request_status
+            )
+            VALUES ($1, $2, $3, $4, 'Pending')
+            RETURNING *`,
+            [
+                customer.customer_id,
+                rental_id || null,
+                request_type,
+                description || null
+            ]
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: 'Service request created successfully',
+            service_request: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error('Create service request error:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to create service request',
+            error: error.message
+        });
+    }
+});
+// ==========================================
+// CUSTOMER - GET SINGLE SERVICE REQUEST
+// ==========================================
+
+app.get('/customer/service-requests/:id', verifyFirebaseToken, async (req, res) => {
+
+    try {
+
+        const firebaseUser = req.firebaseUser;
+
+        // ==========================================
+        // GET FIREBASE MOBILE
+        // ==========================================
+
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        // Firebase: +919876543210
+        // Database: 9876543210
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // ==========================================
+        // FIND CUSTOMER
+        // ==========================================
+
+        const customerResult = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        // ==========================================
+        // GET SERVICE REQUEST BY ID
+        // ==========================================
+
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT
+                sr.service_request_id,
+                sr.customer_id,
+                sr.rental_id,
+                sr.request_type,
+                sr.description,
+                sr.request_status,
+                sr.created_at,
+                sr.updated_at,
+
+                r.monthly_rent,
+                r.start_date,
+                r.rental_status,
+
+                p.product_id,
+                p.product_name,
+
+                pv.variant_id,
+                pv.variant_name
+
+             FROM service_requests sr
+
+             LEFT JOIN rentals r
+                ON sr.rental_id = r.rental_id
+
+             LEFT JOIN order_items oi
+                ON r.order_item_id = oi.order_item_id
+
+             LEFT JOIN product_variants pv
+                ON oi.variant_id = pv.variant_id
+
+             LEFT JOIN products p
+                ON pv.product_id = p.product_id
+
+             WHERE sr.service_request_id = $1
+             AND sr.customer_id = $2`,
+            [id, customer.customer_id]
+        );
+
+        // ==========================================
+        // SERVICE REQUEST NOT FOUND
+        // ==========================================
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Service request not found'
+            });
+        }
+
+        // ==========================================
+        // SUCCESS
+        // ==========================================
+
+        return res.status(200).json({
+            success: true,
+            message: 'Service request retrieved successfully',
+            service_request: result.rows[0]
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Get single service request error:',
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to get service request',
+            error: error.message
+        });
+    }
+});
+// ==========================================
+// ADMIN - GET ALL SERVICE REQUESTS
+// ==========================================
+
+app.get('/admin/service-requests', async (req, res) => {
+
+    try {
+
+        const result = await pool.query(
+
+            `SELECT
+                sr.service_request_id,
+                sr.customer_id,
+                sr.rental_id,
+                sr.request_type,
+                sr.description,
+                sr.request_status,
+                sr.created_at,
+                sr.updated_at,
+
+                c.full_name AS customer_name,
+                c.mobile AS customer_mobile,
+                c.email AS customer_email,
+
+                p.product_name,
+                pv.variant_name
+
+             FROM service_requests sr
+
+             JOIN customers c
+                ON sr.customer_id = c.customer_id
+
+             LEFT JOIN rentals r
+                ON sr.rental_id = r.rental_id
+
+             LEFT JOIN order_items oi
+                ON r.order_item_id = oi.order_item_id
+
+             LEFT JOIN product_variants pv
+                ON oi.variant_id = pv.variant_id
+
+             LEFT JOIN products p
+                ON pv.product_id = p.product_id
+
+             ORDER BY sr.created_at DESC`
+        );
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: 'Service requests retrieved successfully',
+
+            service_requests: result.rows
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Admin service requests error:',
+            error
+        );
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: 'Failed to get service requests',
+
+            error: error.message
+
+        });
+
+    }
+
+});
+// ==========================================
+// ADMIN - UPDATE SERVICE REQUEST STATUS
+// ==========================================
+
+app.put('/admin/service-requests/:id/status', async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        const { request_status } = req.body;
+
+        if (!request_status) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: 'request_status is required'
+
+            });
+
+        }
+
+        const result = await pool.query(
+
+            `UPDATE service_requests
+
+             SET
+                request_status = $1,
+                updated_at = CURRENT_TIMESTAMP
+
+             WHERE service_request_id = $2
+
+             RETURNING *`,
+
+            [
+                request_status,
+                id
+            ]
+
+        );
+
+        if (result.rows.length === 0) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message: 'Service request not found'
+
+            });
+
+        }
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: 'Service request status updated successfully',
+
+            service_request: result.rows[0]
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Update service request status error:',
+            error
+        );
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: 'Failed to update service request status',
+
+            error: error.message
+
+        });
+
+    }
+
+});
+app.post('/customer/fcm-token', verifyFirebaseToken, async (req, res) => {
+    try {
+        const firebaseUser = req.firebaseUser;
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // Find customer
+        const customerResult = await pool.query(
+            `SELECT customer_id, is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        const { fcm_token, device_type } = req.body;
+
+        if (!fcm_token) {
+            return res.status(400).json({
+                success: false,
+                message: 'FCM token is required'
+            });
+        }
+
+        // Save or update FCM token
+        await pool.query(
+            `INSERT INTO customer_fcm_tokens
+                (customer_id, fcm_token, device_type, is_active, updated_at)
+             VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP)
+             ON CONFLICT (fcm_token)
+             DO UPDATE SET
+                customer_id = EXCLUDED.customer_id,
+                device_type = EXCLUDED.device_type,
+                is_active = true,
+                updated_at = CURRENT_TIMESTAMP`,
+            [
+                customer.customer_id,
+                fcm_token,
+                device_type || null
+            ]
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'FCM token registered successfully'
+        });
+
+    } catch (error) {
+        console.error('Error registering FCM token:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to register FCM token',
+            error: error.message
+        });
+    }
+});
+app.post('/customer/test-notification', verifyFirebaseToken, async (req, res) => {
+    try {
+        const firebaseUser = req.firebaseUser;
+        const firebaseMobile = firebaseUser.phone_number;
+
+        if (!firebaseMobile) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number not found in Firebase token'
+            });
+        }
+
+        const mobile = firebaseMobile.replace('+91', '');
+
+        // Find customer
+        const customerResult = await pool.query(
+            `SELECT customer_id, full_name, is_active
+             FROM customers
+             WHERE mobile = $1`,
+            [mobile]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Customer account not found'
+            });
+        }
+
+        const customer = customerResult.rows[0];
+
+        if (!customer.is_active) {
+            return res.status(403).json({
+                success: false,
+                message: 'Customer account is inactive'
+            });
+        }
+
+        // Get active FCM tokens
+        const tokenResult = await pool.query(
+            `SELECT token_id, fcm_token
+             FROM customer_fcm_tokens
+             WHERE customer_id = $1
+             AND is_active = true`,
+            [customer.customer_id]
+        );
+
+        if (tokenResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No active FCM token found'
+            });
+        }
+
+        const messages = tokenResult.rows.map(row => ({
+            token: row.fcm_token,
+            notification: {
+                title: 'RentMitra Test Notification',
+                body: 'Firebase push notification is working successfully!'
+            }
+        }));
+
+        const result = await getMessaging().sendEach(messages);
+
+        return res.status(200).json({
+    success: true,
+    message: 'Test notification sent successfully',
+    success_count: result.successCount,
+    failure_count: result.failureCount,
+    responses: result.responses
+});
+
+    } catch (error) {
+        console.error('Error sending test notification:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to send test notification',
+            error: error.message
+        });
+    }
 });
 // ==========================================
 

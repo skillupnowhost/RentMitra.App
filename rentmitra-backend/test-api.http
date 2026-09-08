@@ -153,7 +153,7 @@ POST http://localhost:3000/product-variants
 Content-Type: application/json
 
 {
-  "product_id": 1,
+  "product_id": 5,
   "variant_name": "2 Ton",
   "monthly_rent": 2500
 }
@@ -305,7 +305,7 @@ POST http://localhost:3000/payments/create-order
 Content-Type: application/json
 
 {
-  "order_id": 17
+  "order_id": 22
 }
 ###
 GET http://localhost:3000/admin/dashboard
@@ -313,6 +313,19 @@ GET http://localhost:3000/admin/dashboard
 GET http://localhost:3000/admin/orders
 ###
 GET http://localhost:3000/admin/customers
+### ADMIN - GET CUSTOMER PROFILE
+
+GET http://localhost:3000/admin/customers/8
+### ADMIN - UPDATE CUSTOMER PROFILE
+
+PUT http://localhost:3000/admin/customers/8
+Content-Type: application/json
+
+{
+  "full_name": "Test Customer Updated",
+  "mobile": "9876543210",
+  "email": "tetcustomer@example.com"
+}
 ###
 GET http://localhost:3000/admin/products
 ###
@@ -337,7 +350,7 @@ Content-Type: application/json
 
 {
     "product_id": 1,
-    "variant_name": "2 Ton Updated Again",
+    "variant_name": "4 Ton Updated Again",
     "monthly_rent": 2600
 }
 ### Deactivate product variant
@@ -411,7 +424,7 @@ POST http://localhost:3000/payments/verify
 Content-Type: application/json
 
 {
-  "razorpay_order_id": "order_TRujxU6LiPQcXL",
+  "razorpay_order_id": "order_TShx8Auz1kfHvC",
   "razorpay_payment_id": "test_payment_123",
   "razorpay_signature": "invalid_signature"
 }
@@ -420,7 +433,7 @@ POST http://localhost:3000/payments/failed
 Content-Type: application/json
 
 {
-  "razorpay_order_id": "order_TRujxU6LiPQcXL"
+  "razorpay_order_id": "order_TShx8Auz1kfHvC"
 }
 
 ### Assign Delivery
@@ -450,9 +463,9 @@ Content-Type: application/json
 {
   "variant_id": 1,
   "quantity": 1,
-  "full_name": "Checkout Test",
-  "mobile": "9876543212",
-  "email": "checkouttest@example.com",
+  "full_name": "Test Customer",
+"mobile": "9876543210",
+"email": "tetcustomer@example.com",
   "house_flat_number": "20",
   "apartment_name": "Test Apartments",
   "street_area": "Main Road",
@@ -460,3 +473,135 @@ Content-Type: application/json
   "city": "Chennai",
   "pincode": "600001"
 }
+### enail testing
+POST http://localhost:3000/test/email
+Content-Type: application/json
+
+{
+  "to": "sallie42@ethereal.email",
+  "customerName": "Test Customer",
+  "productName": "1.5 Ton AC",
+  "monthlyRent": 1299,
+  "gst": 234,
+  "totalAmount": 1533
+}
+### Test SMS
+GET http://localhost:3000/test-sms
+### pdf receipt
+http://localhost:3000/orders/9/receipt
+### WhatsApp Support
+GET http://localhost:3000/support/whatsapp
+### Test WhatsApp Notification
+GET http://localhost:3000/test-whatsapp
+### phase 2 my rental
+GET http://localhost:3000/customer/rentals
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4MzMxMjg0LCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODgzMzEzNjQsImV4cCI6MTc4ODMzNDk2NCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.JYneHp8G0bsgNfjBeb6Oq3SqoKWGJXspqNmGXb-YNm1qFA_6Dyclt_QWa0Yc7WTpUyfcZryAJek5o4z11oOkbVrNpkN8kr_RoQyCGEpApFbmqE3M0MoSpx771weV_pnhIZlyJjvXRBjyeRZcZJXOA0u2ILUyWnh4GpSTB-qmJHXov2uzHGt1xv_wiaRgn3cGh1wgSKQBQrQQ-4o_mYNaGqYAgz6PHCbw8IiZX68Y5DsbHezQomafMEsIcTl5L6w_SdgQYmWHgmbXpbszfat8JrKeD4MBvFEf_wq4cIquEjlUYX-5-Bfr9qaIpTxEPqpDW7ajl1oziPt3csdSA9kAcA
+###customer profile
+GET http://localhost:3000/customer/profile
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4MzMxMjg0LCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODgzMzEzNjQsImV4cCI6MTc4ODMzNDk2NCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.JYneHp8G0bsgNfjBeb6Oq3SqoKWGJXspqNmGXb-YNm1qFA_6Dyclt_QWa0Yc7WTpUyfcZryAJek5o4z11oOkbVrNpkN8kr_RoQyCGEpApFbmqE3M0MoSpx771weV_pnhIZlyJjvXRBjyeRZcZJXOA0u2ILUyWnh4GpSTB-qmJHXov2uzHGt1xv_wiaRgn3cGh1wgSKQBQrQQ-4o_mYNaGqYAgz6PHCbw8IiZX68Y5DsbHezQomafMEsIcTl5L6w_SdgQYmWHgmbXpbszfat8JrKeD4MBvFEf_wq4cIquEjlUYX-5-Bfr9qaIpTxEPqpDW7ajl1oziPt3csdSA9kAcA
+###rental history
+GET http://localhost:3000/customer/rental-history
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4MzMxMjg0LCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODgzMzEzNjQsImV4cCI6MTc4ODMzNDk2NCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.JYneHp8G0bsgNfjBeb6Oq3SqoKWGJXspqNmGXb-YNm1qFA_6Dyclt_QWa0Yc7WTpUyfcZryAJek5o4z11oOkbVrNpkN8kr_RoQyCGEpApFbmqE3M0MoSpx771weV_pnhIZlyJjvXRBjyeRZcZJXOA0u2ILUyWnh4GpSTB-qmJHXov2uzHGt1xv_wiaRgn3cGh1wgSKQBQrQQ-4o_mYNaGqYAgz6PHCbw8IiZX68Y5DsbHezQomafMEsIcTl5L6w_SdgQYmWHgmbXpbszfat8JrKeD4MBvFEf_wq4cIquEjlUYX-5-Bfr9qaIpTxEPqpDW7ajl1oziPt3csdSA9kAcA
+###service request
+GET http://localhost:3000/customer/service-requests
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4MzMxMjg0LCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODgzMzEzNjQsImV4cCI6MTc4ODMzNDk2NCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.JYneHp8G0bsgNfjBeb6Oq3SqoKWGJXspqNmGXb-YNm1qFA_6Dyclt_QWa0Yc7WTpUyfcZryAJek5o4z11oOkbVrNpkN8kr_RoQyCGEpApFbmqE3M0MoSpx771weV_pnhIZlyJjvXRBjyeRZcZJXOA0u2ILUyWnh4GpSTB-qmJHXov2uzHGt1xv_wiaRgn3cGh1wgSKQBQrQQ-4o_mYNaGqYAgz6PHCbw8IiZX68Y5DsbHezQomafMEsIcTl5L6w_SdgQYmWHgmbXpbszfat8JrKeD4MBvFEf_wq4cIquEjlUYX-5-Bfr9qaIpTxEPqpDW7ajl1oziPt3csdSA9kAcA
+###
+GET http://localhost:3000/admin/service-requests
+###
+PUT http://localhost:3000/admin/service-requests/1/status
+Content-Type: application/json
+
+{
+  "request_status": "In Progress"
+}
+### CREATE MY SERVICE REQUEST
+
+POST http://localhost:3000/customer/service-requests
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4MzMxMjg0LCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODgzMzEzNjQsImV4cCI6MTc4ODMzNDk2NCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.JYneHp8G0bsgNfjBeb6Oq3SqoKWGJXspqNmGXb-YNm1qFA_6Dyclt_QWa0Yc7WTpUyfcZryAJek5o4z11oOkbVrNpkN8kr_RoQyCGEpApFbmqE3M0MoSpx771weV_pnhIZlyJjvXRBjyeRZcZJXOA0u2ILUyWnh4GpSTB-qmJHXov2uzHGt1xv_wiaRgn3cGh1wgSKQBQrQQ-4o_mYNaGqYAgz6PHCbw8IiZX68Y5DsbHezQomafMEsIcTl5L6w_SdgQYmWHgmbXpbszfat8JrKeD4MBvFEf_wq4cIquEjlUYX-5-Bfr9qaIpTxEPqpDW7ajl1oziPt3csdSA9kAcA
+Content-Type: application/json
+
+{
+  "rental_id": 1,
+  "request_type": "Maintenance",
+  "description": "AC is not cooling properly"
+}
+###firebase auth test
+GET http://localhost:3000/auth/test
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4MzMxMjg0LCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODgzMzEzNjQsImV4cCI6MTc4ODMzNDk2NCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.JYneHp8G0bsgNfjBeb6Oq3SqoKWGJXspqNmGXb-YNm1qFA_6Dyclt_QWa0Yc7WTpUyfcZryAJek5o4z11oOkbVrNpkN8kr_RoQyCGEpApFbmqE3M0MoSpx771weV_pnhIZlyJjvXRBjyeRZcZJXOA0u2ILUyWnh4GpSTB-qmJHXov2uzHGt1xv_wiaRgn3cGh1wgSKQBQrQQ-4o_mYNaGqYAgz6PHCbw8IiZX68Y5DsbHezQomafMEsIcTl5L6w_SdgQYmWHgmbXpbszfat8JrKeD4MBvFEf_wq4cIquEjlUYX-5-Bfr9qaIpTxEPqpDW7ajl1oziPt3csdSA9kAcA
+###
+http://localhost:3000/customer/service-requests/1
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4MzMxMjg0LCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODgzMzEzNjQsImV4cCI6MTc4ODMzNDk2NCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.JYneHp8G0bsgNfjBeb6Oq3SqoKWGJXspqNmGXb-YNm1qFA_6Dyclt_QWa0Yc7WTpUyfcZryAJek5o4z11oOkbVrNpkN8kr_RoQyCGEpApFbmqE3M0MoSpx771weV_pnhIZlyJjvXRBjyeRZcZJXOA0u2ILUyWnh4GpSTB-qmJHXov2uzHGt1xv_wiaRgn3cGh1wgSKQBQrQQ-4o_mYNaGqYAgz6PHCbw8IiZX68Y5DsbHezQomafMEsIcTl5L6w_SdgQYmWHgmbXpbszfat8JrKeD4MBvFEf_wq4cIquEjlUYX-5-Bfr9qaIpTxEPqpDW7ajl1oziPt3csdSA9kAcA
+### Register FCM Token
+POST http://localhost:3000/customer/fcm-token
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4NDE3NjUyLCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODg0MTc2NjAsImV4cCI6MTc4ODQyMTI2MCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.exjcfwJ83RTP7GEu1o8CeXt23nm7FXGjFwjzajDQCSS1fAnR9wtdknI37Pf_9Hj2M9oKDB-ckTHaC8qOY7WjMnllbgBGLlQwTP_rUHqtiDcorRHvE6sRvC4p-BEsxMQRN7CnaxGckzXPmcDowRdLFWUJN43pjk5bJZ42edsKpHRKyj1phbbbDa2z_-e5K9tpKlr8Vp7jmOXTgIcCQRL6HwbjXsNhD4niHIaJ7NTvYIZF5__p6XHXMQuTGThvmkv896984Y1WFoZtJqQU1ajfS5Vx3fyrtgQNzCnqJYBKscWCYVa_mtD_2IbmcK3nUAPTk6JZVDk_Kcj8DF-Njoos3g
+Content-Type: application/json
+
+{
+    "fcm_token": "fs6na1fx5YrN_MkgWwdap6:APA91bFsF9ojrwJgA0wJRyerHUhmlDSLmHdNlB9Dcee7XTr5mSomGuNaPmVpxVb2s1YQ6AGhFM0LkEVjIFXUz3ZdU5DOPvy0kbhYCeTAdrCk1uUVryus0xg",
+    "device_type": "web"
+}
+### Test FCM Notification
+POST http://localhost:3000/customer/test-notification
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMmNiOTcyNTIzMzc3ZWRlMjE2MzQwYmNkNTg4MTA0MTQxZTYxY2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcmVudG1pdHJhLWJhYmJkIiwiYXVkIjoicmVudG1pdHJhLWJhYmJkIiwiYXV0aF90aW1lIjoxNzg4NDE3NjUyLCJ1c2VyX2lkIjoiaEZtckVFS0NOU2NFM3hqdjU5SUI2MUZDN1hGMiIsInN1YiI6ImhGbXJFRUtDTlNjRTN4anY1OUlCNjFGQzdYRjIiLCJpYXQiOjE3ODg0MTc2NjAsImV4cCI6MTc4ODQyMTI2MCwicGhvbmVfbnVtYmVyIjoiKzkxOTg3NjU0MzIxMCIsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsicGhvbmUiOlsiKzkxOTg3NjU0MzIxMCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.exjcfwJ83RTP7GEu1o8CeXt23nm7FXGjFwjzajDQCSS1fAnR9wtdknI37Pf_9Hj2M9oKDB-ckTHaC8qOY7WjMnllbgBGLlQwTP_rUHqtiDcorRHvE6sRvC4p-BEsxMQRN7CnaxGckzXPmcDowRdLFWUJN43pjk5bJZ42edsKpHRKyj1phbbbDa2z_-e5K9tpKlr8Vp7jmOXTgIcCQRL6HwbjXsNhD4niHIaJ7NTvYIZF5__p6XHXMQuTGThvmkv896984Y1WFoZtJqQU1ajfS5Vx3fyrtgQNzCnqJYBKscWCYVa_mtD_2IbmcK3nUAPTk6JZVDk_Kcj8DF-Njoos3g
+Content-Type: application/json
+
+
+{}
+### Test Rental Status Notification
+
+PUT http://localhost:3000/rentals/10/status
+Content-Type: application/json
+
+{
+    "rental_status": "Completed"
+}
+###
+PUT http://localhost:3000/rentals/10/status
+Content-Type: application/json
+
+{
+    "rental_status": "Active"
+}
+### ADMIN - SEND COMMUNICATION TEST
+
+POST http://localhost:3000/admin/communications/send
+Content-Type: application/json
+
+{
+  "customer_id": 8,
+  "channel": "Push",
+  "message": "Hello Test Customer, this is a RentMitra communication test."
+}
+### ADMIN - SEND SMS TEST
+
+POST http://localhost:3000/admin/communications/send
+Content-Type: application/json
+
+{
+  "customer_id": 8,
+  "channel": "SMS",
+  "message": "RentMitra SMS communication test successful."
+}
+### ADMIN - SEND WHATSAPP TEST
+
+POST http://localhost:3000/admin/communications/send
+Content-Type: application/json
+
+{
+  "customer_id": 8,
+  "channel": "WhatsApp",
+  "message": "RentMitra WhatsApp communication test successful."
+}
+### ADMIN - SEND EMAIL TEST
+
+POST http://localhost:3000/admin/communications/send
+Content-Type: application/json
+
+{
+  "customer_id": 8,
+  "channel": "Email",
+  "message": "RentMitra email communication test successful."
+}
+### ADMIN - GET CUSTOMER PROFILE
+
+GET http://localhost:3000/admin/customers/8
