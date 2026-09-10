@@ -1,3 +1,4 @@
+
 const PDFDocument = require('pdfkit');
 const path = require('path');
 const fs = require('fs');
@@ -736,6 +737,7 @@ const generateReceiptPdf = async (orderId) => {
 
     // ========================================================
     // RENTAL TABLE
+    // ONLY PRODUCT, QTY AND MONTHLY RENT
     // ========================================================
 
     const tableTop =
@@ -746,7 +748,6 @@ const generateReceiptPdf = async (orderId) => {
     const PRODUCT_X = LEFT;
     const QTY_X = 350;
     const RENT_X = 400;
-    const AMOUNT_X = 495;
 
 
     // ========================================================
@@ -763,6 +764,11 @@ const generateReceiptPdf = async (orderId) => {
         )
         .fill('#111111');
 
+
+    // ========================================================
+    // PRODUCT HEADER
+    // ========================================================
+
     doc
         .font('Helvetica-Bold')
         .fontSize(8)
@@ -772,6 +778,11 @@ const generateReceiptPdf = async (orderId) => {
             PRODUCT_X + 12,
             tableTop + 10
         );
+
+
+    // ========================================================
+    // QTY HEADER
+    // ========================================================
 
     doc
         .text(
@@ -784,24 +795,18 @@ const generateReceiptPdf = async (orderId) => {
             }
         );
 
-    doc
-        .text(
-            'MONTHLY RENT',
-            RENT_X - 10,
-            tableTop + 10,
-            {
-                width: 85,
-                align: 'right'
-            }
-        );
+
+    // ========================================================
+    // MONTHLY RENT HEADER
+    // ========================================================
 
     doc
         .text(
-            'AMOUNT',
-            AMOUNT_X,
+            'MONTHLY RENT',
+            RENT_X,
             tableTop + 10,
             {
-                width: 45,
+                width: 140,
                 align: 'right'
             }
         );
@@ -822,11 +827,6 @@ const generateReceiptPdf = async (orderId) => {
 
             const monthlyRent =
                 Number(item.monthly_rent) || 0;
-
-            const amount =
-                roundMoney(
-                    monthlyRent * quantity
-                );
 
             const productName =
                 item.product_name ||
@@ -921,33 +921,15 @@ const generateReceiptPdf = async (orderId) => {
             // =================================================
 
             doc
-                .text(
-                    formatCurrency(
-                        monthlyRent
-                    ),
-                    RENT_X - 10,
-                    rowY + 14,
-                    {
-                        width: 85,
-                        align: 'right'
-                    }
-                );
-
-
-            // =================================================
-            // AMOUNT
-            // =================================================
-
-            doc
                 .font('Helvetica-Bold')
+                .fontSize(9)
+                .fillColor('#222222')
                 .text(
-                    formatCurrency(
-                        amount
-                    ),
-                    AMOUNT_X,
+                    formatCurrency(monthlyRent),
+                    RENT_X,
                     rowY + 14,
                     {
-                        width: 45,
+                        width: 140,
                         align: 'right'
                     }
                 );
@@ -1005,7 +987,9 @@ const generateReceiptPdf = async (orderId) => {
         .fill('#111111');
 
 
+    // ========================================================
     // DESCRIPTION HEADER
+    // ========================================================
 
     doc
         .font('Helvetica-Bold')
@@ -1022,7 +1006,9 @@ const generateReceiptPdf = async (orderId) => {
         );
 
 
+    // ========================================================
     // AMOUNT HEADER
+    // ========================================================
 
     doc
         .font('Helvetica-Bold')
@@ -1209,7 +1195,9 @@ const generateReceiptPdf = async (orderId) => {
         .fill('#FFFFFF');
 
 
-    // Total divider
+    // ========================================================
+    // TOTAL DIVIDER
+    // ========================================================
 
     doc
         .moveTo(
@@ -1223,6 +1211,10 @@ const generateReceiptPdf = async (orderId) => {
         .lineWidth(1)
         .stroke('#222222');
 
+
+    // ========================================================
+    // TOTAL LABEL
+    // ========================================================
 
     doc
         .font('Helvetica-Bold')
@@ -1238,6 +1230,10 @@ const generateReceiptPdf = async (orderId) => {
             }
         );
 
+
+    // ========================================================
+    // TOTAL VALUE
+    // ========================================================
 
     doc
         .font('Helvetica-Bold')
@@ -1376,6 +1372,10 @@ const generateReceiptPdf = async (orderId) => {
     const footerLineY = 755;
 
 
+    // ========================================================
+    // FOOTER LINE
+    // ========================================================
+
     doc
         .moveTo(
             LEFT,
@@ -1398,7 +1398,7 @@ const generateReceiptPdf = async (orderId) => {
         .fontSize(8)
         .fillColor('#222222')
         .text(
-            'RentMitra',
+            'RentMitra.app',
             LEFT,
             footerLineY + 9,
             {
@@ -1447,7 +1447,7 @@ const generateReceiptPdf = async (orderId) => {
         .fontSize(9)
         .fillColor('#111111')
         .text(
-            'Thank you for choosing RentMitra.',
+            'Thank you for choosing RentMitra.app',
             LEFT,
             footerLineY + 49,
             {
@@ -1748,3 +1748,4 @@ const formatDate = (value) => {
 module.exports = {
     generateReceiptPdf
 };
+
