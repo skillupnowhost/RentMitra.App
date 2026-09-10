@@ -201,6 +201,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+
+      // IMPORTANT:
+      // Allow Flutter to resize the page when the keyboard opens.
+      // The payment bar is outside the scroll view, so it will never
+      // overlap or hide an input field.
+      resizeToAvoidBottomInset: true,
+
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -211,146 +218,143 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _buildHeader(),
 
                 Expanded(
-                  child: Stack(
-                    children: [
-                      SingleChildScrollView(
-                        controller: _scrollController,
-                        keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: EdgeInsets.fromLTRB(
-                          AppTextStyles.fig(16),
-                          AppTextStyles.fig(8),
-                          AppTextStyles.fig(16),
-                          AppTextStyles.fig(190),
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+
+                    // The payment bar is NOT inside this scroll view.
+                    // Therefore it cannot cover the fields.
+                    padding: EdgeInsets.fromLTRB(
+                      AppTextStyles.fig(16),
+                      AppTextStyles.fig(8),
+                      AppTextStyles.fig(16),
+                      AppTextStyles.fig(24),
+                    ),
+
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_topErrorMessage != null) ...[
+                          _buildTopErrorMessage(),
+                          SizedBox(height: AppTextStyles.fig(12)),
+                        ],
+
+                        _buildProductCard(),
+
+                        SizedBox(height: AppTextStyles.fig(14)),
+
+                        _buildGstInfo(),
+
+                        SizedBox(height: AppTextStyles.fig(26)),
+
+                        _buildFullNameField(),
+
+                        SizedBox(height: AppTextStyles.fig(16)),
+
+                        _buildDeliveryHeader(),
+
+                        SizedBox(height: AppTextStyles.fig(16)),
+
+                        _buildAddressField(
+                          icon: Icons.home_outlined,
+                          title: 'House / Flat Number',
+                          hint: 'Enter house / flat number',
+                          controller: _houseController,
+                          focusNode: _houseFocus,
+                          requiredField: true,
+                          nextFocus: _buildingFocus,
                         ),
-                        child: Column(
+
+                        _buildAddressField(
+                          icon: Icons.apartment_outlined,
+                          title: 'Apartment / Building Name',
+                          hint: 'Enter apartment / building / society name',
+                          controller: _buildingController,
+                          focusNode: _buildingFocus,
+                          requiredField: true,
+                          nextFocus: _streetFocus,
+                        ),
+
+                        _buildAddressField(
+                          icon: Icons.alt_route_outlined,
+                          title: 'Street / Area',
+                          hint: 'Enter street / area / locality',
+                          controller: _streetController,
+                          focusNode: _streetFocus,
+                          requiredField: true,
+                          nextFocus: _landmarkFocus,
+                        ),
+
+                        _buildAddressField(
+                          icon: Icons.location_on_outlined,
+                          title: 'Landmark',
+                          hint: 'Enter nearby landmark',
+                          controller: _landmarkController,
+                          focusNode: _landmarkFocus,
+                          requiredField: false,
+                          nextFocus: _cityFocus,
+                        ),
+
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (_topErrorMessage != null) ...[
-                              _buildTopErrorMessage(),
-
-                              SizedBox(height: AppTextStyles.fig(12)),
-                            ],
-
-                            _buildProductCard(),
-
-                            SizedBox(height: AppTextStyles.fig(14)),
-
-                            _buildGstInfo(),
-
-                            SizedBox(height: AppTextStyles.fig(26)),
-
-                            _buildFullNameField(),
-
-                            SizedBox(height: AppTextStyles.fig(16)),
-
-                            _buildDeliveryHeader(),
-
-                            SizedBox(height: AppTextStyles.fig(16)),
-
-                            _buildAddressField(
-                              icon: Icons.home_outlined,
-                              title: 'House / Flat Number',
-                              hint: 'Enter house / flat number',
-                              controller: _houseController,
-                              focusNode: _houseFocus,
-                              requiredField: true,
-                              nextFocus: _buildingFocus,
+                            Expanded(
+                              child: _buildAddressField(
+                                icon: Icons.location_city_outlined,
+                                title: 'City',
+                                hint: 'Enter city',
+                                controller: _cityController,
+                                focusNode: _cityFocus,
+                                requiredField: true,
+                                compact: true,
+                                nextFocus: _pincodeFocus,
+                              ),
                             ),
 
-                            _buildAddressField(
-                              icon: Icons.apartment_outlined,
-                              title: 'Apartment / Building Name',
-                              hint: 'Enter apartment / building / society name',
-                              controller: _buildingController,
-                              focusNode: _buildingFocus,
-                              requiredField: true,
-                              nextFocus: _streetFocus,
+                            SizedBox(width: AppTextStyles.fig(10)),
+
+                            Expanded(
+                              child: _buildAddressField(
+                                icon: Icons.pin_drop_outlined,
+                                title: 'Pincode',
+                                hint: 'Enter pincode',
+                                controller: _pincodeController,
+                                focusNode: _pincodeFocus,
+                                requiredField: true,
+                                compact: true,
+                                keyboardType: TextInputType.number,
+                                maxLength: 6,
+                                nextFocus: _mobileFocus,
+                              ),
                             ),
-
-                            _buildAddressField(
-                              icon: Icons.alt_route_outlined,
-                              title: 'Street / Area',
-                              hint: 'Enter street / area / locality',
-                              controller: _streetController,
-                              focusNode: _streetFocus,
-                              requiredField: true,
-                              nextFocus: _landmarkFocus,
-                            ),
-
-                            _buildAddressField(
-                              icon: Icons.location_on_outlined,
-                              title: 'Landmark',
-                              hint: 'Enter nearby landmark',
-                              controller: _landmarkController,
-                              focusNode: _landmarkFocus,
-                              requiredField: false,
-                              nextFocus: _cityFocus,
-                            ),
-
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: _buildAddressField(
-                                    icon: Icons.location_city_outlined,
-                                    title: 'City',
-                                    hint: 'Enter city',
-                                    controller: _cityController,
-                                    focusNode: _cityFocus,
-                                    requiredField: true,
-                                    compact: true,
-                                    nextFocus: _pincodeFocus,
-                                  ),
-                                ),
-
-                                SizedBox(width: AppTextStyles.fig(10)),
-
-                                Expanded(
-                                  child: _buildAddressField(
-                                    icon: Icons.pin_drop_outlined,
-                                    title: 'Pincode',
-                                    hint: 'Enter pincode',
-                                    controller: _pincodeController,
-                                    focusNode: _pincodeFocus,
-                                    requiredField: true,
-                                    compact: true,
-                                    keyboardType: TextInputType.number,
-                                    maxLength: 6,
-                                    nextFocus: _mobileFocus,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            _buildMobileField(),
-
-                            _buildAddressField(
-                              icon: Icons.mail_outline,
-                              title: 'Email Address',
-                              hint: 'Enter your email address',
-                              controller: _emailController,
-                              focusNode: _emailFocus,
-                              requiredField: true,
-                              keyboardType: TextInputType.emailAddress,
-                            ),
-
-                            _buildEmailNotice(),
-
-                            SizedBox(height: AppTextStyles.fig(30)),
                           ],
                         ),
-                      ),
 
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: _buildBottomPaymentBar(),
-                      ),
-                    ],
+                        _buildMobileField(),
+
+                        _buildAddressField(
+                          icon: Icons.mail_outline,
+                          title: 'Email Address',
+                          hint: 'Enter your email address',
+                          controller: _emailController,
+                          focusNode: _emailFocus,
+                          requiredField: true,
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+
+                        _buildEmailNotice(),
+
+                        SizedBox(height: AppTextStyles.fig(30)),
+                      ],
+                    ),
                   ),
                 ),
+
+                // Keep the payment bar OUTSIDE the scroll view.
+                // It occupies its own layout space and therefore
+                // cannot cover the last input fields.
+                _buildBottomPaymentBar(),
               ],
             ),
           ),
@@ -539,7 +543,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               -product.discount,
               valueColor: Colors.green,
               titleColor: Colors.green,
-             
             ),
 
             Padding(
@@ -605,7 +608,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // PRICE ROW
   // ============================================================
 
-  Widget _priceRow(String title, int amount, {Color? valueColor, Color? titleColor}) {
+  Widget _priceRow(
+    String title,
+    int amount, {
+    Color? valueColor,
+    Color? titleColor,
+  }) {
     return Row(
       children: [
         Expanded(
@@ -673,19 +681,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            width: AppTextStyles.fig(28),
-            height: AppTextStyles.fig(28),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.purple, width: 2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.info_outline,
-              color: AppColors.purple,
-              size: 18,
-            ),
-          ),
+          const Icon(Icons.info_outline, color: AppColors.purple, size: 22),
 
           SizedBox(width: AppTextStyles.fig(12)),
 
@@ -920,11 +916,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   focusNode: focusNode,
                   keyboardType: keyboardType,
                   maxLength: maxLength,
-                  textInputAction: TextInputAction.next,
+                  textInputAction: nextFocus != null
+                      ? TextInputAction.next
+                      : TextInputAction.done,
                   onFieldSubmitted: (_) {
                     if (nextFocus != null) {
                       _moveToNextField(nextFocus);
                     } else {
+                      // Last field: pressing Enter/Done only closes
+                      // the keyboard. It NEVER starts payment.
                       FocusScope.of(context).unfocus();
                     }
                   },
@@ -1805,62 +1805,62 @@ extension CheckoutProductData on CheckoutProduct {
   // ============================================================
 
   // ============================================================
-// DATABASE VARIANT ID
-// ============================================================
+  // DATABASE VARIANT ID
+  // ============================================================
 
-int get variantId {
-  switch (this) {
-    // ========================================================
-    // AC
-    // ========================================================
+  int get variantId {
+    switch (this) {
+      // ========================================================
+      // AC
+      // ========================================================
 
-    case CheckoutProduct.acOnePointFiveTon:
-      return 1;
+      case CheckoutProduct.acOnePointFiveTon:
+        return 1;
 
-    case CheckoutProduct.acOneTon:
-      return 2;
+      case CheckoutProduct.acOneTon:
+        return 2;
 
-    // ========================================================
-    // REFRIGERATOR
-    // ========================================================
+      // ========================================================
+      // REFRIGERATOR
+      // ========================================================
 
-    case CheckoutProduct.refrigeratorSingleDoor:
-      return 3;
+      case CheckoutProduct.refrigeratorSingleDoor:
+        return 3;
 
-    case CheckoutProduct.refrigeratorDoubleDoor:
-      return 4;
+      case CheckoutProduct.refrigeratorDoubleDoor:
+        return 4;
 
-    // ========================================================
-    // WASHING MACHINE
-    // ========================================================
+      // ========================================================
+      // WASHING MACHINE
+      // ========================================================
 
-    case CheckoutProduct.washingMachineTopLoad:
-      return 5;
+      case CheckoutProduct.washingMachineTopLoad:
+        return 5;
 
-    case CheckoutProduct.washingMachineFrontLoad:
-      return 6;
+      case CheckoutProduct.washingMachineFrontLoad:
+        return 6;
 
-    // ========================================================
-    // COMBO
-    // ========================================================
+      // ========================================================
+      // COMBO
+      // ========================================================
 
-    case CheckoutProduct.essentialCombo:
-      return 7;
+      case CheckoutProduct.essentialCombo:
+        return 7;
 
-    case CheckoutProduct.premiumCombo:
-      return 8;
+      case CheckoutProduct.premiumCombo:
+        return 8;
 
-    // ========================================================
-    // OLD COMBO ENUM VALUES
-    //
-    // These are not connected to the current ComboScreen.
-    // ========================================================
+      // ========================================================
+      // OLD COMBO ENUM VALUES
+      //
+      // These are not connected to the current ComboScreen.
+      // ========================================================
 
-    case CheckoutProduct.starterHomeCombo:
-    case CheckoutProduct.familyEssential:
-    case CheckoutProduct.premiumFamily:
-    case CheckoutProduct.comfortPlus:
-      return 0;
+      case CheckoutProduct.starterHomeCombo:
+      case CheckoutProduct.familyEssential:
+      case CheckoutProduct.premiumFamily:
+      case CheckoutProduct.comfortPlus:
+        return 0;
+    }
   }
-}
 }

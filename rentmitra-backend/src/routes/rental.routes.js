@@ -3,6 +3,7 @@ const express = require('express');
 const {
     createRental,
     getAllRentals,
+    getCustomerRentals,
     getRentalById,
     updateRentalStatus,
     updateRental,
@@ -16,23 +17,76 @@ const router = express.Router();
 // RENTAL ROUTES
 // ==========================================
 
+
+// ==========================================
 // CREATE RENTAL
+// POST /rentals
+// ==========================================
+
 router.post('/', createRental);
 
+
+// ==========================================
 // GET ALL RENTALS
+// GET /rentals
+// ==========================================
+
 router.get('/', getAllRentals);
 
-// GET RENTAL BY ID
-router.get('/:id', getRentalById);
 
-// UPDATE RENTAL STATUS
-router.put('/:id/status', updateRentalStatus);
+// ==========================================
+// GET CUSTOMER RENTALS
+// GET /rentals/customer/:customer_id
+// ==========================================
 
-// UPDATE RENTAL
-router.put('/:id', updateRental);
+router.get(
+    '/customer/:customer_id',
+    getCustomerRentals
+);
 
+
+// ==========================================
 // ACTIVATE RENTAL AFTER DELIVERY
-router.put('/order/:order_id/activate', activateRental);
+// PUT /rentals/order/:order_id/activate
+// ==========================================
+
+router.put(
+    '/order/:order_id/activate',
+    activateRental
+);
+
+
+// ==========================================
+// GET RENTAL BY ID
+// GET /rentals/:id
+// ==========================================
+
+router.get(
+    '/:id',
+    getRentalById
+);
+
+
+// ==========================================
+// UPDATE RENTAL STATUS
+// PUT /rentals/:id/status
+// ==========================================
+
+router.put(
+    '/:id/status',
+    updateRentalStatus
+);
+
+
+// ==========================================
+// UPDATE RENTAL
+// PUT /rentals/:id
+// ==========================================
+
+router.put(
+    '/:id',
+    updateRental
+);
 
 
 module.exports = router;

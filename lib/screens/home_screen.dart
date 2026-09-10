@@ -17,8 +17,10 @@ import '../widgets/product_detail_card.dart';
 import '../widgets/promo_banner.dart';
 import 'ac_screen.dart';
 import 'combo_screen.dart';
+import 'my_rentals_screen.dart';
 import 'refrigerator_screen.dart';
 import 'washing_machine_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -50,97 +52,14 @@ class _HomeScreenState extends State<HomeScreen> {
             constraints: BoxConstraints(maxWidth: contentWidth),
             child: Column(
               children: [
-                _buildAppBar(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      AppTextStyles.fig(16),
-                      AppTextStyles.fig(12),
-                      AppTextStyles.fig(16),
-                      AppTextStyles.fig(24),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _HeroBanner(),
-                        SizedBox(height: AppTextStyles.fig(24)),
-                        _sectionCategoryGrid(),
-                        SizedBox(height: AppTextStyles.fig(20)),
-                        PromoBanner(
-                          onViewCombos: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ComboScreen(),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: AppTextStyles.fig(24)),
-                        ProductDetailCard(
-                          title: 'Smart Inverter\nSplit AC',
-                          titleColor: AppColors.titleBlue,
-                          checklist: const [
-                            'Powerful cooling',
-                            'Low power consumption',
-                            'Smart Plug Included',
-                          ],
-                          options: const ['1 Ton', '1.5 Ton'],
-                          art: const AcProductImage(width: 100),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const AcScreen()),
-                          ),
-                        ),
-                        SizedBox(height: AppTextStyles.fig(16)),
-                        ProductDetailCard(
-                          title: 'Refrigerator',
-                          titleColor: AppColors.titleGreen,
-                          checklist: const [
-                            'Freshness that lasts longer',
-                            'Energy efficient',
-                            'Spacious storage',
-                          ],
-                          options: const ['Single Door', 'Double Door'],
-                          art: const FridgeProductImage(width: 55),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const RefrigeratorScreen(),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: AppTextStyles.fig(16)),
-                        ProductDetailCard(
-                          title: 'Washing Machine',
-                          titleColor: AppColors.titleTerracotta,
-                          checklist: const [
-                            'Powerful cleaning',
-                            'Multiple wash programs',
-                            'Gentle on clothes',
-                          ],
-                          options: const ['Top Load', 'Front Load'],
-                          art: const WasherProductImage(width: 68),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const WashingMachineScreen(),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: AppTextStyles.fig(24)),
-                        const FeatureStrip(),
-                        SizedBox(height: AppTextStyles.fig(18)),
-                        HelpCard(onWhatsApp: () {}),
-                      ],
-                    ),
-                  ),
-                ),
+                Expanded(child: _buildCurrentPage()),
+
+                // ------------------------------------------------
+                // BOTTOM NAVIGATION
+                // ------------------------------------------------
                 AppBottomNavBar(
                   currentIndex: _navIndex,
-                  onTap: (i) {
-                    setState(() => _navIndex = i);
-                    if (i != 0) {
-                      final label = i == 1 ? 'My Rentals' : 'Profile';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('$label — coming soon')),
-                      );
-                    }
-                  },
+                  onTap: _onBottomNavTap,
                 ),
               ],
             ),
@@ -149,6 +68,145 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // ============================================================
+  // BOTTOM NAVIGATION
+  // ============================================================
+
+  void _onBottomNavTap(int index) {
+    if (index == _navIndex) {
+      return;
+    }
+
+    setState(() {
+      _navIndex = index;
+    });
+  }
+
+  // ============================================================
+  // CURRENT PAGE
+  // ============================================================
+
+  Widget _buildCurrentPage() {
+    switch (_navIndex) {
+      case 1:
+        return const MyRentalsScreen();
+
+      case 2:
+        return const ProfileScreen();
+
+      case 0:
+      default:
+        return _buildHomePage();
+    }
+  }
+
+  // ============================================================
+  // HOME PAGE
+  // ============================================================
+
+  Widget _buildHomePage() {
+    return Column(
+      children: [
+        _buildAppBar(),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              AppTextStyles.fig(16),
+              AppTextStyles.fig(12),
+              AppTextStyles.fig(16),
+              AppTextStyles.fig(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _HeroBanner(),
+
+                SizedBox(height: AppTextStyles.fig(24)),
+
+                _sectionCategoryGrid(),
+
+                SizedBox(height: AppTextStyles.fig(20)),
+
+                PromoBanner(
+                  onViewCombos: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ComboScreen()),
+                  ),
+                ),
+
+                SizedBox(height: AppTextStyles.fig(24)),
+
+                ProductDetailCard(
+                  title: 'Smart Inverter\nSplit AC',
+                  titleColor: AppColors.titleBlue,
+                  checklist: const [
+                    'Powerful cooling',
+                    'Low power consumption',
+                    'Smart Plug Included',
+                  ],
+                  options: const ['1 Ton', '1.5 Ton'],
+                  art: const AcProductImage(width: 100),
+                  onTap: () => Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const AcScreen())),
+                ),
+
+                SizedBox(height: AppTextStyles.fig(16)),
+
+                ProductDetailCard(
+                  title: 'Refrigerator',
+                  titleColor: AppColors.titleGreen,
+                  checklist: const [
+                    'Freshness that lasts longer',
+                    'Energy efficient',
+                    'Spacious storage',
+                  ],
+                  options: const ['Single Door', 'Double Door'],
+                  art: const FridgeProductImage(width: 55),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RefrigeratorScreen(),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: AppTextStyles.fig(16)),
+
+                ProductDetailCard(
+                  title: 'Washing Machine',
+                  titleColor: AppColors.titleTerracotta,
+                  checklist: const [
+                    'Powerful cleaning',
+                    'Multiple wash programs',
+                    'Gentle on clothes',
+                  ],
+                  options: const ['Top Load', 'Front Load'],
+                  art: const WasherProductImage(width: 68),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const WashingMachineScreen(),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: AppTextStyles.fig(24)),
+
+                const FeatureStrip(),
+
+                SizedBox(height: AppTextStyles.fig(18)),
+
+                HelpCard(onWhatsApp: () {}),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // HOME APP BAR
+  // ============================================================
 
   Widget _buildAppBar() {
     return Padding(
@@ -161,9 +219,13 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         children: [
           const Icon(Icons.menu, color: AppColors.navy, size: 24),
+
           SizedBox(width: AppTextStyles.fig(14)),
+
           LogoMark(width: AppTextStyles.fig(48)),
+
           SizedBox(width: AppTextStyles.fig(6)),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,6 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+
                 Text(
                   'RENT MADE EASY',
                   style: AppTextStyles.of(
@@ -207,7 +270,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
           SizedBox(width: AppTextStyles.fig(8)),
+
           ValueListenableBuilder<String>(
             valueListenable: LocationController.instance.city,
             builder: (context, city, _) {
@@ -228,6 +293,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ============================================================
+  // CATEGORY GRID
+  // ============================================================
+
   Widget _sectionCategoryGrid() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +314,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     .push(MaterialPageRoute(builder: (_) => const AcScreen())),
           ),
         ),
+
         SizedBox(width: AppTextStyles.fig(8)),
+
         Expanded(
           child: CategoryCard(
             icon: Icons.kitchen_outlined,
@@ -259,7 +330,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+
         SizedBox(width: AppTextStyles.fig(8)),
+
         Expanded(
           child: CategoryCard(
             icon: Icons.local_laundry_service_outlined,
@@ -273,7 +346,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+
         SizedBox(width: AppTextStyles.fig(8)),
+
         Expanded(
           child: CategoryCard(
             icon: Icons.dashboard_customize_outlined,
@@ -290,6 +365,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+// ================================================================
+// HERO BANNER
+// ================================================================
 
 class _HeroBanner extends StatelessWidget {
   const _HeroBanner();
@@ -335,7 +414,9 @@ class _HeroBanner extends StatelessWidget {
                         ),
                       ),
                     ),
+
                     SizedBox(height: AppTextStyles.fig(14)),
+
                     RichText(
                       text: TextSpan(
                         children: [
@@ -358,16 +439,21 @@ class _HeroBanner extends StatelessWidget {
                         ],
                       ),
                     ),
+
                     SizedBox(height: AppTextStyles.fig(12)),
+
                     Text(
-                      'Premium Appliances on Rent\nat affordable prices.',
+                      'Premium Appliances on Rent\n'
+                      'at affordable prices.',
                       style: AppTextStyles.of(
                         figmaSize: 13,
                         weight: FontWeight.w400,
                         color: AppColors.textGray,
                       ),
                     ),
+
                     SizedBox(height: AppTextStyles.fig(14)),
+
                     Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: AppTextStyles.fig(12),
@@ -389,11 +475,15 @@ class _HeroBanner extends StatelessWidget {
                   ],
                 ),
               ),
+
               SizedBox(width: AppTextStyles.fig(8)),
+
               ApplianceClusterImage(width: AppTextStyles.fig(120)),
             ],
           ),
+
           SizedBox(height: AppTextStyles.fig(18)),
+
           Row(
             children: [
               Expanded(
@@ -405,6 +495,7 @@ class _HeroBanner extends StatelessWidget {
                   iconSize: 16,
                 ),
               ),
+
               Expanded(
                 child: FeatureItem(
                   icon: Icons.build_outlined,
@@ -415,6 +506,7 @@ class _HeroBanner extends StatelessWidget {
                   iconSize: 16,
                 ),
               ),
+
               Expanded(
                 child: FeatureItem(
                   icon: Icons.verified_user_outlined,
@@ -426,7 +518,9 @@ class _HeroBanner extends StatelessWidget {
               ),
             ],
           ),
+
           SizedBox(height: AppTextStyles.fig(14)),
+
           const Center(child: DotIndicator(count: 4, activeIndex: 0)),
         ],
       ),

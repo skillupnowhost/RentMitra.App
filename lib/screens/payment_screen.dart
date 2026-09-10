@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 import '../services/api_service.dart';
+import '../services/customer_session.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'checkout_screen.dart';
+import 'payment_failed_screen.dart';
 import 'rental_confirmation_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -61,7 +63,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _isCreatingPaymentOrder = false;
   bool _isRecordingPayment = false;
 
-  // Prevent Pay Now from being clicked repeatedly.
   bool get _isPaymentProcessing =>
       _isCreatingPaymentOrder || _isRecordingPayment;
 
@@ -75,20 +76,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     _razorpay = Razorpay();
 
-    _razorpay.on(
-      Razorpay.EVENT_PAYMENT_SUCCESS,
-      _handlePaymentSuccess,
-    );
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
 
-    _razorpay.on(
-      Razorpay.EVENT_PAYMENT_ERROR,
-      _handlePaymentError,
-    );
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
 
-    _razorpay.on(
-      Razorpay.EVENT_EXTERNAL_WALLET,
-      _handleExternalWallet,
-    );
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
   // ============================================================
@@ -98,7 +90,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void dispose() {
     _razorpay.clear();
-
     super.dispose();
   }
 
@@ -117,13 +108,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: contentWidth,
-            ),
+            constraints: BoxConstraints(maxWidth: contentWidth),
             child: Column(
               children: [
                 _buildHeader(),
-
                 Expanded(
                   child: Stack(
                     children: [
@@ -139,23 +127,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           children: [
                             if (_topErrorMessage != null) ...[
                               _buildTopErrorMessage(),
-
-                              SizedBox(
-                                height: AppTextStyles.fig(12),
-                              ),
+                              SizedBox(height: AppTextStyles.fig(12)),
                             ],
 
                             _buildOrderSummary(),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(22),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(22)),
 
                             _buildPaymentHeader(),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(14),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(14)),
 
                             _buildPaymentMethod(
                               icon: Icons.account_balance_wallet_outlined,
@@ -168,34 +149,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             _buildPaymentMethod(
                               icon: Icons.credit_card_outlined,
                               title: 'Credit / Debit Card',
-                              subtitle:
-                                  'Visa, Mastercard, RuPay and more',
+                              subtitle: 'Visa, Mastercard, RuPay and more',
                               value: 'Credit / Debit Card',
                             ),
 
                             _buildPaymentMethod(
                               icon: Icons.account_balance_outlined,
                               title: 'Net Banking',
-                              subtitle:
-                                  'Pay directly through your bank',
+                              subtitle: 'Pay directly through your bank',
                               value: 'Net Banking',
                             ),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(20),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(20)),
 
                             _buildPriceDetails(),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(20),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(20)),
 
                             _buildCustomerDetails(),
 
-                            SizedBox(
-                              height: AppTextStyles.fig(20),
-                            ),
+                            SizedBox(height: AppTextStyles.fig(20)),
 
                             _buildSecurePaymentInfo(),
                           ],
@@ -233,22 +206,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.red.shade300,
-        ),
+        border: Border.all(color: Colors.red.shade300),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: Colors.red.shade700,
-            size: 22,
-          ),
+          Icon(Icons.error_outline, color: Colors.red.shade700, size: 22),
 
-          SizedBox(
-            width: AppTextStyles.fig(10),
-          ),
+          SizedBox(width: AppTextStyles.fig(10)),
 
           Expanded(
             child: Text(
@@ -268,11 +233,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 _topErrorMessage = null;
               });
             },
-            child: Icon(
-              Icons.close,
-              color: Colors.red.shade700,
-              size: 18,
-            ),
+            child: Icon(Icons.close, color: Colors.red.shade700, size: 18),
           ),
         ],
       ),
@@ -320,9 +281,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          const SizedBox(
-            width: 28,
-          ),
+          const SizedBox(width: 28),
         ],
       ),
     );
@@ -337,15 +296,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        AppTextStyles.fig(18),
-      ),
+      padding: EdgeInsets.all(AppTextStyles.fig(18)),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -366,9 +321,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          SizedBox(
-            height: AppTextStyles.fig(10),
-          ),
+          SizedBox(height: AppTextStyles.fig(10)),
 
           Text(
             product.name,
@@ -380,9 +333,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
 
           if (product.description != null) ...[
-            SizedBox(
-              height: AppTextStyles.fig(5),
-            ),
+            SizedBox(height: AppTextStyles.fig(5)),
 
             Text(
               product.description!,
@@ -395,18 +346,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ],
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
-          Container(
-            height: 1,
-            color: AppColors.divider,
-          ),
+          Container(height: 1, color: AppColors.divider),
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
           Row(
             children: [
@@ -457,9 +401,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ),
 
-        SizedBox(
-          width: AppTextStyles.fig(12),
-        ),
+        SizedBox(width: AppTextStyles.fig(12)),
 
         Expanded(
           child: Column(
@@ -474,9 +416,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
 
-              SizedBox(
-                height: AppTextStyles.fig(2),
-              ),
+              SizedBox(height: AppTextStyles.fig(2)),
 
               Text(
                 'Select your preferred payment method',
@@ -515,25 +455,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
               });
             },
       child: AnimatedContainer(
-        duration: const Duration(
-          milliseconds: 180,
-        ),
+        duration: const Duration(milliseconds: 180),
         width: double.infinity,
-        margin: EdgeInsets.only(
-          bottom: AppTextStyles.fig(10),
-        ),
-        padding: EdgeInsets.all(
-          AppTextStyles.fig(14),
-        ),
+        margin: EdgeInsets.only(bottom: AppTextStyles.fig(10)),
+        padding: EdgeInsets.all(AppTextStyles.fig(14)),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.bgCardPurple
-              : AppColors.surface,
+          color: isSelected ? AppColors.bgCardPurple : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? AppColors.purple
-                : AppColors.divider,
+            color: isSelected ? AppColors.purple : AppColors.divider,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -546,16 +476,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 color: AppColors.bgCardPurple,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.purple,
-                size: 25,
-              ),
+              child: Icon(icon, color: AppColors.purple, size: 25),
             ),
 
-            SizedBox(
-              width: AppTextStyles.fig(12),
-            ),
+            SizedBox(width: AppTextStyles.fig(12)),
 
             Expanded(
               child: Column(
@@ -570,9 +494,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                   ),
 
-                  SizedBox(
-                    height: AppTextStyles.fig(3),
-                  ),
+                  SizedBox(height: AppTextStyles.fig(3)),
 
                   Text(
                     subtitle,
@@ -586,17 +508,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
 
-            SizedBox(
-              width: AppTextStyles.fig(8),
-            ),
+            SizedBox(width: AppTextStyles.fig(8)),
 
             Icon(
-              isSelected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_off,
-              color: isSelected
-                  ? AppColors.purple
-                  : AppColors.textGrayMed,
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? AppColors.purple : AppColors.textGrayMed,
               size: 23,
             ),
           ],
@@ -612,17 +528,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildPriceDetails() {
     final product = widget.product;
 
+    // GST 18% split into:
+    // CGST = 9%
+    // SGST = 9%
+
+    final cgst = product.gst ~/ 2;
+    final sgst = product.gst - cgst;
+
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        AppTextStyles.fig(16),
-      ),
+      padding: EdgeInsets.all(AppTextStyles.fig(16)),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -636,19 +555,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
           if (product.isCombo) ...[
-            _priceRow(
-              'Monthly Rent',
-              product.monthlyRent,
-            ),
+            _priceRow('Monthly Rent', product.monthlyRent),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
             _priceRow(
               'Combo Discount',
@@ -657,47 +569,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
               titleColor: Colors.green,
             ),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow(
-              'Monthly Rent After Discount',
-              product.afterDiscount,
-            ),
+            _priceRow('Monthly Rent After Discount', product.afterDiscount),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow(
-              'GST (18%)',
-              product.gst,
-            ),
+            _priceRow('CGST (9%)', cgst),
+
+            SizedBox(height: AppTextStyles.fig(9)),
+
+            _priceRow('SGST (9%)', sgst),
           ] else ...[
-            _priceRow(
-              'Monthly Rent',
-              product.monthlyRent,
-            ),
+            _priceRow('Monthly Rent', product.monthlyRent),
 
-            SizedBox(
-              height: AppTextStyles.fig(9),
-            ),
+            SizedBox(height: AppTextStyles.fig(9)),
 
-            _priceRow(
-              'GST (18%)',
-              product.gst,
-            ),
+            _priceRow('CGST (9%)', cgst),
+
+            SizedBox(height: AppTextStyles.fig(9)),
+
+            _priceRow('SGST (9%)', sgst),
           ],
 
           Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: AppTextStyles.fig(14),
-            ),
-            child: Container(
-              height: 1,
-              color: AppColors.divider,
-            ),
+            padding: EdgeInsets.symmetric(vertical: AppTextStyles.fig(14)),
+            child: Container(height: 1, color: AppColors.divider),
           ),
 
           _priceRow(
@@ -731,9 +628,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             title,
             style: AppTextStyles.of(
               figmaSize: bold ? 15 : 13,
-              weight: bold
-                  ? FontWeight.w700
-                  : FontWeight.w400,
+              weight: bold ? FontWeight.w700 : FontWeight.w400,
               color: titleColor ?? AppColors.navy,
             ),
           ),
@@ -743,9 +638,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _money(amount),
           style: AppTextStyles.of(
             figmaSize: valueSize,
-            weight: bold
-                ? FontWeight.w700
-                : FontWeight.w600,
+            weight: bold ? FontWeight.w700 : FontWeight.w600,
             color: valueColor ?? AppColors.navy,
           ),
         ),
@@ -760,15 +653,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildCustomerDetails() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(
-        AppTextStyles.fig(16),
-      ),
+      padding: EdgeInsets.all(AppTextStyles.fig(16)),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.divider,
-        ),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -782,27 +671,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
 
-          SizedBox(
-            height: AppTextStyles.fig(14),
-          ),
+          SizedBox(height: AppTextStyles.fig(14)),
 
-          _detailRow(
-            Icons.person_outline,
-            'Name',
-            widget.fullName,
-          ),
+          _detailRow(Icons.person_outline, 'Name', widget.fullName),
 
-          _detailRow(
-            Icons.phone_outlined,
-            'Mobile',
-            '+91 ${widget.mobile}',
-          ),
+          _detailRow(Icons.phone_outlined, 'Mobile', '+91 ${widget.mobile}'),
 
-          _detailRow(
-            Icons.email_outlined,
-            'Email',
-            widget.email,
-          ),
+          _detailRow(Icons.email_outlined, 'Email', widget.email),
 
           _detailRow(
             Icons.location_on_outlined,
@@ -822,21 +697,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
     bool multiline = false,
   }) {
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: AppTextStyles.fig(12),
-      ),
+      padding: EdgeInsets.only(bottom: AppTextStyles.fig(12)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color: AppColors.purple,
-            size: 21,
-          ),
+          Icon(icon, color: AppColors.purple, size: 21),
 
-          SizedBox(
-            width: AppTextStyles.fig(10),
-          ),
+          SizedBox(width: AppTextStyles.fig(10)),
 
           Expanded(
             child: Column(
@@ -851,9 +718,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
 
-                SizedBox(
-                  height: AppTextStyles.fig(2),
-                ),
+                SizedBox(height: AppTextStyles.fig(2)),
 
                 Text(
                   value,
@@ -881,13 +746,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       widget.houseFlatNumber,
       widget.apartmentName,
       widget.streetArea,
-      if (widget.landmark.trim().isNotEmpty)
-        widget.landmark,
+      if (widget.landmark.trim().isNotEmpty) widget.landmark,
       widget.city,
       widget.pincode,
-    ].where(
-      (value) => value.trim().isNotEmpty,
-    ).toList();
+    ].where((value) => value.trim().isNotEmpty).toList();
 
     return parts.join(', ');
   }
@@ -910,15 +772,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.lock_outline,
-            color: AppColors.purple,
-            size: 22,
-          ),
+          const Icon(Icons.lock_outline, color: AppColors.purple, size: 22),
 
-          SizedBox(
-            width: AppTextStyles.fig(10),
-          ),
+          SizedBox(width: AppTextStyles.fig(10)),
 
           Expanded(
             child: Text(
@@ -952,9 +808,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       decoration: const BoxDecoration(
         color: AppColors.bgCardPurple,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(12),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         children: [
@@ -972,9 +826,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
 
-                SizedBox(
-                  height: AppTextStyles.fig(2),
-                ),
+                SizedBox(height: AppTextStyles.fig(2)),
 
                 Text(
                   _money(widget.product.total),
@@ -994,20 +846,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
             color: AppColors.divider,
           ),
 
-          SizedBox(
-            width: AppTextStyles.fig(16),
-          ),
+          SizedBox(width: AppTextStyles.fig(16)),
 
           Expanded(
             child: SizedBox(
               height: AppTextStyles.fig(54),
               child: ElevatedButton(
-                onPressed:
-                    _isPaymentProcessing ? null : _payNow,
+                onPressed: _isPaymentProcessing ? null : _payNow,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.purple,
-                  disabledBackgroundColor:
-                      AppColors.purple.withValues(
+                  disabledBackgroundColor: AppColors.purple.withValues(
                     alpha: 0.6,
                   ),
                   foregroundColor: Colors.white,
@@ -1026,14 +874,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                       )
                     : Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Flexible(
                             child: Text(
                               'Pay Now',
-                              overflow:
-                                  TextOverflow.ellipsis,
+                              overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.of(
                                 figmaSize: 15,
                                 weight: FontWeight.w700,
@@ -1042,9 +888,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ),
 
-                          SizedBox(
-                            width: AppTextStyles.fig(10),
-                          ),
+                          SizedBox(width: AppTextStyles.fig(10)),
 
                           const Icon(
                             Icons.arrow_forward,
@@ -1066,19 +910,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ============================================================
 
   Future<void> _payNow() async {
-    FocusScope.of(context).unfocus();
-
-    if (_selectedPaymentMethod.trim().isEmpty) {
-      _showError(
-        'Please select a payment method before proceeding.',
-      );
-
+    if (_isPaymentProcessing) {
       return;
     }
 
-    // ----------------------------------------------------------
-    // GET BACKEND ORDER ID
-    // ----------------------------------------------------------
+    FocusScope.of(context).unfocus();
+
+    if (_selectedPaymentMethod.trim().isEmpty) {
+      _showError('Please select a payment method before proceeding.');
+
+      return;
+    }
 
     final orderId = _getOrderIdFromCheckout();
 
@@ -1101,8 +943,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // CREATE RAZORPAY ORDER
       // --------------------------------------------------------
 
-      final paymentOrderResponse =
-          await ApiService.createPaymentOrder(
+      final paymentOrderResponse = await ApiService.createPaymentOrder(
         orderId: orderId,
       );
 
@@ -1110,40 +951,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
         return;
       }
 
-      final razorpayOrderId =
-          paymentOrderResponse['razorpay_order_id']
-              ?.toString();
+      final razorpayOrderId = paymentOrderResponse['razorpay_order_id']
+          ?.toString()
+          .trim();
 
-      final amount =
-          _parseInt(paymentOrderResponse['amount']);
+      final amount = _parseInt(paymentOrderResponse['amount']);
 
-      final currency =
-          paymentOrderResponse['currency']
-              ?.toString()
-              .trim();
+      final currency = paymentOrderResponse['currency']?.toString().trim();
 
-      if (razorpayOrderId == null ||
-          razorpayOrderId.isEmpty) {
-        throw Exception(
-          'Backend did not return a valid Razorpay order ID.',
-        );
+      if (razorpayOrderId == null || razorpayOrderId.isEmpty) {
+        throw Exception('Backend did not return a valid Razorpay order ID.');
       }
 
       if (amount == null || amount <= 0) {
-        throw Exception(
-          'Backend did not return a valid payment amount.',
-        );
+        throw Exception('Backend did not return a valid payment amount.');
       }
 
       if (currency == null || currency.isEmpty) {
-        throw Exception(
-          'Backend did not return a valid payment currency.',
-        );
+        throw Exception('Backend did not return a valid payment currency.');
       }
-
-      // --------------------------------------------------------
-      // OPEN RAZORPAY
-      // --------------------------------------------------------
 
       setState(() {
         _isCreatingPaymentOrder = false;
@@ -1164,9 +990,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         _isCreatingPaymentOrder = false;
       });
 
-      _showError(
-        _cleanError(error),
-      );
+      _showPaymentFailure(message: _cleanError(error), paymentReceived: false);
     }
   }
 
@@ -1181,10 +1005,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
     required int orderId,
   }) {
     final options = {
-      // IMPORTANT:
-      // This must be your Razorpay TEST KEY ID.
+      // TEST KEY ID ONLY.
       //
-      // Never put the Razorpay secret key in Flutter.
+      // Never put RAZORPAY_KEY_SECRET
+      // inside Flutter.
       'key': 'rzp_test_TRuOi385MuOzF7',
 
       'amount': amount,
@@ -1208,16 +1032,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'payment_method': _selectedPaymentMethod,
       },
 
-      'theme': {
-        'color': '#6C3FBF',
-      },
+      'theme': {'color': '#6C3FBF'},
     };
 
     try {
       _razorpay.open(options);
     } catch (error) {
-      _showError(
-        'Unable to open Razorpay payment gateway.',
+      _showPaymentFailure(
+        message:
+            'Unable to open Razorpay payment gateway. '
+            '${_cleanError(error)}',
+        paymentReceived: false,
       );
     }
   }
@@ -1226,47 +1051,53 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // RAZORPAY SUCCESS
   // ============================================================
 
-  Future<void> _handlePaymentSuccess(
-    PaymentSuccessResponse response,
-  ) async {
-    final razorpayPaymentId =
-        response.paymentId?.trim();
+  Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    final razorpayPaymentId = response.paymentId?.trim();
 
-    final razorpayOrderId =
-        response.orderId?.trim();
+    final razorpayOrderId = response.orderId?.trim();
 
-    final signature =
-        response.signature?.trim();
+    final signature = response.signature?.trim();
 
     // ----------------------------------------------------------
-    // VALIDATE RAZORPAY RESPONSE
+    // VALIDATE PAYMENT ID
     // ----------------------------------------------------------
 
-    if (razorpayPaymentId == null ||
-        razorpayPaymentId.isEmpty) {
-      _showError(
-        'Razorpay payment succeeded, but payment ID '
-        'was not received.',
+    if (razorpayPaymentId == null || razorpayPaymentId.isEmpty) {
+      _showPaymentFailure(
+        message:
+            'Razorpay reported a successful payment, '
+            'but the payment ID was not received.',
+        paymentReceived: true,
       );
 
       return;
     }
 
-    if (razorpayOrderId == null ||
-        razorpayOrderId.isEmpty) {
-      _showError(
-        'Razorpay payment succeeded, but Razorpay order ID '
-        'was not received.',
+    // ----------------------------------------------------------
+    // VALIDATE RAZORPAY ORDER ID
+    // ----------------------------------------------------------
+
+    if (razorpayOrderId == null || razorpayOrderId.isEmpty) {
+      _showPaymentFailure(
+        message:
+            'Razorpay reported a successful payment, '
+            'but the Razorpay order ID was not received.',
+        paymentReceived: true,
       );
 
       return;
     }
 
-    if (signature == null ||
-        signature.isEmpty) {
-      _showError(
-        'Razorpay payment succeeded, but payment signature '
-        'was not received.',
+    // ----------------------------------------------------------
+    // VALIDATE SIGNATURE
+    // ----------------------------------------------------------
+
+    if (signature == null || signature.isEmpty) {
+      _showPaymentFailure(
+        message:
+            'Razorpay reported a successful payment, '
+            'but the payment signature was not received.',
+        paymentReceived: true,
       );
 
       return;
@@ -1279,17 +1110,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final orderId = _getOrderIdFromCheckout();
 
     if (orderId == null || orderId <= 0) {
-      _showError(
-        'Payment was successful, but the RentMitra order ID '
-        'could not be found.',
+      _showPaymentFailure(
+        message:
+            'Payment was successful, but the RentMitra '
+            'order ID could not be found.',
+        paymentReceived: true,
       );
 
       return;
     }
-
-    // ----------------------------------------------------------
-    // START RECORDING / VERIFYING PAYMENT
-    // ----------------------------------------------------------
 
     if (!mounted) {
       return;
@@ -1302,19 +1131,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     try {
       // --------------------------------------------------------
-      // VERIFY PAYMENT ON BACKEND
-      //
-      // Backend verifies:
-      //
-      // razorpay_order_id
-      // razorpay_payment_id
-      // razorpay_signature
-      //
-      // using RAZORPAY_KEY_SECRET.
+      // VERIFY PAYMENT WITH BACKEND
       // --------------------------------------------------------
 
-      final verificationResponse =
-          await ApiService.verifyPayment(
+      final verificationResponse = await ApiService.verifyPayment(
         orderId: orderId,
         razorpayOrderId: razorpayOrderId,
         razorpayPaymentId: razorpayPaymentId,
@@ -1329,26 +1149,79 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // CHECK BACKEND VERIFICATION STATUS
       // --------------------------------------------------------
 
-      final verificationStatus =
-          verificationResponse['verification_status']
-              ?.toString()
-              .trim();
+      final verificationStatus = verificationResponse['verification_status']
+          ?.toString()
+          .trim();
 
       if (verificationStatus != 'Verified') {
         setState(() {
           _isRecordingPayment = false;
         });
 
-        _showError(
-          'Payment was received, but backend verification '
-          'was not completed.',
+        _showPaymentFailure(
+          message:
+              'Payment was received by Razorpay, '
+              'but RentMitra could not complete payment verification.',
+          paymentReceived: true,
         );
 
         return;
       }
 
       // --------------------------------------------------------
-      // PAYMENT COMPLETELY VERIFIED
+      // GET CUSTOMER ID FROM BACKEND
+      // --------------------------------------------------------
+      //
+      // The backend creates the customer during
+      // payment verification and returns:
+      //
+      // {
+      //   "customer_id": 27
+      // }
+      //
+      // We capture that ID here so the rest of the
+      // Flutter application knows which customer
+      // completed the payment.
+
+      final customerId = _parseInt(verificationResponse['customer_id']);
+
+      if (customerId == null || customerId <= 0) {
+        setState(() {
+          _isRecordingPayment = false;
+        });
+
+        _showPaymentFailure(
+          message:
+              'Payment was verified, but the customer ID '
+              'was not returned by the server.',
+          paymentReceived: true,
+        );
+
+        return;
+      }
+
+      // --------------------------------------------------------
+      // STORE CUSTOMER SESSION
+      // --------------------------------------------------------
+      //
+      // This will allow:
+      //
+      // Profile → use this customer
+      // My Rentals → use this customer
+      // Bottom-right icon → first letter of name
+      //
+      // Example:
+      //
+      // customer_id = 27
+      // full_name   = Test
+      // profile     = T
+
+      await CustomerSession.instance.setCustomer(
+        customerId: customerId,
+        fullName: widget.fullName,
+      );
+      // --------------------------------------------------------
+      // EVERYTHING VERIFIED
       // --------------------------------------------------------
 
       setState(() {
@@ -1373,9 +1246,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         _isRecordingPayment = false;
       });
 
-      _showError(
-        'Payment was received by Razorpay, but verification failed. '
-        '${_cleanError(error)}',
+      _showPaymentFailure(
+        message:
+            'Payment was received by Razorpay, '
+            'but RentMitra could not complete verification.\n\n'
+            '${_cleanError(error)}',
+        paymentReceived: true,
       );
     }
   }
@@ -1384,55 +1260,83 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // RAZORPAY PAYMENT ERROR
   // ============================================================
 
-  void _handlePaymentError(
-    PaymentFailureResponse response,
-  ) {
+  void _handlePaymentError(PaymentFailureResponse response) {
     if (!mounted) {
       return;
     }
 
-    final errorCode =
-        response.code?.toString();
+    final errorCode = response.code?.toString();
 
-    final errorMessage =
-        response.message?.toString().trim();
+    final errorMessage = response.message?.toString().trim();
 
     String message;
 
-    if (errorMessage != null &&
-        errorMessage.isNotEmpty) {
+    if (errorMessage != null && errorMessage.isNotEmpty) {
       message = 'Payment failed: $errorMessage';
     } else {
-      message =
-          'Payment could not be completed. Please try again.';
+      message = 'Payment could not be completed. Please try again.';
     }
 
-    if (errorCode != null &&
-        errorCode.isNotEmpty) {
+    if (errorCode != null && errorCode.isNotEmpty) {
       message = '$message (Code: $errorCode)';
     }
 
-    _showError(message);
+    _showPaymentFailure(message: message, paymentReceived: false);
   }
 
   // ============================================================
   // RAZORPAY EXTERNAL WALLET
   // ============================================================
 
-  void _handleExternalWallet(
-    ExternalWalletResponse response,
-  ) {
+  void _handleExternalWallet(ExternalWalletResponse response) {
     if (!mounted) {
       return;
     }
 
-    final walletName =
-        response.walletName?.trim();
+    final walletName = response.walletName?.trim();
 
-    _showError(
-      walletName != null && walletName.isNotEmpty
-          ? 'External wallet selected: $walletName'
-          : 'External wallet selected.',
+    final message = walletName != null && walletName.isNotEmpty
+        ? 'External wallet "$walletName" could not be completed.'
+        : 'External wallet payment could not be completed.';
+
+    _showPaymentFailure(message: message, paymentReceived: false);
+  }
+
+  // ============================================================
+  // PAYMENT FAILURE SCREEN
+  // ============================================================
+
+  void _showPaymentFailure({
+    required String message,
+    required bool paymentReceived,
+  }) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isCreatingPaymentOrder = false;
+      _isRecordingPayment = false;
+    });
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => PaymentFailureScreen(
+          product: widget.product,
+          fullName: widget.fullName,
+          mobile: widget.mobile,
+          email: widget.email,
+          houseFlatNumber: widget.houseFlatNumber,
+          apartmentName: widget.apartmentName,
+          streetArea: widget.streetArea,
+          landmark: widget.landmark,
+          city: widget.city,
+          pincode: widget.pincode,
+          checkoutData: widget.checkoutData,
+          errorMessage: message,
+          paymentReceived: paymentReceived,
+        ),
+      ),
     );
   }
 
@@ -1451,22 +1355,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
           fullName: widget.fullName,
           mobile: widget.mobile,
           email: widget.email,
-          houseFlatNumber:
-              widget.houseFlatNumber,
-          apartmentName:
-              widget.apartmentName,
-          streetArea:
-              widget.streetArea,
-          landmark:
-              widget.landmark,
-          city:
-              widget.city,
-          pincode:
-              widget.pincode,
-          orderId:
-              orderId,
-          razorpayPaymentId:
-              razorpayPaymentId,
+          houseFlatNumber: widget.houseFlatNumber,
+          apartmentName: widget.apartmentName,
+          streetArea: widget.streetArea,
+          landmark: widget.landmark,
+          city: widget.city,
+          pincode: widget.pincode,
+          orderId: orderId,
+          razorpayPaymentId: razorpayPaymentId,
         ),
       ),
     );
@@ -1477,11 +1373,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ============================================================
 
   int? _getOrderIdFromCheckout() {
-    final possibleKeys = [
-      'order_id',
-      'orderId',
-      'id',
-    ];
+    final possibleKeys = ['order_id', 'orderId', 'id'];
 
     for (final key in possibleKeys) {
       final value = widget.checkoutData[key];
@@ -1513,9 +1405,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return value.toInt();
     }
 
-    return int.tryParse(
-      value.toString(),
-    );
+    return int.tryParse(value.toString());
   }
 
   // ============================================================
@@ -1541,9 +1431,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           content: Text(message),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(
-            AppTextStyles.fig(16),
-          ),
+          margin: EdgeInsets.all(AppTextStyles.fig(16)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -1557,13 +1445,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ============================================================
 
   String _cleanError(Object error) {
-    return error
-        .toString()
-        .replaceFirst(
-          'Exception: ',
-          '',
-        )
-        .trim();
+    return error.toString().replaceFirst('Exception: ', '').trim();
   }
 
   // ============================================================
@@ -1576,9 +1458,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final number = value.abs().toString();
 
     final formatted = number.replaceAllMapped(
-      RegExp(
-        r'(\d)(?=(\d{3})+(?!\d))',
-      ),
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
       (match) => '${match[1]},',
     );
 
