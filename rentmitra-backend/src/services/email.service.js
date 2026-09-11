@@ -1,3 +1,6 @@
+
+const https = require('https');
+
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 // ============================================================
@@ -159,13 +162,8 @@ const sendRentalConfirmationEmail = async ({
                 `RentMitra_Receipt_${orderId}.pdf`;
 
             brevoAttachments.push({
-
-                name:
-                    filename,
-
-                content:
-                    base64Content
-
+                name: filename,
+                content: base64Content
             });
 
             console.log(
@@ -611,41 +609,32 @@ RentMitra Rental Confirmation
     const requestBody = {
 
         sender: {
-
             name:
                 process.env.BREVO_SENDER_NAME ||
                 'RentMitra',
 
             email:
                 process.env.BREVO_SENDER_EMAIL
-
         },
 
         to: [
-
             {
-
                 email: to,
 
                 name:
                     customerName ||
                     'Customer'
-
             }
-
         ],
 
         subject:
             `RentMitra Rental Confirmation - Order #${orderId}`,
 
         htmlContent:
-
             htmlContent,
 
         attachment:
-
             brevoAttachments
-
     };
 
     // ========================================================
@@ -685,41 +674,231 @@ RentMitra Rental Confirmation
     );
 
     // ========================================================
-    // SEND THROUGH BREVO
+    // PARSE BREVO URL
     // ========================================================
 
-    const response =
-        await fetch(
-            BREVO_API_URL,
-            {
-                method: 'POST',
+    const parsedUrl =
+        new URL(BREVO_API_URL);
 
-                headers: {
+    // ========================================================
+    // SEND THROUGH BREVO USING HTTPS
+    // ========================================================
 
-                    'accept':
-                        'application/json',
+    let response;
 
-                    'api-key':
-                        process.env.BREVO_API_KEY,
+    try {
 
-                    'content-type':
-                        'application/json'
+        console.log('');
+        console.log('========================================');
+        console.log('CONNECTING TO BREVO API');
+        console.log('USING NODE HTTPS REQUEST');
+        console.log('========================================');
 
-                },
+        console.log(
+            'Brevo URL:',
+            BREVO_API_URL
+        );
 
-                body:
+        console.log(
+            'Request method: POST'
+        );
+
+        console.log(
+            'API key configured:',
+            !!process.env.BREVO_API_KEY
+        );
+
+        console.log(
+            'Sender:',
+            process.env.BREVO_SENDER_EMAIL
+        );
+
+        console.log(
+            'Recipient:',
+            to
+        );
+
+        console.log(
+            'Attachment count:',
+            brevoAttachments.length
+        );
+
+        response = await new Promise(
+            (resolve, reject) => {
+
+                const postData =
                     JSON.stringify(
                         requestBody
-                    )
+                    );
+
+                const request =
+                    https.request(
+                        {
+                            protocol:
+                                parsedUrl.protocol,
+
+                            hostname:
+                                parsedUrl.hostname,
+
+                            port:
+                                parsedUrl.port ||
+                                443,
+
+                            path:
+                                parsedUrl.pathname +
+                                parsedUrl.search,
+
+                            method:
+                                'POST',
+
+                            family: 4,
+
+                            headers: {
+                                'accept':
+                                    'application/json',
+
+                                'api-key':
+                                    process.env.BREVO_API_KEY,
+
+                                'content-type':
+                                    'application/json',
+
+                                'content-length':
+                                    Buffer.byteLength(
+                                        postData
+                                    )
+                            },
+
+                            timeout: 30000
+                        },
+
+                        (res) => {
+
+                            let responseBody =
+                                '';
+
+                            res.setEncoding(
+                                'utf8'
+                            );
+
+                            res.on(
+                                'data',
+                                (chunk) => {
+                                    responseBody +=
+                                        chunk;
+                                }
+                            );
+
+                            res.on(
+                                'end',
+                                () => {
+
+                                    resolve({
+                                        status:
+                                            res.statusCode,
+
+                                        statusText:
+                                            res.statusMessage,
+
+                                        headers:
+                                            res.headers,
+
+                                        body:
+                                            responseBody
+                                    });
+                                }
+                            );
+                        }
+                    );
+
+                request.on(
+                    'timeout',
+                    () => {
+
+                        request.destroy(
+                            new Error(
+                                'Brevo HTTPS request timed out after 30 seconds'
+                            )
+                        );
+                    }
+                );
+
+                request.on(
+                    'error',
+                    (error) => {
+
+                        reject(error);
+                    }
+                );
+
+                request.write(
+                    postData
+                );
+
+                request.end();
             }
         );
+
+        console.log(
+            'Brevo HTTP response received'
+        );
+
+        console.log(
+            'HTTP status:',
+            response.status
+        );
+
+        console.log(
+            'HTTP status text:',
+            response.statusText
+        );
+
+    } catch (error) {
+
+        console.error('');
+        console.error('========================================');
+        console.error('BREVO HTTPS CONNECTION ERROR');
+        console.error('========================================');
+
+        console.error(
+            'Error name:',
+            error?.name
+        );
+
+        console.error(
+            'Error message:',
+            error?.message
+        );
+
+        console.error(
+            'Error code:',
+            error?.code
+        );
+
+        console.error(
+            'Full error:',
+            error
+        );
+
+        console.error(
+            '========================================'
+        );
+        console.error('');
+
+        throw new Error(
+            `Brevo connection failed: ${
+                error?.message ||
+                'Unknown HTTPS error'
+            }`
+        );
+    }
 
     // ========================================================
     // RESPONSE
     // ========================================================
 
     const responseText =
-        await response.text();
+        response.body || '';
 
     let responseData;
 
@@ -727,16 +906,16 @@ RentMitra Rental Confirmation
 
         responseData =
             responseText
-                ? JSON.parse(responseText)
+                ? JSON.parse(
+                    responseText
+                )
                 : {};
 
     } catch {
 
         responseData = {
-
             raw:
                 responseText
-
         };
     }
 
@@ -744,16 +923,41 @@ RentMitra Rental Confirmation
     // BREVO ERROR
     // ========================================================
 
-    if (!response.ok) {
+    if (
+        response.status < 200 ||
+        response.status >= 300
+    ) {
+
+        console.error('');
+        console.error('========================================');
+        console.error('BREVO EMAIL API ERROR');
+        console.error('========================================');
 
         console.error(
-            'Brevo email API error:',
+            'HTTP status:',
+            response.status
+        );
+
+        console.error(
+            'HTTP status text:',
+            response.statusText
+        );
+
+        console.error(
+            'Brevo response:',
             responseData
+        );
+
+        console.error(
+            '========================================'
         );
 
         throw new Error(
             responseData?.message ||
-            `Brevo email failed with HTTP ${response.status}`
+            responseData?.code ||
+            `Brevo email failed with HTTP ${
+                response.status
+            }`
         );
     }
 
@@ -788,10 +992,14 @@ RentMitra Rental Confirmation
 
     console.log(
         'Message ID:',
-        responseData?.messageId || 'N/A'
+        responseData?.messageId ||
+        'N/A'
     );
 
-    console.log('========================================');
+    console.log(
+        '========================================'
+    );
+
     console.log('');
 
     return responseData;
@@ -805,3 +1013,4 @@ RentMitra Rental Confirmation
 module.exports = {
     sendRentalConfirmationEmail
 };
+
