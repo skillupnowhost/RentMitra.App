@@ -2,6 +2,9 @@ const pool = require('../database');
 
 // ==========================================
 // CREATE CHECKOUT
+// Customer is NOT created here.
+// Customer is created only after payment
+// verification succeeds.
 // ==========================================
 
 const createCheckout = async (req, res) => {
@@ -23,7 +26,7 @@ const createCheckout = async (req, res) => {
         } = req.body;
 
         // ==========================================
-        // VALIDATE PRODUCT
+        // 1. VALIDATE PRODUCT
         // ==========================================
 
         if (!variant_id || !quantity) {
@@ -39,7 +42,7 @@ const createCheckout = async (req, res) => {
         }
 
         // ==========================================
-        // VALIDATE CUSTOMER
+        // 2. VALIDATE CUSTOMER DETAILS
         // ==========================================
 
         if (!full_name || !mobile || !email) {
@@ -49,7 +52,7 @@ const createCheckout = async (req, res) => {
         }
 
         // ==========================================
-        // VALIDATE MOBILE
+        // 3. VALIDATE MOBILE
         // ==========================================
 
         if (!/^\d{10}$/.test(String(mobile).trim())) {
@@ -59,7 +62,7 @@ const createCheckout = async (req, res) => {
         }
 
         // ==========================================
-        // VALIDATE EMAIL
+        // 4. VALIDATE EMAIL
         // ==========================================
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
@@ -69,7 +72,7 @@ const createCheckout = async (req, res) => {
         }
 
         // ==========================================
-        // VALIDATE ADDRESS
+        // 5. VALIDATE ADDRESS
         // ==========================================
 
         if (
@@ -86,7 +89,7 @@ const createCheckout = async (req, res) => {
         }
 
         // ==========================================
-        // VALIDATE PINCODE
+        // 6. VALIDATE PINCODE
         // ==========================================
 
         if (!/^\d{6}$/.test(String(pincode).trim())) {
@@ -96,7 +99,7 @@ const createCheckout = async (req, res) => {
         }
 
         // ==========================================
-        // CLEAN VALUES
+        // 7. CLEAN VALUES
         // ==========================================
 
         const cleanFullName = String(full_name).trim();
@@ -124,7 +127,7 @@ const createCheckout = async (req, res) => {
         await client.query('BEGIN');
 
         // ==========================================
-        // 1. GET PRODUCT VARIANT
+        // 8. GET PRODUCT VARIANT
         // ==========================================
 
         const variantResult = await client.query(
@@ -160,7 +163,7 @@ const createCheckout = async (req, res) => {
         }
 
         // ==========================================
-        // 2. CALCULATE ORDER AMOUNT
+        // 9. CALCULATE ORDER AMOUNT
         // ==========================================
 
         const monthlyRent = Number(variant.monthly_rent);
@@ -169,116 +172,14 @@ const createCheckout = async (req, res) => {
             monthlyRent * cleanQuantity;
 
         // ==========================================
-        // 3. FIND OR CREATE CUSTOMER
-        // ==========================================
-
-        let customer;
-
-        const customerResult = await client.query(
-            `
-            SELECT
-                customer_id,
-                full_name,
-                mobile,
-                email,
-                is_active
-            FROM customers
-            WHERE mobile = $1
-               OR email = $2
-            ORDER BY customer_id
-            LIMIT 1
-            `,
-            [cleanMobile, cleanEmail]
-        );
-
-        if (customerResult.rows.length > 0) {
-
-            customer = customerResult.rows[0];
-
-            if (!customer.is_active) {
-                await client.query('ROLLBACK');
-
-                return res.status(400).json({
-                    message: 'Customer account is not active'
-                });
-            }
-
-        } else {
-
-            // ==========================================
-            // CREATE CUSTOMER
-            // ==========================================
-
-            const newCustomerResult =
-                await client.query(
-                    `
-                    INSERT INTO customers
-                    (
-                        full_name,
-                        mobile,
-                        email
-                    )
-                    VALUES
-                    (
-                        $1,
-                        $2,
-                        $3
-                    )
-                    RETURNING *
-                    `,
-                    [
-                        cleanFullName,
-                        cleanMobile,
-                        cleanEmail
-                    ]
-                );
-
-            customer = newCustomerResult.rows[0];
-        }
-
-        // ==========================================
-        // 4. CREATE ADDRESS
-        // ==========================================
-
-        const addressResult = await client.query(
-            `
-            INSERT INTO addresses
-            (
-                customer_id,
-                house_flat_number,
-                apartment_name,
-                street_area,
-                landmark,
-                city,
-                pincode
-            )
-            VALUES
-            (
-                $1,
-                $2,
-                $3,
-                $4,
-                $5,
-                $6,
-                $7
-            )
-            RETURNING *
-            `,
-            [
-                customer.customer_id,
-                cleanHouse,
-                cleanApartment,
-                cleanStreet,
-                cleanLandmark,
-                cleanCity,
-                cleanPincode
-            ]
-        );
-
-        const address = addressResult.rows[0];
-
-        // ==========================================
-        // 5. CREATE ORDER
+        // 10. CREATE PENDING ORDER
+        //
+        // IMPORTANT:
+        // customer_id = NULL
+        // address_id  = NULL
+        //
+        // Customer will be created after
+        // successful payment verification.
         // ==========================================
 
         const orderResult = await client.query(
@@ -293,25 +194,21 @@ const createCheckout = async (req, res) => {
             )
             VALUES
             (
+                NULL,
+                NULL,
                 $1,
-                $2,
-                $3,
                 'Pending',
                 'New Order'
             )
             RETURNING *
             `,
-            [
-                customer.customer_id,
-                address.address_id,
-                orderAmount
-            ]
+            [orderAmount]
         );
 
         const order = orderResult.rows[0];
 
         // ==========================================
-        // 6. CREATE ORDER ITEM
+        // 11. CREATE ORDER ITEM
         // ==========================================
 
         const orderItemResult = await client.query(
@@ -343,13 +240,63 @@ const createCheckout = async (req, res) => {
         const orderItem = orderItemResult.rows[0];
 
         // ==========================================
-        // 7. COMMIT
+        // SAVE TEMPORARY CHECKOUT DETAILS
+        //
+        // These details are NOT a customer yet.
+        // They are only stored until payment succeeds.
+        // ==========================================
+
+        await client.query(
+            `
+    INSERT INTO pending_checkouts
+    (
+        order_id,
+        full_name,
+        mobile,
+        email,
+        house_flat_number,
+        apartment_name,
+        street_area,
+        landmark,
+        city,
+        pincode
+    )
+    VALUES
+    (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10
+    )
+    `,
+            [
+                order.order_id,
+                cleanFullName,
+                cleanMobile,
+                cleanEmail,
+                cleanHouse,
+                cleanApartment,
+                cleanStreet,
+                cleanLandmark,
+                cleanCity,
+                cleanPincode
+            ]
+        ); 
+
+        // ==========================================
+        // 12. COMMIT
         // ==========================================
 
         await client.query('COMMIT');
 
         // ==========================================
-        // 8. RESPONSE
+        // 13. RESPONSE
         // ==========================================
 
         return res.status(201).json({
@@ -360,8 +307,17 @@ const createCheckout = async (req, res) => {
                 mobile: cleanMobile,
                 email: cleanEmail,
 
-                customer_id: customer.customer_id,
-                address_id: address.address_id,
+                house_flat_number: cleanHouse,
+                apartment_name: cleanApartment,
+                street_area: cleanStreet,
+                landmark: cleanLandmark,
+                city: cleanCity,
+                pincode: cleanPincode,
+
+                // Customer does NOT exist yet.
+                customer_id: null,
+                address_id: null,
+
                 order_id: order.order_id,
                 order_item_id: orderItem.order_item_id,
 

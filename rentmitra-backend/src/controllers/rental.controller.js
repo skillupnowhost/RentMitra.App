@@ -36,9 +36,7 @@ const createRental = async (req, res) => {
             });
         }
 
-
         // Check order exists
-
         const order = await pool.query(
             `SELECT order_id
              FROM orders
@@ -52,9 +50,7 @@ const createRental = async (req, res) => {
             });
         }
 
-
         // Check order item exists
-
         const orderItem = await pool.query(
             `SELECT order_item_id
              FROM order_items
@@ -68,9 +64,7 @@ const createRental = async (req, res) => {
             });
         }
 
-
         // Check customer exists
-
         const customer = await pool.query(
             `SELECT customer_id
              FROM customers
@@ -84,9 +78,7 @@ const createRental = async (req, res) => {
             });
         }
 
-
         // Create rental
-
         const result = await pool.query(
             `INSERT INTO rentals
             (
@@ -147,6 +139,112 @@ const getAllRentals = async (req, res) => {
 
         return res.status(500).json({
             message: 'Failed to get rentals',
+            error: error.message
+        });
+    }
+};
+
+
+// ==========================================
+// GET RENTALS FOR A CUSTOMER
+// ==========================================
+
+const getCustomerRentals = async (req, res) => {
+    try {
+        const { customer_id } = req.params;
+
+        if (!customer_id) {
+            return res.status(400).json({
+                message: 'customer_id is required'
+            });
+        }
+
+        // Check customer exists
+        const customerResult = await pool.query(
+            `SELECT
+                customer_id,
+                full_name,
+                mobile,
+                email,
+                is_active
+             FROM customers
+             WHERE customer_id = $1`,
+            [customer_id]
+        );
+
+        if (customerResult.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Customer not found'
+            });
+        }
+
+        // Get customer's rentals with order,
+        // product and product variant information
+        const result = await pool.query(
+            `SELECT
+                r.rental_id,
+                r.order_id,
+                r.order_item_id,
+                r.customer_id,
+
+                r.monthly_rent,
+                r.start_date,
+                r.rental_status,
+
+                r.created_at AS rental_created_at,
+                r.updated_at AS rental_updated_at,
+
+                o.order_amount,
+                o.payment_status,
+                o.order_status,
+                o.created_at AS order_created_at,
+                o.updated_at AS order_updated_at,
+
+                oi.variant_id,
+                oi.quantity,
+                oi.monthly_rent AS order_item_monthly_rent,
+
+                pv.variant_name,
+                pv.product_id,
+
+                p.product_name,
+                p.category
+
+             FROM rentals r
+
+             INNER JOIN orders o
+                ON o.order_id = r.order_id
+
+             INNER JOIN order_items oi
+                ON oi.order_item_id = r.order_item_id
+
+             INNER JOIN product_variants pv
+                ON pv.variant_id = oi.variant_id
+
+             INNER JOIN products p
+                ON p.product_id = pv.product_id
+
+             WHERE r.customer_id = $1
+
+             ORDER BY r.created_at DESC`,
+            [customer_id]
+        );
+
+        return res.status(200).json({
+            message: 'Customer rentals retrieved successfully',
+
+            customer: customerResult.rows[0],
+
+            count: result.rows.length,
+
+            rentals: result.rows
+        });
+
+    } catch (error) {
+        console.error('Error getting customer rentals:', error);
+
+        return res.status(500).json({
+            message: 'Failed to get customer rentals',
             error: error.message
         });
     }
@@ -313,9 +411,7 @@ const activateRental = async (req, res) => {
     try {
         const { order_id } = req.params;
 
-
         // Check order
-
         const orderResult = await pool.query(
             `SELECT order_id, payment_status, order_status
              FROM orders
@@ -331,9 +427,7 @@ const activateRental = async (req, res) => {
 
         const order = orderResult.rows[0];
 
-
         // Rental can be activated only after delivery
-
         if (order.order_status !== 'Delivered') {
             return res.status(400).json({
                 message:
@@ -341,9 +435,7 @@ const activateRental = async (req, res) => {
             });
         }
 
-
         // Check rental
-
         const rentalResult = await pool.query(
             `SELECT rental_id, rental_status
              FROM rentals
@@ -357,9 +449,7 @@ const activateRental = async (req, res) => {
             });
         }
 
-
         // Activate rental
-
         const updatedRental = await pool.query(
             `UPDATE rentals
              SET
@@ -371,9 +461,7 @@ const activateRental = async (req, res) => {
             [order_id]
         );
 
-
         // Update order
-
         await pool.query(
             `UPDATE orders
              SET
@@ -382,7 +470,6 @@ const activateRental = async (req, res) => {
              WHERE order_id = $1`,
             [order_id]
         );
-
 
         return res.status(200).json({
             message: 'Rental activated successfully',
@@ -400,9 +487,14 @@ const activateRental = async (req, res) => {
 };
 
 
+// ==========================================
+// EXPORTS
+// ==========================================
+
 module.exports = {
     createRental,
     getAllRentals,
+    getCustomerRentals,
     getRentalById,
     updateRentalStatus,
     updateRental,

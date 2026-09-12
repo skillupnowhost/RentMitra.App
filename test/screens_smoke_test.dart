@@ -5,9 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:rentmitra_app/core/router/app_router.dart';
-import 'package:rentmitra_app/models/order.dart';
 import 'package:rentmitra_app/models/product.dart';
-import 'package:rentmitra_app/providers/order_provider.dart';
+import 'package:rentmitra_app/providers/pricing_provider.dart';
 import 'package:rentmitra_app/screens/ac_screen.dart';
 import 'package:rentmitra_app/screens/checkout_screen.dart';
 import 'package:rentmitra_app/screens/home_screen.dart';
@@ -23,8 +22,13 @@ import 'package:rentmitra_app/screens/onboarding_screen.dart';
 /// `context.go`/`context.push`, which requires a `GoRouter` ancestor — so
 /// each is pumped through a real (minimal) `GoRouter` built from the app's
 /// own [appRoutes], not a bare `MaterialApp`. Screens that read
-/// `OrderProvider` (MyRentals, OrderSuccess) also need that provider above
-/// the router, exactly as `main.dart` wires it in production.
+/// `PricingProvider` (Home, AC, Refrigerator, Washing Machine, Combo,
+/// Offers) also need that provider above the router, exactly as
+/// `main.dart` wires it in production. `Checkout`, `My Rentals` and
+/// `Profile` now come from the checkout flow — they call the backend
+/// directly via `ApiService` rather than reading a provider, so a failed
+/// request in the test sandbox (no server reachable) is expected to
+/// surface as an in-screen error state, not a thrown exception.
 void main() {
   // Prevents google_fonts from attempting a real network fetch in the test
   // sandbox (no internet access here), which otherwise stalls every test
@@ -51,14 +55,6 @@ void main() {
     checkoutProduct: CheckoutProduct.acOneTon,
   );
 
-  final sampleOrder = Order(
-    id: 'TEST-ORDER-1',
-    productName: 'Smart Inverter Split AC',
-    amount: 999,
-    paymentMethod: 'UPI',
-    placedAt: DateTime(2026, 1, 1),
-  );
-
   // name -> (route path, extra). `null` path means "pump the widget
   // directly, no router" — only Onboarding, which isn't a registered route.
   final screens = <String, (String?, Object?)>{
@@ -72,8 +68,6 @@ void main() {
     'Combo': ('/combo', null),
     'Product Details': ('/product-details', sampleProduct),
     'Checkout': ('/checkout', CheckoutProduct.acOneTon),
-    'Payment': ('/payment', CheckoutProduct.acOneTon),
-    'Order Success': ('/order-success', sampleOrder),
     'My Rentals': ('/my-rentals', null),
     'Profile': ('/profile', null),
     'Offers': ('/offers', null),
@@ -84,8 +78,8 @@ void main() {
     if (path == null) {
       return const MaterialApp(home: OnboardingScreen());
     }
-    return ChangeNotifierProvider<OrderProvider>(
-      create: (_) => OrderProvider(),
+    return ChangeNotifierProvider<PricingProvider>(
+      create: (_) => PricingProvider(),
       child: MaterialApp.router(
         routerConfig: GoRouter(
           routes: appRoutes,

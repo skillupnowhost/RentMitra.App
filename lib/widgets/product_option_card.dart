@@ -299,7 +299,11 @@ class ProductOptionCard extends StatelessWidget {
                               discountBadge: discountBadge,
                             ),
                           ),
-                          _ContinueButton(onTap: onContinue, label: ctaLabel),
+                          _ContinueButton(
+                            onTap: onContinue,
+                            label: ctaLabel,
+                            compact: true,
+                          ),
                         ],
                       ),
                     ],

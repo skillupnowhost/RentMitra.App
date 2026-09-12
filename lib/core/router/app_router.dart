@@ -1,15 +1,13 @@
 import 'package:go_router/go_router.dart';
 
-import '../../models/order.dart';
 import '../../models/product.dart';
 import '../../screens/ac_screen.dart';
 import '../../screens/checkout_screen.dart';
 import '../../screens/combo_screen.dart';
 import '../../screens/home_screen.dart';
+import '../../screens/login_screen.dart';
 import '../../screens/my_rentals_screen.dart';
 import '../../screens/offers_screen.dart';
-import '../../screens/order_success_screen.dart';
-import '../../screens/payment_screen.dart';
 import '../../screens/product_details_screen.dart';
 import '../../screens/products_catalog_screen.dart';
 import '../../screens/profile_screen.dart';
@@ -74,14 +72,8 @@ final List<RouteBase> appRoutes = [
     },
   ),
   GoRoute(
-    path: '/payment',
-    builder: (context, state) =>
-        PaymentScreen(args: state.extra as PaymentScreenArgs),
-  ),
-  GoRoute(
-    path: '/order-success',
-    builder: (context, state) =>
-        OrderSuccessScreen(order: state.extra as Order),
+    path: '/login',
+    builder: (context, state) => const LoginScreen(),
   ),
   GoRoute(
     path: '/my-rentals',

@@ -3,14 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'core/router/app_router.dart';
-import 'providers/order_provider.dart';
 import 'providers/pricing_provider.dart';
+import 'services/customer_session.dart';
 import 'services/location_controller.dart';
 import 'theme/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocationController.instance.init();
+  await CustomerSession.instance.initialize();
   runApp(const RentMitraApp());
 }
 
@@ -21,7 +22,6 @@ class RentMitraApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => PricingProvider()..load()),
       ],
       child: MaterialApp.router(
