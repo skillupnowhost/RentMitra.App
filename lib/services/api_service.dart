@@ -1468,6 +1468,113 @@ class ApiService {
   }
 
   // ============================================================
+  // CREATE DELIVERY PARTNER
+  // POST /delivery-partners
+  // ============================================================
+
+  static Future<Map<String, dynamic>> createDeliveryPartner({
+    required String partnerName,
+    String? contactPerson,
+    String? mobile,
+    String? email,
+    String? address,
+    String? city,
+    String? pincode,
+    String? partnerStatus,
+    String? notes,
+  }) async {
+    final url = Uri.parse('$baseUrl/delivery-partners');
+
+    final body = {
+      'partner_name': partnerName.trim(),
+      'contact_person': contactPerson?.trim(),
+      'mobile': mobile?.trim(),
+      'email': email?.trim().toLowerCase(),
+      'address': address?.trim(),
+      'city': city?.trim(),
+      'pincode': pincode?.trim(),
+      'partner_status': partnerStatus,
+      'notes': notes?.trim(),
+    };
+
+    try {
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      return _handleResponse(response);
+    } catch (error) {
+      if (error is Exception) {
+        rethrow;
+      }
+
+      throw Exception('Unable to create delivery partner.');
+    }
+  }
+
+  // ============================================================
+  // UPDATE DELIVERY PARTNER
+  // PUT /delivery-partners/:delivery_partner_id
+  // ============================================================
+
+  static Future<Map<String, dynamic>> updateDeliveryPartner({
+    required int deliveryPartnerId,
+    required String partnerName,
+    String? contactPerson,
+    String? mobile,
+    String? email,
+    String? address,
+    String? city,
+    String? pincode,
+    String? partnerStatus,
+    String? notes,
+  }) async {
+    final url = Uri.parse(
+      '$baseUrl/delivery-partners/$deliveryPartnerId',
+    );
+
+    final body = {
+      'partner_name': partnerName.trim(),
+      'contact_person': contactPerson?.trim(),
+      'mobile': mobile?.trim(),
+      'email': email?.trim().toLowerCase(),
+      'address': address?.trim(),
+      'city': city?.trim(),
+      'pincode': pincode?.trim(),
+      'partner_status': partnerStatus,
+      'notes': notes?.trim(),
+    };
+
+    try {
+      final response = await http
+          .put(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      return _handleResponse(response);
+    } catch (error) {
+      if (error is Exception) {
+        rethrow;
+      }
+
+      throw Exception('Unable to update delivery partner.');
+    }
+  }
+
+  // ============================================================
   // GET DELIVERY ASSIGNMENTS
   // GET /deliveries/assignments
   // ============================================================
