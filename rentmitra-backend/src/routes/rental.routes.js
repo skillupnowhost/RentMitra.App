@@ -6,8 +6,7 @@ const {
     getCustomerRentals,
     getRentalById,
     updateRentalStatus,
-    updateRental,
-    activateRental
+    updateRental
 } = require('../controllers/rental.controller');
 
 const router = express.Router();
@@ -43,18 +42,6 @@ router.get(
     '/customer/:customer_id',
     getCustomerRentals
 );
-
-
-// ==========================================
-// ACTIVATE RENTAL AFTER DELIVERY
-// PUT /rentals/order/:order_id/activate
-// ==========================================
-
-router.put(
-    '/order/:order_id/activate',
-    activateRental
-);
-
 
 // ==========================================
 // GET RENTAL BY ID

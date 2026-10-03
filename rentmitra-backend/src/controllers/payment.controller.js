@@ -1264,7 +1264,7 @@ const verifyPayment = async (req, res) => {
 
                 const subtotal =
                     receipt &&
-                    receipt.totals
+                        receipt.totals
                         ? Number(
                             receipt.totals.subtotal
                         )
@@ -1274,7 +1274,7 @@ const verifyPayment = async (req, res) => {
 
                 const cgst =
                     receipt &&
-                    receipt.totals
+                        receipt.totals
                         ? Number(
                             receipt.totals.cgst
                         )
@@ -1282,7 +1282,7 @@ const verifyPayment = async (req, res) => {
 
                 const sgst =
                     receipt &&
-                    receipt.totals
+                        receipt.totals
                         ? Number(
                             receipt.totals.sgst
                         )
@@ -1290,7 +1290,7 @@ const verifyPayment = async (req, res) => {
 
                 const gst =
                     receipt &&
-                    receipt.totals
+                        receipt.totals
                         ? Number(
                             receipt.totals.gst
                         )
@@ -1298,7 +1298,7 @@ const verifyPayment = async (req, res) => {
 
                 const totalAmount =
                     receipt &&
-                    receipt.totals
+                        receipt.totals
                         ? Number(
                             receipt.totals.totalAmount
                         )
@@ -1952,13 +1952,80 @@ const updatePaymentStatus = async (req, res) => {
     }
 };
 
+// ============================================================ 
+// // MARK PAYMENT AS FAILED
+//  // ============================================================
 
+const markPaymentAsFailed = async (req, res) => {
+    try {
+        const { razorpay_order_id } = req.body;
+        // -------------------------------------------------------- 
+        // // VALIDATION 
+        // // --------------------------------------------------------
+        if (!razorpay_order_id) {
+            return res.status(400).json({
+                message: 'razorpay_order_id is required'
+            });
+        }
+        // --------------------------------------------------------
+        //  // UPDATE PAYMENT 
+        // // --------------------------------------------------------
+        const paymentResult =
+            await pool.query(
+                ` UPDATE payments 
+            SET 
+            payment_status = 'Failed',
+             verification_status = 'Failed', 
+             updated_at = CURRENT_TIMESTAMP 
+             WHERE razorpay_order_id = $1 
+             RETURNING * `,
+                [razorpay_order_id]
+            );
+
+        // -------------------------------------------------------- 
+        // // PAYMENT NOT FOUND 
+        // // --------------------------------------------------------
+
+        if (paymentResult.rows.length === 0) {
+            return res.status(404).json({
+                message: 'Payment record not found'
+            });
+        }
+        const payment =
+            paymentResult.rows[0];
+
+
+        // -------------------------------------------------------- 
+        // // UPDATE ORDER PAYMENT STATUS 
+        // // --------------------------------------------------------
+
+        await pool.query(
+            ` 
+            UPDATE orders 
+            SET payment_status = 'Failed',
+             updated_at = CURRENT_TIMESTAMP
+              WHERE
+               order_id = $1 `,
+            [payment.order_id]
+        );
+        // -------------------------------------------------------- 
+        // // SUCCESS RESPONSE 
+        // // --------------------------------------------------------
+
+        return res.json({
+            message: 'Payment marked as failed',
+            payment: payment
+        });
+    } catch (error) {
+        console.error('Payment failed update error:', error);
+        return res.status(500).json({ message: 'Failed to update payment status', error: error.message });
+    }
+};
 // ============================================================
 // EXPORT CONTROLLERS
 // ============================================================
 
 module.exports = {
-
     createRazorpayOrder,
 
     verifyPayment,
@@ -1969,5 +2036,7 @@ module.exports = {
 
     getPaymentById,
 
-    updatePaymentStatus
+    updatePaymentStatus,
+    
+    markPaymentAsFailed
 };

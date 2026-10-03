@@ -49,3 +49,5 @@ app.*.map.json
 
 # Environment variables / secrets
 .env
+
+rentmitra-backend/firebase/serviceAccountKey.json

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "720466991073",
+    "project_id": "rentmitra-babbd",
+    "storage_bucket": "rentmitra-babbd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720466991073:android:ce1eac1dabcf7c3728e4a0",
+        "android_client_info": {
+          "package_name": "com.rentmitra.rentmitra_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9S1jDYW0S1hN54XfbJM9OvP1FLZm5f2Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

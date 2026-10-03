@@ -1,26 +1,27 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'core/router/app_router.dart';
+import 'firebase_options.dart';
 import 'providers/pricing_provider.dart';
 import 'services/customer_session.dart';
 import 'services/location_controller.dart';
 import 'theme/app_colors.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Fire-and-forget rather than awaited: both just restore a previously
-  // saved value from SharedPreferences (a manually-picked city, a logged-in
-  // customer) into a ChangeNotifier/ValueNotifier that the UI already
-  // watches reactively, so screens pick the restored value up the moment
-  // it lands. Blocking runApp() on this disk I/O instead just holds
-  // Flutter's first frame back — and with it, Android's native splash
-  // screen, which only dismisses once that first frame paints.
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   unawaited(LocationController.instance.init());
   unawaited(CustomerSession.instance.initialize());
+
   runApp(const RentMitraApp());
 }
 
@@ -31,7 +32,9 @@ class RentMitraApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => PricingProvider()..load()),
+        ChangeNotifierProvider(
+          create: (_) => PricingProvider()..load(),
+        ),
       ],
       child: MaterialApp.router(
         title: 'RentMitra',

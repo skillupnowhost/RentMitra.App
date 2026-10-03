@@ -1,5 +1,5 @@
-
 const https = require('https');
+const dns = require('dns');
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
@@ -48,20 +48,32 @@ const sendRentalConfirmationEmail = async ({
     // FORMAT AMOUNTS
     // ========================================================
 
+    // Display whole numbers instead of:
+    // ₹999.00
+    // ₹89.91
+    //
+    // Example:
+    // 999      -> ₹999
+    // 89.91    -> ₹90
+    // 1178.82  -> ₹1179
+
+    const formatAmount = (value) =>
+        Math.round(Number(value) || 0).toString();
+
     const formattedMonthlyRent =
-        Number(monthlyRent || 0).toFixed(2);
+        formatAmount(monthlyRent);
 
     const formattedCgst =
-        Number(cgst || 0).toFixed(2);
+        formatAmount(cgst);
 
     const formattedSgst =
-        Number(sgst || 0).toFixed(2);
+        formatAmount(sgst);
 
     const formattedGst =
-        Number(gst || 0).toFixed(2);
+        formatAmount(gst);
 
     const formattedTotal =
-        Number(totalAmount || 0).toFixed(2);
+        formatAmount(totalAmount);
 
     // ========================================================
     // CREATE BREVO ATTACHMENTS
@@ -181,6 +193,7 @@ const sendRentalConfirmationEmail = async ({
     console.log(
         '========================================'
     );
+
     console.log('');
 
     // ========================================================
@@ -723,121 +736,254 @@ RentMitra Rental Confirmation
             brevoAttachments.length
         );
 
-        response = await new Promise(
-            (resolve, reject) => {
+        // ====================================================
+        // RESOLVE BREVO TO IPV4
+        // ====================================================
 
-                const postData =
-                    JSON.stringify(
-                        requestBody
-                    );
+        const brevoIpv4 =
+            await new Promise(
+                (resolve, reject) => {
 
-                const request =
-                    https.request(
+                    dns.lookup(
+                        parsedUrl.hostname,
                         {
-                            protocol:
-                                parsedUrl.protocol,
+                            family: 4
+                        },
+                        (
+                            error,
+                            address
+                        ) => {
 
-                            hostname:
-                                parsedUrl.hostname,
+                            if (error) {
 
-                            port:
-                                parsedUrl.port ||
-                                443,
+                                reject(
+                                    error
+                                );
 
-                            path:
-                                parsedUrl.pathname +
-                                parsedUrl.search,
+                                return;
+                            }
 
-                            method:
-                                'POST',
+                            resolve(
+                                address
+                            );
+                        }
+                    );
+                }
+            );
 
-                            family: 4,
+        console.log(
+            'Brevo IPv4 address:',
+            brevoIpv4
+        );
 
-                            headers: {
-                                'accept':
-                                    'application/json',
+        // ====================================================
+        // HTTPS REQUEST
+        // ====================================================
 
-                                'api-key':
-                                    process.env.BREVO_API_KEY,
+        response =
+            await new Promise(
+                (
+                    resolve,
+                    reject
+                ) => {
 
-                                'content-type':
-                                    'application/json',
+                    const postData =
+                        JSON.stringify(
+                            requestBody
+                        );
 
-                                'content-length':
-                                    Buffer.byteLength(
-                                        postData
-                                    )
+                    const request =
+                        https.request(
+                            {
+                                protocol:
+                                    parsedUrl.protocol,
+
+                                // Connect directly to IPv4.
+                                hostname:
+                                    brevoIpv4,
+
+                                // Keep original hostname
+                                // for TLS SNI.
+                                servername:
+                                    parsedUrl.hostname,
+
+                                port:
+                                    parsedUrl.port ||
+                                    443,
+
+                                path:
+                                    parsedUrl.pathname +
+                                    parsedUrl.search,
+
+                                method:
+                                    'POST',
+
+                                family:
+                                    4,
+
+                                // Do not reuse a problematic
+                                // keep-alive connection.
+                                agent:
+                                    false,
+
+                                minVersion:
+                                    'TLSv1.2',
+
+                                rejectUnauthorized:
+                                    true,
+
+                                headers: {
+                                    host: parsedUrl.hostname,
+                                    accept: 'application/json',
+                                    'api-key': process.env.BREVO_API_KEY,
+                                    'content-type': 'application/json',
+                                    'content-length': Buffer.byteLength(postData)
+                                },
+
+                                // 60 seconds instead of
+                                // the old 30 seconds.
+                                timeout:
+                                    60000
                             },
 
-                            timeout: 30000
-                        },
+                            (res) => {
 
-                        (res) => {
+                                let responseBody =
+                                    '';
 
-                            let responseBody =
-                                '';
+                                res.setEncoding(
+                                    'utf8'
+                                );
 
-                            res.setEncoding(
-                                'utf8'
+                                res.on(
+                                    'data',
+                                    (chunk) => {
+
+                                        responseBody +=
+                                            chunk;
+                                    }
+                                );
+
+                                res.on(
+                                    'end',
+                                    () => {
+
+                                        resolve(
+                                            {
+                                                status:
+                                                    res.statusCode,
+
+                                                statusText:
+                                                    res.statusMessage,
+
+                                                headers:
+                                                    res.headers,
+
+                                                body:
+                                                    responseBody
+                                            }
+                                        );
+                                    }
+                                );
+                            }
+                        );
+
+                    // =================================================
+                    // SOCKET DEBUGGING
+                    // =================================================
+
+                    request.on(
+                        'socket',
+                        (socket) => {
+
+                            console.log(
+                                'Brevo socket created'
                             );
 
-                            res.on(
-                                'data',
-                                (chunk) => {
-                                    responseBody +=
-                                        chunk;
+                            socket.on(
+                                'lookup',
+                                (
+                                    error,
+                                    address,
+                                    family,
+                                    host
+                                ) => {
+
+                                    console.log(
+                                        'Brevo socket lookup:',
+                                        {
+                                            error,
+                                            address,
+                                            family,
+                                            host
+                                        }
+                                    );
                                 }
                             );
 
-                            res.on(
-                                'end',
+                            socket.on(
+                                'connect',
                                 () => {
 
-                                    resolve({
-                                        status:
-                                            res.statusCode,
+                                    console.log(
+                                        'Brevo TCP connection established'
+                                    );
+                                }
+                            );
 
-                                        statusText:
-                                            res.statusMessage,
+                            socket.on(
+                                'secureConnect',
+                                () => {
 
-                                        headers:
-                                            res.headers,
-
-                                        body:
-                                            responseBody
-                                    });
+                                    console.log(
+                                        'Brevo TLS connection established'
+                                    );
                                 }
                             );
                         }
                     );
 
-                request.on(
-                    'timeout',
-                    () => {
+                    // =================================================
+                    // REQUEST TIMEOUT
+                    // =================================================
 
-                        request.destroy(
-                            new Error(
-                                'Brevo HTTPS request timed out after 30 seconds'
-                            )
-                        );
-                    }
-                );
+                    request.on(
+                        'timeout',
+                        () => {
 
-                request.on(
-                    'error',
-                    (error) => {
+                            request.destroy(
+                                new Error(
+                                    'Brevo HTTPS request timed out after 60 seconds'
+                                )
+                            );
+                        }
+                    );
 
-                        reject(error);
-                    }
-                );
+                    // =================================================
+                    // REQUEST ERROR
+                    // =================================================
 
-                request.write(
-                    postData
-                );
+                    request.on(
+                        'error',
+                        (error) => {
 
-                request.end();
-            }
-        );
+                            reject(
+                                error
+                            );
+                        }
+                    );
+
+                    // =================================================
+                    // SEND REQUEST
+                    // =================================================
+
+                    request.write(
+                        postData
+                    );
+
+                    request.end();
+                }
+            );
 
         console.log(
             'Brevo HTTP response received'
@@ -856,9 +1002,18 @@ RentMitra Rental Confirmation
     } catch (error) {
 
         console.error('');
-        console.error('========================================');
-        console.error('BREVO HTTPS CONNECTION ERROR');
-        console.error('========================================');
+
+        console.error(
+            '========================================'
+        );
+
+        console.error(
+            'BREVO HTTPS CONNECTION ERROR'
+        );
+
+        console.error(
+            '========================================'
+        );
 
         console.error(
             'Error name:',
@@ -883,12 +1038,12 @@ RentMitra Rental Confirmation
         console.error(
             '========================================'
         );
+
         console.error('');
 
         throw new Error(
-            `Brevo connection failed: ${
-                error?.message ||
-                'Unknown HTTPS error'
+            `Brevo connection failed: ${error?.message ||
+            'Unknown HTTPS error'
             }`
         );
     }
@@ -929,9 +1084,18 @@ RentMitra Rental Confirmation
     ) {
 
         console.error('');
-        console.error('========================================');
-        console.error('BREVO EMAIL API ERROR');
-        console.error('========================================');
+
+        console.error(
+            '========================================'
+        );
+
+        console.error(
+            'BREVO EMAIL API ERROR'
+        );
+
+        console.error(
+            '========================================'
+        );
 
         console.error(
             'HTTP status:',
@@ -955,8 +1119,7 @@ RentMitra Rental Confirmation
         throw new Error(
             responseData?.message ||
             responseData?.code ||
-            `Brevo email failed with HTTP ${
-                response.status
+            `Brevo email failed with HTTP ${response.status
             }`
         );
     }
@@ -966,9 +1129,18 @@ RentMitra Rental Confirmation
     // ========================================================
 
     console.log('');
-    console.log('========================================');
-    console.log('BREVO EMAIL SENT SUCCESSFULLY');
-    console.log('========================================');
+
+    console.log(
+        '========================================'
+    );
+
+    console.log(
+        'BREVO EMAIL SENT SUCCESSFULLY'
+    );
+
+    console.log(
+        '========================================'
+    );
 
     console.log(
         'To:',
@@ -1013,4 +1185,3 @@ RentMitra Rental Confirmation
 module.exports = {
     sendRentalConfirmationEmail
 };
-

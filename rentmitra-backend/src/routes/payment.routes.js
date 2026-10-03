@@ -1,3 +1,4 @@
+
 const express = require('express');
 
 const router = express.Router();
@@ -8,7 +9,8 @@ const {
     createPayment,
     getAllPayments,
     getPaymentById,
-    updatePaymentStatus
+    updatePaymentStatus,
+    markPaymentAsFailed
 } = require('../controllers/payment.controller');
 
 // ============================================================
@@ -55,4 +57,15 @@ router.put(
     updatePaymentStatus
 );
 
+// ============================================================
+// PAYMENT FAILURE
+// ============================================================
+
+// Mark payment as failed
+router.post(
+    '/payments/failed',
+    markPaymentAsFailed
+);
+
 module.exports = router;
+

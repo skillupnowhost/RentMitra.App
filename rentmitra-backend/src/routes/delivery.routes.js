@@ -5,15 +5,25 @@ const {
     markOrderAsDelivered
 } = require('../controllers/delivery.controller');
 
+const {
+    getDeliveryAssignments
+} = require('../controllers/deliveryLookup.controller');
+
 const router = express.Router();
 
+router.get(
+    '/assignments',
+    getDeliveryAssignments
+);
 
-// ASSIGN DELIVER
-router.post('/assign', assignDelivery);
+router.post(
+    '/assign',
+    assignDelivery
+);
 
-
-// MARK ORDER AS DELIVERED
-router.put('/:order_id/delivered', markOrderAsDelivered);
-
+router.put(
+    '/:order_id/delivered',
+    markOrderAsDelivered
+);
 
 module.exports = router;

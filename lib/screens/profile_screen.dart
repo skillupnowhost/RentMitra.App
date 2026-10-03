@@ -1,10 +1,12 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
 import '../services/customer_session.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isEditing = false;
+  bool _isLoggingOut = false;
 
   String? _errorMessage;
 
@@ -452,6 +455,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ============================================================
+  // LOGOUT
+  // ============================================================
+
+  Future<void> _logout() async {
+    if (_isLoggingOut) {
+      return;
+    }
+
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text(
+            'Are you sure you want to logout?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    try {
+      // --------------------------------------------------------
+      // SIGN OUT FROM FIREBASE
+      // --------------------------------------------------------
+
+      await FirebaseAuth.instance.signOut();
+
+      // --------------------------------------------------------
+      // CLEAR LOCAL CUSTOMER SESSION
+      // --------------------------------------------------------
+
+      await CustomerSession.instance.clear();
+
+      if (!mounted) {
+        return;
+      }
+
+      // --------------------------------------------------------
+      // RESET PROFILE SCREEN
+      // --------------------------------------------------------
+
+      setState(() {
+        _customer = null;
+        _address = null;
+        _errorMessage = null;
+        _isEditing = false;
+        _isLoggingOut = false;
+
+        _nameController.clear();
+        _mobileController.clear();
+        _emailController.clear();
+
+        _houseController.clear();
+        _apartmentController.clear();
+        _streetController.clear();
+        _landmarkController.clear();
+        _cityController.clear();
+        _pincodeController.clear();
+      });
+
+      _showMessage('Logged out successfully.');
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoggingOut = false;
+      });
+
+      _showMessage(
+        'Unable to logout. Please try again.',
+      );
+    }
+  }
+
+  // ============================================================
   // SHOW MESSAGE
   // ============================================================
 
@@ -541,9 +647,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           if (!_isLoading &&
               _errorMessage == null &&
-              _customer != null)
+              _customer != null) ...[
             TextButton.icon(
-              onPressed: _isSaving
+              onPressed: (_isSaving || _isLoggingOut)
                   ? null
                   : () {
                       if (_isEditing) {
@@ -564,6 +670,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _isEditing ? 'Cancel' : 'Edit',
               ),
             ),
+
+            const SizedBox(width: 4),
+
+            IconButton(
+              tooltip: 'Logout',
+              onPressed:
+                  (_isSaving || _isLoggingOut)
+                      ? null
+                      : _logout,
+              icon: _isLoggingOut
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.logout_rounded,
+                      size: 21,
+                    ),
+            ),
+          ],
         ],
       ),
     );
@@ -585,7 +714,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     if (_customer == null) {
-      return _buildNoCustomerState();
+      // Keep login inside the Profile page. The user does not need
+      // to manually open /login.
+      return const LoginScreen(embedded: true);
     }
 
     return RefreshIndicator(
@@ -849,8 +980,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           _buildField(
             label: 'Pincode',
-            icon:
-                Icons.markunread_mailbox_outlined,
+            icon: Icons.markunread_mailbox_outlined,
             controller: _pincodeController,
             keyboardType: TextInputType.number,
             enabled: _isEditing,
@@ -1014,53 +1144,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // NO CUSTOMER STATE
-  // ============================================================
-
-  Widget _buildNoCustomerState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person_outline_rounded,
-              size: 60,
-              color: Colors.grey.shade500,
-            ),
-
-            const SizedBox(height: 18),
-
-            Text(
-              'No Customer Profile',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.of(
-                figmaSize: 20,
-                weight: FontWeight.w700,
-                color: AppColors.navy,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              'Your customer profile will appear here after your first successful payment.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.of(
-                figmaSize: 13,
-                weight: FontWeight.w400,
-                color: AppColors.textGray,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
